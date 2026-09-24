@@ -1,0 +1,103 @@
+/* dashboard.css - halaman dashboard sementara (peminjam dan admin) */
+
+:root {
+    --navy: #0d1240;
+    --ungu: #8671c9;
+    --latar: #f7f6f0;
+    --teks: #2b2b36;
+    --abu: #8a8a96;
+    --garis: #dcdce4;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+    font-size: 15px;
+    color: var(--teks);
+    background: var(--latar);
+}
+
+.atas {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    color: #ffffff;
+    background: var(--navy);
+}
+
+.atas .brand {
+    font-weight: 700;
+}
+
+.atas .akun {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 14px;
+}
+
+.atas button {
+    padding: 8px 18px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    background: var(--ungu);
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.isi {
+    max-width: 1000px;
+    margin: 32px auto;
+    padding: 0 20px;
+}
+
+.isi h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+    color: var(--navy);
+}
+
+.isi .ket {
+    margin: 0 0 24px;
+    color: var(--abu);
+}
+
+.kotak {
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid var(--garis);
+    border-radius: 12px;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--garis);
+    white-space: nowrap;
+}
+
+th {
+    font-size: 13px;
+    color: var(--abu);
+}
+
+.kosong {
+    padding: 20px 0;
+    text-align: center;
+    color: var(--abu);
+}

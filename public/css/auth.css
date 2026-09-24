@@ -1,0 +1,315 @@
+/* auth.css - halaman login dan daftar akun Smart Reading Room */
+/* gaya mengikuti template: latar gradasi ungu, panel putih, ilustrasi kiri, form kanan */
+
+:root {
+    --latar: #3a2a63; /* sama dengan warna celana di ilustrasi */
+    --ungu: #8671c9;
+    --ungu-gelap: #7660bb;
+    --ungu-teks: #7e63c8;
+    --navy: #0d1240;
+    --teks: #2b2b36;
+    --abu: #8a8a96;
+    --garis: #6d6d78;
+    --merah: #d12b3d;
+    --merah-muda: #fdecee;
+    --hijau: #1e6b3a;
+    --hijau-muda: #e6f4ea;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 40px 4vw;
+    font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--teks);
+    background: var(--latar);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ---------- panel putih besar ---------- */
+
+.panel {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 40px 44px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 20px 50px rgba(20, 8, 40, 0.35);
+}
+
+.brand {
+    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+}
+
+.isi {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 32px;
+    align-items: center;
+}
+
+.ilustrasi img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* ---------- kartu form ---------- */
+
+.kartu {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 44px 44px 40px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 18px 60px rgba(60, 40, 120, 0.14);
+}
+
+.kartu h1 {
+    margin: 0 0 10px;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--navy);
+}
+
+.sub {
+    margin: 0 0 28px;
+    color: var(--abu);
+    font-weight: 500;
+}
+
+.sub a {
+    color: var(--ungu-teks);
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.sub a:focus-visible {
+    outline: 3px solid rgba(134, 113, 201, 0.4);
+    outline-offset: 2px;
+}
+
+/* ---------- form ---------- */
+
+/* label disembunyikan secara visual, tetap terbaca oleh screen reader */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.field {
+    margin-bottom: 14px;
+}
+
+.field input {
+    width: 100%;
+    height: 50px;
+    padding: 0 22px;
+    font: inherit;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--teks);
+    background: #ffffff;
+    border: 1.5px solid var(--garis);
+    border-radius: 999px;
+}
+
+.field input::placeholder {
+    color: var(--abu);
+}
+
+.field input:focus-visible {
+    outline: 3px solid rgba(134, 113, 201, 0.35);
+    border-color: var(--ungu);
+}
+
+.field input.is-invalid {
+    border-color: var(--merah);
+}
+
+.field-error {
+    margin: 6px 0 0 22px;
+    font-size: 13px;
+    color: var(--merah);
+}
+
+.field-hint {
+    margin: 6px 0 0 22px;
+    font-size: 13px;
+    color: var(--abu);
+}
+
+/* kolom password dengan tombol lihat */
+.pw {
+    position: relative;
+}
+
+.pw input {
+    padding-right: 84px;
+}
+
+.pw-toggle {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    padding: 4px 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ungu-teks);
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.pw-toggle:focus-visible {
+    outline: 3px solid rgba(134, 113, 201, 0.4);
+}
+
+/* dua kolom (NIS/NIP dan kelas) */
+.row {
+    display: flex;
+    gap: 12px;
+}
+
+.row .field {
+    flex: 1;
+    min-width: 0;
+}
+
+.opsi-login {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 4px 0 20px 4px;
+}
+
+.ingat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555560;
+}
+
+.ingat input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--ungu);
+}
+
+.lupa-pw {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ungu-teks);
+    text-decoration: none;
+}
+
+.lupa-pw:hover {
+    text-decoration: underline;
+}
+
+.btn {
+    width: 100%;
+    height: 52px;
+    margin-top: 6px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #ffffff;
+    background: var(--ungu);
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: var(--ungu-gelap);
+}
+
+.btn:focus-visible {
+    outline: 3px solid rgba(134, 113, 201, 0.45);
+    outline-offset: 3px;
+}
+
+/* ---------- pesan ---------- */
+
+.alert {
+    margin-bottom: 18px;
+    padding: 11px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 12px;
+}
+
+.alert-error {
+    color: var(--merah);
+    background: var(--merah-muda);
+}
+
+.alert-success {
+    color: var(--hijau);
+    background: var(--hijau-muda);
+}
+
+/* ---------- layar kecil ---------- */
+
+@media (max-width: 900px) {
+    body {
+        padding: 16px;
+    }
+
+    .panel {
+        padding: 20px 16px 28px;
+    }
+
+    .isi {
+        grid-template-columns: 1fr;
+    }
+
+    .ilustrasi {
+        display: none;
+    }
+
+    .kartu {
+        padding: 28px 22px;
+        box-shadow: none;
+    }
+
+    .kartu h1 {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 420px) {
+    .row {
+        flex-direction: column;
+        gap: 0;
+    }
+}

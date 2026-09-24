@@ -1,0 +1,246 @@
+/* admin.css - panel admin Smart Reading Room */
+
+:root {
+    --navy: #0d1240;
+    --ungu: #8671c9;
+    --ungu-gelap: #7660bb;
+    --latar: #f7f6f0;
+    --teks: #2b2b36;
+    --abu: #8a8a96;
+    --garis: #e3e3ea;
+    --merah: #d12b3d;
+    --merah-muda: #fdecee;
+    --hijau: #1e6b3a;
+    --hijau-muda: #e6f4ea;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+    font-size: 15px;
+    color: var(--teks);
+    background: var(--latar);
+}
+
+.app { display: flex; min-height: 100vh; }
+
+/* ---------- sidebar ---------- */
+.sisi {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    color: #fff;
+    background: var(--navy);
+}
+
+.sisi .brand {
+    padding: 0 20px 20px;
+    font-weight: 700;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+.sisi .brand small {
+    display: block;
+    margin-top: 4px;
+    font-weight: 500;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+}
+
+.menu { flex: 1; padding: 16px 0; display: flex; flex-direction: column; }
+
+.grup-menu {
+    margin: 14px 20px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+}
+
+.menu a, .menu .menu-nanti {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+}
+
+.menu a.aktif {
+    color: #fff;
+    background: rgba(255,255,255,0.08);
+    border-left: 3px solid var(--ungu);
+    font-weight: 700;
+}
+
+.menu a:hover { background: rgba(255,255,255,0.06); }
+
+.menu .menu-nanti {
+    color: rgba(255,255,255,0.3);
+    cursor: default;
+}
+
+.akun-bawah {
+    padding: 16px 20px 0;
+    border-top: 1px solid rgba(255,255,255,0.12);
+}
+.akun-bawah .nama { font-weight: 700; font-size: 14px; }
+.akun-bawah .kelas { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 10px; }
+.akun-bawah button {
+    width: 100%;
+    padding: 8px 0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ungu);
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.akun-bawah button:hover { background: var(--ungu-gelap); }
+
+/* ---------- konten ---------- */
+.konten { flex: 1; padding: 28px 32px; max-width: 1100px; }
+
+.kepala { margin-bottom: 20px; }
+.kepala h1 { margin: 0 0 4px; font-size: 24px; color: var(--navy); }
+.kepala .ket { margin: 0; color: var(--abu); }
+
+.kepala-baris {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* ---------- alert ---------- */
+.alert { margin-bottom: 18px; padding: 11px 16px; font-size: 14px; font-weight: 500; border-radius: 10px; }
+.alert-sukses { color: var(--hijau); background: var(--hijau-muda); }
+.alert-galat { color: var(--merah); background: var(--merah-muda); }
+
+/* ---------- kartu ringkasan dashboard ---------- */
+.ringkasan {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+.kartu-ringkas {
+    padding: 20px;
+    background: #fff;
+    border: 1px solid var(--garis);
+    border-radius: 12px;
+}
+.kartu-ringkas .angka { display: block; font-size: 30px; font-weight: 800; color: var(--navy); }
+.kartu-ringkas .label { font-size: 13px; color: var(--abu); }
+.kartu-ringkas.soroti { border-color: var(--ungu); background: #f7f4ff; }
+
+/* ---------- tombol ---------- */
+.tombol {
+    display: inline-block;
+    padding: 10px 22px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ungu);
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+}
+.tombol:hover { background: var(--ungu-gelap); }
+.tombol-kecil { padding: 6px 14px; font-size: 13px; }
+.tombol-bahaya { background: var(--merah); }
+.tombol-bahaya:hover { background: #ad1f2f; }
+.tombol-luar {
+    background: transparent;
+    color: var(--ungu);
+    border: 1.5px solid var(--ungu);
+}
+.tombol-lunas { background: var(--hijau); }
+.tombol-lunas:hover { background: #15532c; }
+.tombol-belum { background: var(--merah); }
+.tombol-belum:hover { background: #ad1f2f; }
+
+/* ---------- kotak / tabel ---------- */
+.kotak {
+    padding: 20px;
+    background: #fff;
+    border: 1px solid var(--garis);
+    border-radius: 12px;
+    overflow-x: auto;
+}
+.kotak-form { max-width: 520px; }
+
+table.tabel { width: 100%; border-collapse: collapse; }
+table.tabel th, table.tabel td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--garis);
+    font-size: 14px;
+}
+table.tabel th { font-size: 12px; color: var(--abu); text-transform: uppercase; letter-spacing: 0.04em; }
+table.tabel td.aksi { white-space: nowrap; }
+table.tabel td.aksi a, table.tabel td.aksi button {
+    background: none; border: 0; padding: 0; margin-right: 12px;
+    font: inherit; font-size: 13px; font-weight: 700;
+    color: var(--ungu); text-decoration: underline; cursor: pointer;
+}
+table.tabel td.aksi .bahaya { color: var(--merah); }
+
+.kosong-tabel { text-align: center; color: var(--abu); padding: 24px 0 !important; }
+
+/* ---------- form ---------- */
+.isian { margin-bottom: 16px; }
+.isian label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--teks); }
+.isian input, .isian textarea, .isian select {
+    width: 100%;
+    padding: 10px 14px;
+    font: inherit;
+    font-size: 14px;
+    border: 1.5px solid var(--garis);
+    border-radius: 8px;
+    background: #fff;
+}
+.isian input:focus, .isian textarea:focus, .isian select:focus {
+    outline: 3px solid rgba(134,113,201,0.25);
+    border-color: var(--ungu);
+}
+.isian input.salah, .isian textarea.salah { border-color: var(--merah); }
+.pesan-salah { margin: 6px 0 0; font-size: 13px; color: var(--merah); }
+.pesan-info { margin: 6px 0 0; font-size: 13px; color: var(--abu); }
+
+.form-aksi { display: flex; gap: 10px; margin-top: 20px; }
+
+.kembali {
+    display: inline-block;
+    margin-bottom: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ungu);
+    text-decoration: none;
+}
+.kembali:hover { text-decoration: underline; }
+
+@media (max-width: 800px) {
+    .app { flex-direction: column; }
+    .sisi { width: 100%; }
+    .konten { padding: 20px; }
+}
+
+/* ---------- badge status ---------- */
+.badge { display: inline-block; padding: 4px 12px; font-size: 12px; font-weight: 700; border-radius: 999px; }
+.b-tunggu { color: var(--kuning); background: #fbf1d8; }
+.b-konfirmasi { color: #1d4ed8; background: #dbeafe; }
+.b-setuju { color: var(--hijau); background: var(--hijau-muda); }
+.b-tolak { color: var(--merah); background: var(--merah-muda); }
+.b-kembali { color: var(--abu); background: #eeeef2; }
+.rating-bintang { color: #d69e00; letter-spacing: 2px; }
