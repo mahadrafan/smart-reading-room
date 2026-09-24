@@ -125,6 +125,36 @@ php artisan serve
 Untuk MySQL Laragon, `DB_USERNAME=root` dan password kosong biasanya merupakan
 konfigurasi bawaan. Sesuaikan jika instalasi Anda berbeda.
 
+## Menggunakan database terbaru dari repository
+
+File `basdat_final.sql` berisi salinan database pengembangan terbaru, termasuk katalog,
+akun, peminjaman, denda, ulasan, e-book, dan notifikasi. Gunakan cara ini jika
+ingin memperoleh data yang sama seperti laptop pengembangan.
+
+Pastikan konfigurasi `.env` memakai MySQL seperti pada bagian sebelumnya, lalu
+jalankan dari folder proyek:
+
+```powershell
+mysql -u root -p -e "DROP DATABASE IF EXISTS basdat; CREATE DATABASE basdat CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+mysql -u root -p -e "USE basdat; SOURCE basdat_final.sql;"
+php artisan migrate --force
+php artisan storage:link
+php artisan optimize:clear
+php artisan serve
+```
+
+Perintah pertama mengganti seluruh isi database `basdat`. Jika ada data penting,
+ekspor database tersebut terlebih dahulu. Jika password MySQL kosong, tekan Enter
+saat diminta.
+
+Akun yang sudah diverifikasi pada dump terbaru:
+
+| Role | NIS/NIP | Password |
+| --- | --- | --- |
+| Admin | `ADM001` | `admin12345` |
+| Peminjam | `2024001` | `peminjam123` |
+| Peminjam pengujian stok | `QASTOK` | `peminjam123` |
+
 ## Akun demo
 
 Akun ini dibuat oleh `php artisan migrate --seed`:
