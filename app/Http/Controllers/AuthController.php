@@ -13,7 +13,7 @@ class AuthController extends Controller
     // TAMPILAN
     // ---------------------------------------------------------
 
-    // satu halaman login untuk admin dan peminjam
+    // satu halaman logihgfghfadmin dan peminjam
     public function formLogin()
     {
         return view('auth.login');
