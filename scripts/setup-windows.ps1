@@ -30,5 +30,5 @@ php artisan optimize:clear
 
 Write-Host ''
 Write-Host 'Setup selesai. Jalankan: php artisan serve' -ForegroundColor Green
-Write-Host 'Admin: ADMIN001 / admin12345'
-Write-Host 'Peminjam: 2026001 / peminjam123'
+Write-Host 'Admin: ADM001 / admin12345'
+Write-Host 'Peminjam: 2024001 / peminjam123'

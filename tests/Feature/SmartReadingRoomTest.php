@@ -17,6 +17,23 @@ class SmartReadingRoomTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_seeded_login_accounts_match_readme_and_reseeding_preserves_passwords(): void
+    {
+        $this->seed();
+
+        $admin = User::where('nim_nip', 'ADM001')->firstOrFail();
+        $borrower = User::where('nim_nip', '2024001')->firstOrFail();
+
+        $this->assertTrue(Hash::check('admin12345', $admin->password));
+        $this->assertTrue(Hash::check('peminjam123', $borrower->password));
+
+        $admin->update(['password' => Hash::make('password-baru')]);
+        $this->seed();
+
+        $this->assertDatabaseCount('users', 2);
+        $this->assertTrue(Hash::check('password-baru', $admin->fresh()->password));
+    }
+
     public function test_public_authentication_pages_registration_login_and_password_reset(): void
     {
         $this->get('/')->assertRedirect(route('login'));

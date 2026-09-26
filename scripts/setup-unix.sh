@@ -20,5 +20,5 @@ php artisan optimize:clear
 
 echo
 echo 'Setup selesai. Jalankan: php artisan serve'
-echo 'Admin: ADMIN001 / admin12345'
-echo 'Peminjam: 2026001 / peminjam123'
+echo 'Admin: ADM001 / admin12345'
+echo 'Peminjam: 2024001 / peminjam123'

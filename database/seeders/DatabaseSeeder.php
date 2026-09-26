@@ -19,20 +19,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = User::updateOrCreate(['nim_nip' => 'ADMIN001'], [
+        $admin = User::firstOrCreate(['nim_nip' => 'ADM001'], [
             'role' => 'Admin',
             'name' => 'Administrator',
             'class' => null,
-            'email' => 'admin@smartreading.test',
+            'email' => 'admin.demo@smartreading.test',
             'phone' => '081234567890',
             'password' => Hash::make('admin12345'),
         ]);
 
-        User::updateOrCreate(['nim_nip' => '2026001'], [
+        User::firstOrCreate(['nim_nip' => '2024001'], [
             'role' => 'Peminjam',
             'name' => 'Peminjam Demo',
             'class' => 'XII-A',
-            'email' => 'peminjam@smartreading.test',
+            'email' => 'peminjam.demo@smartreading.test',
             'phone' => '081298765432',
             'password' => Hash::make('peminjam123'),
         ]);

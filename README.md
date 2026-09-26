@@ -51,6 +51,8 @@ php artisan serve
 ```
 
 Buka <http://127.0.0.1:8000>.
+Skrip otomatis memakai **SQLite dan akun demo hasil seeder**. NIS/NIP login
+sekarang sama dengan yang ada di dump MySQL.
 
 ## Instalasi otomatis di Linux/macOS
 
@@ -61,6 +63,8 @@ chmod +x scripts/setup-unix.sh
 ./scripts/setup-unix.sh
 php artisan serve
 ```
+
+Skrip otomatis memakai **SQLite dan akun demo hasil seeder**.
 
 ## Instalasi manual dengan SQLite
 
@@ -155,16 +159,46 @@ Akun yang sudah diverifikasi pada dump terbaru:
 | Peminjam | `2024001` | `peminjam123` |
 | Peminjam pengujian stok | `QASTOK` | `peminjam123` |
 
+Masukkan kode pada kolom **NIS/NIP** di halaman login, bukan alamat email atau
+nama pengguna. Akun `ADM001` dan `2024001` juga dibuat pada database baru
+melalui seeder.
+
 ## Akun demo
 
 Akun ini dibuat oleh `php artisan migrate --seed`:
 
 | Role | NIS/NIP | Password |
 | --- | --- | --- |
-| Admin | `ADMIN001` | `admin12345` |
-| Peminjam | `2026001` | `peminjam123` |
+| Admin | `ADM001` | `admin12345` |
+| Peminjam | `2024001` | `peminjam123` |
 
 Ganti password akun demo sebelum aplikasi digunakan di lingkungan nyata.
+
+## Jika NIS/NIP atau password dianggap salah
+
+Pertama, pastikan jalur instalasi dan akun yang digunakan sesuai:
+
+| Cara setup | `DB_CONNECTION` | NIS/NIP admin | Password |
+| --- | --- | --- | --- |
+| Skrip otomatis atau `migrate --seed` | `sqlite`/`mysql` | `ADM001` | `admin12345` |
+| Impor `basdat_final.sql` | `mysql` | `ADM001` | `admin12345` |
+
+Jalankan perintah berikut dari folder proyek untuk melihat database yang
+dipakai Laravel dan daftar NIS/NIP di dalamnya:
+
+```powershell
+php artisan optimize:clear
+php artisan tinker --execute="dump(config('database.default'), DB::table('users')->pluck('nim_nip'));"
+```
+
+Jika setup dilakukan sebelum 26 September 2026, seeder lama membuat akun
+`ADMIN001`/`admin12345` dan `2026001`/`peminjam123`. Akun tersebut tetap bisa
+dipakai. Untuk menambahkan akun dengan NIS/NIP baru, jalankan `php artisan
+db:seed`; proses ini tidak mengganti password akun yang sudah ada.
+
+Jika hasilnya `mysql` tetapi `ADM001` tidak ada, impor belum masuk ke database
+yang dipakai aplikasi. Periksa kembali `DB_DATABASE=basdat`, impor ulang ke
+database itu, lalu jalankan `php artisan optimize:clear`.
 
 ## Memindahkan seluruh data dari laptop lama
 
