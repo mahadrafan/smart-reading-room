@@ -35,70 +35,122 @@
         @if (request('kategori'))
             <input type="hidden" name="kategori" value="{{ request('kategori') }}">
         @endif
+        @if ($tampilan == 'semua')
+            <input type="hidden" name="tampilan" value="semua">
+        @endif
         <button type="submit">Cari</button>
     </form>
 
     {{-- filter kategori --}}
+    @php $paramTampilan = $tampilan == 'semua' ? 'semua' : null; @endphp
     <div class="chip-baris">
-        <a href="{{ route('dashboard', ['q' => request('q')]) }}"
+        <a href="{{ route('dashboard', array_filter(['q' => request('q'), 'tampilan' => $paramTampilan])) }}"
            class="chip {{ request('kategori') ? '' : 'aktif' }}">Semua</a>
         @foreach ($kategori as $k)
-            <a href="{{ route('dashboard', ['kategori' => $k->category_id, 'q' => request('q')]) }}"
+            <a href="{{ route('dashboard', array_filter(['kategori' => $k->category_id, 'q' => request('q'), 'tampilan' => $paramTampilan])) }}"
                class="chip {{ request('kategori') == $k->category_id ? 'aktif' : '' }}">{{ $k->category_name }}</a>
         @endforeach
     </div>
 
-    {{-- paling sering dipinjam --}}
-    @if ($populer->count() > 0)
-        <h2 class="judul-bagian">Paling Sering Dipinjam</h2>
-        <div class="rak">
-            @foreach ($populer as $b)
-                @include('user._kartu', ['b' => $b])
-            @endforeach
-        </div>
-    @endif
+    @php
+        $sedangMencari = request('q') || request('kategori');
+        $kategoriAktif = $kategori->firstWhere('category_id', request('kategori'));
+    @endphp
 
-    {{-- semua koleksi / hasil pencarian --}}
-    <h2 class="judul-bagian">
-        @if (request('q') || request('kategori'))
-            Hasil pencarian ({{ $buku->total() }} buku)
+    <div class="panel-rak">
+        {{-- pilihan tampilan: rak buku atau grid semua buku --}}
+        <nav class="tab-tampilan" aria-label="Pilihan tampilan katalog">
+            <a href="{{ route('dashboard', array_filter(['q' => request('q'), 'kategori' => request('kategori')])) }}"
+               class="{{ $tampilan == 'rak' ? 'aktif' : '' }}">Rak Buku</a>
+            <a href="{{ route('dashboard', array_filter(['q' => request('q'), 'kategori' => request('kategori'), 'tampilan' => 'semua'])) }}"
+               class="{{ $tampilan == 'semua' ? 'aktif' : '' }}">Semua Buku</a>
+        </nav>
+
+        @if ($tampilan == 'rak' && !$sedangMencari)
+            {{-- rak utama: pinjaman aktif, populer, lalu satu rak per kategori --}}
+            @if ($pinjamanAktif->count() > 0)
+                @include('user._rak', [
+                    'judul'      => 'Sedang Kamu Pinjam',
+                    'pinjaman'   => $pinjamanAktif,
+                    'tautan'     => route('peminjaman.index'),
+                    'teksTautan' => 'Peminjaman saya',
+                ])
+            @endif
+
+            @if ($populer->count() > 0)
+                @include('user._rak', ['judul' => 'Paling Sering Dipinjam', 'buku' => $populer])
+            @endif
+
+            @forelse ($rakKategori as $rak)
+                @include('user._rak', [
+                    'judul'      => $rak['kategori']->category_name,
+                    'buku'       => $rak['buku'],
+                    'tautan'     => route('dashboard', ['kategori' => $rak['kategori']->category_id]),
+                    'teksTautan' => 'Lihat semua (' . $rak['total'] . ')',
+                ])
+            @empty
+                <div class="kosong">
+                    <p>Katalog masih kosong. Buku akan muncul setelah admin menambahkannya.</p>
+                </div>
+            @endforelse
         @else
-            Semua Koleksi
-        @endif
-    </h2>
-
-    @if ($buku->count() > 0)
-        <div class="rak">
-            @foreach ($buku as $b)
-                @include('user._kartu', ['b' => $b])
-            @endforeach
-        </div>
-
-        @if ($buku->lastPage() > 1)
-            <div class="halaman">
-                @if ($buku->onFirstPage())
-                    <span class="nonaktif">Sebelumnya</span>
-                @else
-                    <a href="{{ $buku->previousPageUrl() }}">Sebelumnya</a>
-                @endif
-
-                <span>Halaman {{ $buku->currentPage() }} dari {{ $buku->lastPage() }}</span>
-
-                @if ($buku->hasMorePages())
-                    <a href="{{ $buku->nextPageUrl() }}">Berikutnya</a>
-                @else
-                    <span class="nonaktif">Berikutnya</span>
+            {{-- hasil pencarian / filter kategori, atau tampilan "semua buku" --}}
+            <div class="rak-kepala">
+                <h2>
+                    @if ($sedangMencari)
+                        {{ request('q') ? 'Hasil pencarian' : ($kategoriAktif->category_name ?? 'Hasil filter') }}
+                        <small>({{ $buku->total() }} buku)</small>
+                    @else
+                        Semua Koleksi
+                    @endif
+                </h2>
+                @if ($sedangMencari)
+                    <a href="{{ route('dashboard', $tampilan == 'semua' ? ['tampilan' => 'semua'] : []) }}" class="rak-tautan">
+                        <span aria-hidden="true">&larr;</span> Semua rak
+                    </a>
                 @endif
             </div>
-        @endif
-    @else
-        <div class="kosong">
-            @if (request('q') || request('kategori'))
-                <p>Tidak ada buku yang cocok dengan pencarianmu.</p>
-                <a href="{{ route('dashboard') }}">Tampilkan semua buku</a>
+
+            @if ($buku->count() > 0)
+                @if ($tampilan == 'rak')
+                    @foreach ($buku->chunk(6) as $barisBuku)
+                        @include('user._rak', ['buku' => $barisBuku])
+                    @endforeach
+                @else
+                    <div class="rak">
+                        @foreach ($buku as $b)
+                            @include('user._kartu', ['b' => $b])
+                        @endforeach
+                    </div>
+                @endif
+
+                @if ($buku->lastPage() > 1)
+                    <div class="halaman">
+                        @if ($buku->onFirstPage())
+                            <span class="nonaktif">Sebelumnya</span>
+                        @else
+                            <a href="{{ $buku->previousPageUrl() }}">Sebelumnya</a>
+                        @endif
+
+                        <span>Halaman {{ $buku->currentPage() }} dari {{ $buku->lastPage() }}</span>
+
+                        @if ($buku->hasMorePages())
+                            <a href="{{ $buku->nextPageUrl() }}">Berikutnya</a>
+                        @else
+                            <span class="nonaktif">Berikutnya</span>
+                        @endif
+                    </div>
+                @endif
             @else
-                <p>Katalog masih kosong. Buku akan muncul setelah admin menambahkannya.</p>
+                <div class="kosong">
+                    @if ($sedangMencari)
+                        <p>Tidak ada buku yang cocok dengan pencarianmu.</p>
+                        <a href="{{ route('dashboard') }}">Tampilkan semua buku</a>
+                    @else
+                        <p>Katalog masih kosong. Buku akan muncul setelah admin menambahkannya.</p>
+                    @endif
+                </div>
             @endif
-        </div>
-    @endif
+        @endif
+    </div>
 @endsection

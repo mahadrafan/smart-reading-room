@@ -123,7 +123,7 @@ function togglePenulisBaru(val) {
     @if ($buku && $buku->cover_url)
         <div style="margin-top:10px;">
             <img src="{{ $buku->cover_url }}" alt="Cover saat ini"
-                 style="width:100px;height:140px;object-fit:cover;border-radius:8px;border:1px solid var(--garis);">
+                 style="width:100px;height:auto;display:block;border-radius:8px;border:1px solid var(--garis);">
             <p class="pesan-info">Cover saat ini. Upload file baru untuk menggantinya.</p>
         </div>
     @endif

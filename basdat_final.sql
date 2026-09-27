@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.30, for Win64 (x86_64)
 --
--- Host: localhost    Database: basdat
+-- Host: localhost    Database: basdat_github
 -- ------------------------------------------------------
 -- Server version	8.0.30
 
@@ -25,15 +25,15 @@ DROP TABLE IF EXISTS `admin_logs`;
 CREATE TABLE `admin_logs` (
   `log_id` int NOT NULL AUTO_INCREMENT,
   `admin_id` int NOT NULL,
-  `action` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `table_name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `action` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `table_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `record_id` int DEFAULT NULL,
-  `description` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`log_id`),
   KEY `idx_logs_admin` (`admin_id`),
   CONSTRAINT `fk_logs_admin` FOREIGN KEY (`admin_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,7 +42,7 @@ CREATE TABLE `admin_logs` (
 
 LOCK TABLES `admin_logs` WRITE;
 /*!40000 ALTER TABLE `admin_logs` DISABLE KEYS */;
-INSERT INTO `admin_logs` VALUES (1,1,'ACC','loans',1,'Menyetujui peminjaman \"23:59\" oleh ss','2026-09-23 08:14:42'),(2,1,'Tolak','loans',3,'Menolak peminjaman \"Akuntansi Dasar: Buku Pintar untuk Pemula\" oleh ss','2026-09-23 08:21:26'),(3,1,'ACC','loans',4,'Menyetujui peminjaman \"23:59\" oleh juliana martinelli','2026-09-23 14:55:04'),(4,1,'ACC','loans',5,'Menyetujui peminjaman \"Akuntansi Dasar: Buku Pintar untuk Pemula\" oleh juliana martinelli','2026-09-23 14:55:07'),(5,1,'Kembalikan','loans',4,'Menandai pengembalian \"23:59\" oleh juliana martinelli','2026-09-23 14:55:54'),(6,1,'Tambah','books',5,'Menambahkan buku \"Seporsi Mie Ayam Sebelum Mati\"','2026-09-23 15:31:36'),(7,1,'Kembalikan','loans',1,'Menandai pengembalian \"23:59\" oleh ss','2026-09-23 15:33:50'),(8,1,'Hapus','loans',1,'Menghapus riwayat peminjaman \"23:59\" oleh ss','2026-09-23 15:44:22'),(9,1,'ACC','loans',6,'Menyetujui peminjaman \"Seporsi Mie Ayam Sebelum Mati\" oleh ss','2026-09-23 15:44:31'),(10,1,'Edit','books',4,'Mengubah buku \"Akuntansi Dasar: Buku Pintar untuk Pemula\"','2026-09-23 15:45:18'),(11,1,'Edit','books',4,'Mengubah buku \"Akuntansi Dasar: Buku Pintar untuk Pemula\"','2026-09-23 15:50:58'),(12,1,'Hapus','books',3,'Menonaktifkan buku \"Data Science dengan Python: Konsep dan Implementasi\"','2026-09-23 15:52:27'),(13,1,'Hapus','books',5,'Menonaktifkan buku \"Seporsi Mie Ayam Sebelum Mati\"','2026-09-23 15:54:18'),(14,1,'ACC','loans',7,'Menyetujui peminjaman \"23:59\" oleh ss','2026-09-24 07:35:59'),(15,1,'Kembalikan','loans',5,'Menandai pengembalian \"Akuntansi Dasar: Buku Pintar untuk Pemula\" oleh juliana martinelli','2026-09-24 07:36:09'),(16,1,'ACC','loans',8,'Menyetujui peminjaman \"Laut Bercerita\" oleh ss','2026-09-24 11:34:58'),(17,1,'Kembalikan','loans',8,'Menandai pengembalian \"Laut Bercerita\" oleh ss','2026-09-24 11:35:10'),(18,1,'Gagal Otomatis','loans',11,'Peminjaman \"Laut Bercerita\" oleh Budi Santoso otomatis Gagal karena melewati tenggat waktu 2 hari pengambilan.','2026-09-24 16:41:34'),(19,1,'Gagal Otomatis','loans',13,'Peminjaman \"Laut Bercerita\" oleh Budi Santoso otomatis Gagal karena melewati tenggat waktu 2 hari pengambilan.','2026-09-24 16:41:34'),(20,1,'Dipinjam','loans',6,'Menandai buku \"Seporsi Mie Ayam Sebelum Mati\" telah diambil manual oleh ss','2026-09-24 16:47:34'),(21,1,'Kembalikan','loans',6,'Menandai pengembalian \"Seporsi Mie Ayam Sebelum Mati\" oleh ss','2026-09-24 16:47:43'),(22,1,'Dipinjam','loans',7,'Menandai buku \"23:59\" telah diambil manual oleh ss','2026-09-24 16:47:48'),(23,1,'ACC','loans',14,'Mengonfirmasi peminjaman \"23:59\" oleh rafan','2026-09-24 17:01:57'),(24,1,'ACC','loans',9,'Mengonfirmasi peminjaman \"Akuntansi Dasar: Buku Pintar untuk Pemula\" oleh ss','2026-09-24 17:02:01'),(25,1,'Kembalikan','loans',7,'Menandai pengembalian \"23:59\" oleh ss','2026-09-24 17:04:16'),(26,1,'Dipinjam','loans',14,'Menandai buku \"23:59\" telah diambil manual oleh rafan','2026-09-24 17:04:23'),(27,1,'Dipinjam','loans',9,'Menandai buku \"Akuntansi Dasar: Buku Pintar untuk Pemula\" telah diambil manual oleh ss','2026-09-24 17:04:26'),(28,1,'Tambah','books',6,'Menambahkan buku \"Buku Uji Baru\"','2026-09-24 17:36:47'),(29,1,'Tambah','books',7,'Menambahkan buku \"oijoijoijoij\"','2026-09-24 17:40:09'),(30,1,'Edit','books',7,'Mengubah buku \"oijoijoijoij\"','2026-09-24 17:40:52'),(31,1,'ACC','loans',15,'Mengonfirmasi peminjaman \"23:59\" oleh Budi Santoso','2026-09-24 20:19:18'),(32,1,'ACC','loans',16,'Mengonfirmasi peminjaman \"oijoijoijoij\" oleh Budi Santoso','2026-09-24 20:43:59');
+INSERT INTO `admin_logs` VALUES (1,1,'ACC','loans',1,'Menyetujui peminjaman \"23:59\" oleh ss','2026-09-23 08:14:42'),(2,1,'Tolak','loans',3,'Menolak peminjaman \"Akuntansi Dasar: Buku Pintar untuk Pemula\" oleh ss','2026-09-23 08:21:26'),(3,1,'ACC','loans',4,'Menyetujui peminjaman \"23:59\" oleh juliana martinelli','2026-09-23 14:55:04'),(4,1,'ACC','loans',5,'Menyetujui peminjaman \"Akuntansi Dasar: Buku Pintar untuk Pemula\" oleh juliana martinelli','2026-09-23 14:55:07'),(5,1,'Kembalikan','loans',4,'Menandai pengembalian \"23:59\" oleh juliana martinelli','2026-09-23 14:55:54'),(6,1,'Tambah','books',5,'Menambahkan buku \"Seporsi Mie Ayam Sebelum Mati\"','2026-09-23 15:31:36'),(7,1,'Kembalikan','loans',1,'Menandai pengembalian \"23:59\" oleh ss','2026-09-23 15:33:50'),(8,1,'Hapus','loans',1,'Menghapus riwayat peminjaman \"23:59\" oleh ss','2026-09-23 15:44:22'),(9,1,'ACC','loans',6,'Menyetujui peminjaman \"Seporsi Mie Ayam Sebelum Mati\" oleh ss','2026-09-23 15:44:31'),(10,1,'Edit','books',4,'Mengubah buku \"Akuntansi Dasar: Buku Pintar untuk Pemula\"','2026-09-23 15:45:18'),(11,1,'Edit','books',4,'Mengubah buku \"Akuntansi Dasar: Buku Pintar untuk Pemula\"','2026-09-23 15:50:58'),(12,1,'Hapus','books',3,'Menonaktifkan buku \"Data Science dengan Python: Konsep dan Implementasi\"','2026-09-23 15:52:27'),(13,1,'Hapus','books',5,'Menonaktifkan buku \"Seporsi Mie Ayam Sebelum Mati\"','2026-09-23 15:54:18'),(14,1,'ACC','loans',7,'Menyetujui peminjaman \"23:59\" oleh ss','2026-09-24 07:35:59'),(15,1,'Kembalikan','loans',5,'Menandai pengembalian \"Akuntansi Dasar: Buku Pintar untuk Pemula\" oleh juliana martinelli','2026-09-24 07:36:09'),(16,1,'ACC','loans',8,'Menyetujui peminjaman \"Laut Bercerita\" oleh ss','2026-09-24 11:34:58'),(17,1,'Kembalikan','loans',8,'Menandai pengembalian \"Laut Bercerita\" oleh ss','2026-09-24 11:35:10'),(18,1,'Gagal Otomatis','loans',11,'Peminjaman \"Laut Bercerita\" oleh Budi Santoso otomatis Gagal karena melewati tenggat waktu 2 hari pengambilan.','2026-09-24 16:41:34'),(19,1,'Gagal Otomatis','loans',13,'Peminjaman \"Laut Bercerita\" oleh Budi Santoso otomatis Gagal karena melewati tenggat waktu 2 hari pengambilan.','2026-09-24 16:41:34'),(20,1,'Dipinjam','loans',6,'Menandai buku \"Seporsi Mie Ayam Sebelum Mati\" telah diambil manual oleh ss','2026-09-24 16:47:34'),(21,1,'Kembalikan','loans',6,'Menandai pengembalian \"Seporsi Mie Ayam Sebelum Mati\" oleh ss','2026-09-24 16:47:43'),(22,1,'Dipinjam','loans',7,'Menandai buku \"23:59\" telah diambil manual oleh ss','2026-09-24 16:47:48'),(23,1,'ACC','loans',14,'Mengonfirmasi peminjaman \"23:59\" oleh rafan','2026-09-24 17:01:57'),(24,1,'ACC','loans',9,'Mengonfirmasi peminjaman \"Akuntansi Dasar: Buku Pintar untuk Pemula\" oleh ss','2026-09-24 17:02:01'),(25,1,'Kembalikan','loans',7,'Menandai pengembalian \"23:59\" oleh ss','2026-09-24 17:04:16'),(26,1,'Dipinjam','loans',14,'Menandai buku \"23:59\" telah diambil manual oleh rafan','2026-09-24 17:04:23'),(27,1,'Dipinjam','loans',9,'Menandai buku \"Akuntansi Dasar: Buku Pintar untuk Pemula\" telah diambil manual oleh ss','2026-09-24 17:04:26'),(28,1,'Tambah','books',6,'Menambahkan buku \"Buku Uji Baru\"','2026-09-24 17:36:47'),(29,1,'Tambah','books',7,'Menambahkan buku \"oijoijoijoij\"','2026-09-24 17:40:09'),(30,1,'Edit','books',7,'Mengubah buku \"oijoijoijoij\"','2026-09-24 17:40:52'),(31,1,'ACC','loans',15,'Mengonfirmasi peminjaman \"23:59\" oleh Budi Santoso','2026-09-24 20:19:18'),(32,1,'ACC','loans',16,'Mengonfirmasi peminjaman \"oijoijoijoij\" oleh Budi Santoso','2026-09-24 20:43:59'),(33,1,'Gagal Otomatis','loans',15,'Peminjaman \"23:59\" oleh Budi Santoso otomatis Gagal karena melewati tenggat waktu 2 hari pengambilan.','2026-09-27 19:04:30'),(34,1,'Gagal Otomatis','loans',16,'Peminjaman \"oijoijoijoij\" oleh Budi Santoso otomatis Gagal karena melewati tenggat waktu 2 hari pengambilan.','2026-09-27 19:04:30'),(35,1,'Edit','books',2,'Mengubah buku \"23:59\"','2026-09-27 19:18:25'),(36,1,'Edit','books',2,'Mengubah buku \"23:59\"','2026-09-27 19:18:31'),(37,1,'Edit','books',4,'Mengubah buku \"Akuntansi Dasar: Buku Pintar untuk Pemula\"','2026-09-27 19:19:20'),(38,1,'Hapus','books',8,'Menonaktifkan buku \"Buku Uji Denda dan Stok\"','2026-09-27 19:25:28');
 /*!40000 ALTER TABLE `admin_logs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -55,10 +55,10 @@ DROP TABLE IF EXISTS `authors`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `authors` (
   `author_id` int NOT NULL AUTO_INCREMENT,
-  `author_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `biography` text COLLATE utf8mb4_general_ci,
+  `author_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `biography` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   PRIMARY KEY (`author_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,7 +67,7 @@ CREATE TABLE `authors` (
 
 LOCK TABLES `authors` WRITE;
 /*!40000 ALTER TABLE `authors` DISABLE KEYS */;
-INSERT INTO `authors` VALUES (1,'Leila S. Chudori','Penulis dan jurnalis senior Indonesia, penulis novel peraih penghargaan seperti Laut Bercerita dan Pulang.'),(2,'Brian Khrisna','Penulis novel populer Indonesia yang dikenal luas lewat karya-karya bertema romansa, kehidupan urban, dan komedi.'),(3,'Prof. Dr. Kristoko Dwi Hartomo, dkk.','Pakar dan akademisi senior ilmu komputer serta data science di Indonesia, aktif menulis buku referensi pemrograman dan sains data.'),(4,'Irmah Halimah Bachtiar, S.E., M.Si.','Dosen dan akademisi bidang akuntansi dan keuangan, aktif menulis buku panduan akuntansi dasar untuk mahasiswa dan pemula.'),(6,'vincent',NULL),(7,'Tim Smart Reading Room','Tim pengelola literasi Smart Reading Room.'),(8,'Tim QA Smart Reading Room','Penulis data pengujian sistem.');
+INSERT INTO `authors` VALUES (1,'Leila S. Chudori','Penulis dan jurnalis senior Indonesia, penulis novel peraih penghargaan seperti Laut Bercerita dan Pulang.'),(2,'Brian Khrisna','Penulis novel populer Indonesia yang dikenal luas lewat karya-karya bertema romansa, kehidupan urban, dan komedi.'),(3,'Prof. Dr. Kristoko Dwi Hartomo, dkk.','Pakar dan akademisi senior ilmu komputer serta data science di Indonesia, aktif menulis buku referensi pemrograman dan sains data.'),(4,'Irmah Halimah Bachtiar, S.E., M.Si.','Dosen dan akademisi bidang akuntansi dan keuangan, aktif menulis buku panduan akuntansi dasar untuk mahasiswa dan pemula.'),(6,'vincent',NULL),(7,'Tim Smart Reading Room','Tim pengelola literasi Smart Reading Room.'),(8,'Tim QA Smart Reading Room','Penulis data pengujian sistem.'),(9,'Jubilee Enterprise','Tim penulis buku komputer dan teknologi informasi yang produktif, banyak menerbitkan buku panduan pemrograman melalui Elex Media Komputindo.'),(10,'Sugeng Winardi, S.Kom., M.T.','Dosen dan akademisi bidang ilmu komputer, penulis buku ajar pemrograman yang diterbitkan oleh Deepublish.'),(11,'Aris Defiana, S.Kom','Guru berlatar belakang teknik informatika yang berpengalaman menulis buku, termasuk buku pelajaran TIK.');
 /*!40000 ALTER TABLE `authors` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -82,12 +82,12 @@ CREATE TABLE `books` (
   `book_id` int NOT NULL AUTO_INCREMENT,
   `category_id` int DEFAULT NULL,
   `author_id` int DEFAULT NULL,
-  `title` varchar(200) COLLATE utf8mb4_general_ci NOT NULL,
-  `publisher` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `publisher` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `publication_year` year DEFAULT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
-  `cover_image` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `location` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `cover_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `location` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `stock` int DEFAULT '0',
   `available_stock` int DEFAULT '0',
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
@@ -104,7 +104,7 @@ CREATE TABLE `books` (
   CONSTRAINT `books_ibfk_2` FOREIGN KEY (`author_id`) REFERENCES `authors` (`author_id`),
   CONSTRAINT `fk_books_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`),
   CONSTRAINT `fk_books_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -113,7 +113,7 @@ CREATE TABLE `books` (
 
 LOCK TABLES `books` WRITE;
 /*!40000 ALTER TABLE `books` DISABLE KEYS */;
-INSERT INTO `books` VALUES (1,1,1,'Laut Bercerita','Kepustakaan Populer Gramedia (KPG)',2017,'Novel yang mengangkat kisah persahabatan, cinta, kekeluargaan, dan rasa kehilangan para aktivis mahasiswa di masa Orde Baru. Biru Laut menceritakan penyiksaan dan detik-detik terakhirnya sebelum ditenggelamkan ke dasar laut, sementara Asmara Jati berjuang mencari keadilan bagi para korban penghilangan paksa.','covers/laut_bercerita.jpg','Rak F-01',5,5,1,1,'2026-09-23 00:56:35',NULL,'2026-09-23 00:56:35'),(2,2,2,'23:59','Grasindo',2021,'Tentang kau yang tak pernah pulang dan aku yang selalu menunggu. Sebuah kisah refleksi tentang perjumpaan, kebersamaan, perpisahan, dan bagaimana waktu menguji perasaan manusia di penghujung hari.','covers/2359.jpg','Rak R-04',4,2,1,1,'2026-09-23 00:56:35',NULL,'2026-09-23 00:56:35'),(3,3,3,'Data Science dengan Python: Konsep dan Implementasi','Penerbit Gava Media',2021,'Membahas konsep fundamental data science mulai dari pengumpulan data, data preprocessing, eksplorasi data analisis (EDA), hingga pemodelan machine learning menggunakan bahasa pemrograman Python dan berbagai pustaka populernya seperti Pandas, NumPy, dan Scikit-Learn.','covers/data_science_python.png','Rak T-02',6,6,0,1,'2026-09-23 01:04:37',1,'2026-09-23 08:52:27'),(4,4,4,'Akuntansi Dasar: Buku Pintar untuk Pemula','Deepuyuy',2019,'Buku panduan praktis yang menyajikan konsep dasar akuntansi secara sistematis dan mudah dipahami, mulai dari siklus akuntansi, pencatatan transaksi jurnal umum, buku besar, neraca saldo, hingga penyusunan laporan keuangan untuk pemula.','covers/pFkUxgzeuzk3HjmgHbMg7OVxo9KsUtlhpY3lei6q.jpg','Rak E-05',6,5,1,1,'2026-09-23 01:04:37',1,'2026-09-23 08:50:58'),(5,1,2,'Seporsi Mie Ayam Sebelum Mati','Gramedia',2020,'Ale adalah seorang pria berusia 37 tahun yang bekerja sebagai pekerja kantoran (budak korporat) di ibu kota. Ia memiliki fisik yang besar, masalah bau badan, dan merasa hidupnya dipenuhi kesialan. Ale sering dibuli oleh lingkungan sekitar, tidak memiliki teman di kantor, serta tidak mendapatkan dukungan dari keluarganya sendiri.','covers/O5dFagH8CpTWsBYCZ03UARCu9oqExJsHbnfjY6hB.png','Rak B-5',7,7,0,1,'2026-09-23 15:31:36',1,'2026-09-23 08:54:18'),(7,6,6,'oijoijoijoij','ouihoujuhij',2016,'okjoniubgugtvyfrcuycyt','covers/VW83gwF9JnzeRYq7BqyTYjJeL4Hbi7qgESGMCINB.jpg','Rak E-05',18,17,1,1,'2026-09-24 17:40:09',1,'2026-09-24 10:40:52'),(8,8,8,'Buku Uji Denda dan Stok','Smart Reading Room',2026,'Buku khusus untuk menguji denda keterlambatan, penguncian stok, dan notifikasi email.',NULL,'Rak QA-01',1,0,1,1,'2026-09-24 20:47:17',NULL,NULL);
+INSERT INTO `books` VALUES (1,1,1,'Laut Bercerita','Kepustakaan Populer Gramedia (KPG)',2017,'Novel yang mengangkat kisah persahabatan, cinta, kekeluargaan, dan rasa kehilangan para aktivis mahasiswa di masa Orde Baru. Biru Laut menceritakan penyiksaan dan detik-detik terakhirnya sebelum ditenggelamkan ke dasar laut, sementara Asmara Jati berjuang mencari keadilan bagi para korban penghilangan paksa.','covers/laut_bercerita.jpg','Rak F-01',5,5,1,1,'2026-09-23 00:56:35',NULL,'2026-09-23 00:56:35'),(2,2,2,'23:59','Grasindo',2021,'Tentang kau yang tak pernah pulang dan aku yang selalu menunggu. Sebuah kisah refleksi tentang perjumpaan, kebersamaan, perpisahan, dan bagaimana waktu menguji perasaan manusia di penghujung hari.','covers/z35FZRahIKtQQx4JLFFjLoemyeKjHmSo09VWXG6M.jpg','Rak R-04',4,3,1,1,'2026-09-23 00:56:35',1,'2026-09-27 12:18:31'),(3,3,3,'Data Science dengan Python: Konsep dan Implementasi','Penerbit Gava Media',2021,'Membahas konsep fundamental data science mulai dari pengumpulan data, data preprocessing, eksplorasi data analisis (EDA), hingga pemodelan machine learning menggunakan bahasa pemrograman Python dan berbagai pustaka populernya seperti Pandas, NumPy, dan Scikit-Learn.','covers/data_science_python.png','Rak T-02',6,6,0,1,'2026-09-23 01:04:37',1,'2026-09-23 08:52:27'),(4,4,4,'Akuntansi Dasar: Buku Pintar untuk Pemula','Deepuyuy',2019,'Buku panduan praktis yang menyajikan konsep dasar akuntansi secara sistematis dan mudah dipahami, mulai dari siklus akuntansi, pencatatan transaksi jurnal umum, buku besar, neraca saldo, hingga penyusunan laporan keuangan untuk pemula.','covers/zPeL4Wnc0d5Hnue4iwf3rg8O7eVpVl2vZUXCg5pD.jpg','Rak E-05',6,5,1,1,'2026-09-23 01:04:37',1,'2026-09-27 12:19:20'),(5,1,2,'Seporsi Mie Ayam Sebelum Mati','Gramedia',2020,'Ale adalah seorang pria berusia 37 tahun yang bekerja sebagai pekerja kantoran (budak korporat) di ibu kota. Ia memiliki fisik yang besar, masalah bau badan, dan merasa hidupnya dipenuhi kesialan. Ale sering dibuli oleh lingkungan sekitar, tidak memiliki teman di kantor, serta tidak mendapatkan dukungan dari keluarganya sendiri.','covers/O5dFagH8CpTWsBYCZ03UARCu9oqExJsHbnfjY6hB.png','Rak B-5',7,7,0,1,'2026-09-23 15:31:36',1,'2026-09-23 08:54:18'),(7,6,6,'oijoijoijoij','ouihoujuhij',2016,'okjoniubgugtvyfrcuycyt','covers/VW83gwF9JnzeRYq7BqyTYjJeL4Hbi7qgESGMCINB.jpg','Rak E-05',18,18,1,1,'2026-09-24 17:40:09',1,'2026-09-24 10:40:52'),(8,8,8,'Buku Uji Denda dan Stok','Smart Reading Room',2026,'Buku khusus untuk menguji denda keterlambatan, penguncian stok, dan notifikasi email.',NULL,'Rak QA-01',1,0,0,1,'2026-09-24 20:47:17',1,'2026-09-27 12:25:28'),(9,3,9,'Python untuk Programmer Pemula','Elex Media Komputindo',2019,'Buku bergizi untuk programmer pemula yang ingin mempelajari Python, bahasa pemrograman yang mudah dipelajari dan menjanjikan untuk karier masa depan. Membahas cara instalasi tools, struktur Python, fungsi, percabangan dan perulangan, penggunaan modul, hingga pemrograman database menggunakan Python dan MySQL.','covers/python_untuk_programmer_pemula.jpg','Rak T-03',5,5,1,1,'2026-09-27 19:29:57',NULL,NULL),(10,3,10,'Pemrograman Python untuk Pemula','Deepublish',2023,'Buku pengantar pemrograman Python yang disusun bertahap dari materi paling mudah hingga yang lebih kompleks. Selain menyajikan contoh-contoh program, setiap bagian dilengkapi evaluasi agar pembaca dapat mengukur pemahamannya sendiri.','covers/pemrograman_python_untuk_pemula.webp','Rak T-03',5,5,1,1,'2026-09-27 19:29:57',NULL,NULL),(11,3,11,'Langsung Mahir Python untuk Pemula','Anak Hebat Indonesia',2024,'Panduan praktis memahami dasar pemrograman Python lengkap dengan contoh kode dan output-nya. Membahas instalasi, variabel, tipe data, percabangan, perulangan, fungsi, modul, list, tuple, dictionary, set, operasi file, penanganan exception, hingga pemrograman berorientasi objek (OOP).','covers/langsung_mahir_python_untuk_pemula.jpg','Rak T-03',5,5,1,1,'2026-09-27 19:29:57',NULL,NULL);
 /*!40000 ALTER TABLE `books` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -125,8 +125,8 @@ DROP TABLE IF EXISTS `cache`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cache` (
-  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `value` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `value` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `expiration` int NOT NULL,
   PRIMARY KEY (`key`),
   KEY `cache_expiration_index` (`expiration`)
@@ -150,8 +150,8 @@ DROP TABLE IF EXISTS `cache_locks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cache_locks` (
-  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `owner` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `owner` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `expiration` int NOT NULL,
   PRIMARY KEY (`key`),
   KEY `cache_locks_expiration_index` (`expiration`)
@@ -176,8 +176,8 @@ DROP TABLE IF EXISTS `categories`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `categories` (
   `category_id` int NOT NULL AUTO_INCREMENT,
-  `category_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
+  `category_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   PRIMARY KEY (`category_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -203,12 +203,12 @@ CREATE TABLE `ebooks` (
   `ebook_id` int NOT NULL AUTO_INCREMENT,
   `category_id` int DEFAULT NULL,
   `author_id` int DEFAULT NULL,
-  `title` varchar(200) COLLATE utf8mb4_general_ci NOT NULL,
-  `publisher` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `publisher` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `publication_year` year DEFAULT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
-  `file_url` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `access_status` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `file_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `access_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`ebook_id`),
   KEY `category_id` (`category_id`),
   KEY `author_id` (`author_id`),
@@ -236,11 +236,11 @@ DROP TABLE IF EXISTS `failed_jobs`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `failed_jobs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `uuid` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `connection` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `queue` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `exception` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `connection` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `queue` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `exception` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
@@ -264,13 +264,13 @@ DROP TABLE IF EXISTS `job_batches`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `job_batches` (
-  `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `total_jobs` int NOT NULL,
   `pending_jobs` int NOT NULL,
   `failed_jobs` int NOT NULL,
-  `failed_job_ids` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `options` mediumtext COLLATE utf8mb4_unicode_ci,
+  `failed_job_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `options` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `cancelled_at` int DEFAULT NULL,
   `created_at` int NOT NULL,
   `finished_at` int DEFAULT NULL,
@@ -296,8 +296,8 @@ DROP TABLE IF EXISTS `jobs`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `jobs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `queue` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `queue` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `attempts` tinyint unsigned NOT NULL,
   `reserved_at` int unsigned DEFAULT NULL,
   `available_at` int unsigned NOT NULL,
@@ -331,7 +331,7 @@ CREATE TABLE `loans` (
   `loan_date` date DEFAULT NULL,
   `due_date` date DEFAULT NULL,
   `return_date` date DEFAULT NULL,
-  `status` enum('Menunggu','Dikonfirmasi','Dipinjam','Gagal','Dikembalikan') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Menunggu',
+  `status` enum('Menunggu','Dikonfirmasi','Dipinjam','Gagal','Dikembalikan') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Menunggu',
   `approved_by` int DEFAULT NULL,
   `approved_at` datetime DEFAULT NULL,
   `fine_paid_at` timestamp NULL DEFAULT NULL,
@@ -352,7 +352,7 @@ CREATE TABLE `loans` (
 
 LOCK TABLES `loans` WRITE;
 /*!40000 ALTER TABLE `loans` DISABLE KEYS */;
-INSERT INTO `loans` VALUES (3,4,4,'2026-09-23 08:20:35','2026-09-23','2026-09-30',NULL,'Gagal',1,'2026-09-23 01:21:26',NULL,NULL),(4,5,2,'2026-09-23 14:48:10','2026-09-23','2026-10-18','2026-09-23','Dikembalikan',1,'2026-09-23 07:55:04',NULL,NULL),(5,5,4,'2026-09-23 14:52:16','2026-09-23','2026-09-28','2026-09-24','Dikembalikan',1,'2026-09-23 07:55:07',NULL,NULL),(6,4,5,'2026-09-23 15:32:48','2026-09-23','2026-09-30','2026-09-24','Dikembalikan',1,'2026-09-23 08:44:31',NULL,NULL),(7,4,2,'2026-09-24 07:32:35','2026-09-24','2026-10-01','2026-09-24','Dikembalikan',1,'2026-09-24 00:35:59',NULL,NULL),(8,4,1,'2026-09-24 11:34:27','2026-09-24','2026-10-04','2026-09-24','Dikembalikan',1,'2026-09-24 04:34:58',NULL,NULL),(9,4,4,'2026-09-24 12:05:50','2026-09-24','2026-10-01',NULL,'Dipinjam',1,'2026-09-24 10:02:01',NULL,NULL),(14,6,2,'2026-09-24 17:01:11','2026-09-24','2026-10-01',NULL,'Dipinjam',1,'2026-09-24 10:01:57',NULL,NULL),(15,3,2,'2026-09-24 20:18:43','2026-09-24','2026-10-01',NULL,'Dikonfirmasi',1,'2026-09-24 13:19:18',NULL,NULL),(16,3,7,'2026-09-24 20:43:46','2026-09-24','2026-09-25',NULL,'Dikonfirmasi',1,'2026-09-24 13:43:59',NULL,NULL),(17,3,8,'2026-09-24 20:47:17','2026-09-14','2026-09-21',NULL,'Dipinjam',1,'2026-09-14 13:47:17',NULL,NULL);
+INSERT INTO `loans` VALUES (3,4,4,'2026-09-23 08:20:35','2026-09-23','2026-09-30',NULL,'Gagal',1,'2026-09-23 01:21:26',NULL,NULL),(4,5,2,'2026-09-23 14:48:10','2026-09-23','2026-10-18','2026-09-23','Dikembalikan',1,'2026-09-23 07:55:04',NULL,NULL),(5,5,4,'2026-09-23 14:52:16','2026-09-23','2026-09-28','2026-09-24','Dikembalikan',1,'2026-09-23 07:55:07',NULL,NULL),(6,4,5,'2026-09-23 15:32:48','2026-09-23','2026-09-30','2026-09-24','Dikembalikan',1,'2026-09-23 08:44:31',NULL,NULL),(7,4,2,'2026-09-24 07:32:35','2026-09-24','2026-10-01','2026-09-24','Dikembalikan',1,'2026-09-24 00:35:59',NULL,NULL),(8,4,1,'2026-09-24 11:34:27','2026-09-24','2026-10-04','2026-09-24','Dikembalikan',1,'2026-09-24 04:34:58',NULL,NULL),(9,4,4,'2026-09-24 12:05:50','2026-09-24','2026-10-01',NULL,'Dipinjam',1,'2026-09-24 10:02:01',NULL,NULL),(14,6,2,'2026-09-24 17:01:11','2026-09-24','2026-10-01',NULL,'Dipinjam',1,'2026-09-24 10:01:57',NULL,NULL),(15,3,2,'2026-09-24 20:18:43','2026-09-24','2026-10-01',NULL,'Gagal',1,'2026-09-24 13:19:18',NULL,NULL),(16,3,7,'2026-09-24 20:43:46','2026-09-24','2026-09-25',NULL,'Gagal',1,'2026-09-24 13:43:59',NULL,NULL),(17,3,8,'2026-09-24 20:47:17','2026-09-14','2026-09-21',NULL,'Dipinjam',1,'2026-09-14 13:47:17',NULL,NULL);
 /*!40000 ALTER TABLE `loans` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -365,7 +365,7 @@ DROP TABLE IF EXISTS `migrations`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `migrations` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `migration` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -392,16 +392,16 @@ CREATE TABLE `notifications` (
   `notification_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `loan_id` int DEFAULT NULL,
-  `type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `message` text COLLATE utf8mb4_general_ci,
+  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `sent_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `status` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`notification_id`),
   KEY `user_id` (`user_id`),
   KEY `loan_id` (`loan_id`),
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`loan_id`) REFERENCES `loans` (`loan_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -410,7 +410,7 @@ CREATE TABLE `notifications` (
 
 LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
-INSERT INTO `notifications` VALUES (1,3,16,'Pengajuan','Pengajuan peminjaman buku \"oijoijoijoij\" sudah diterima dan sedang menunggu konfirmasi admin.','2026-09-24 13:43:47','Terkirim'),(2,3,16,'Dikonfirmasi','Peminjaman buku \"oijoijoijoij\" sudah dikonfirmasi. Ambil buku paling lambat 26/09/2026 13:43.','2026-09-24 13:43:59','Terkirim'),(3,3,17,'Terlambat','Buku \"Buku Uji Denda dan Stok\" terlambat 3 hari. Denda saat ini Rp3.000. Segera hubungi atau datangi perpustakaan.','2026-09-24 13:47:18','Terkirim');
+INSERT INTO `notifications` VALUES (1,3,16,'Pengajuan','Pengajuan peminjaman buku \"oijoijoijoij\" sudah diterima dan sedang menunggu konfirmasi admin.','2026-09-24 13:43:47','Terkirim'),(2,3,16,'Dikonfirmasi','Peminjaman buku \"oijoijoijoij\" sudah dikonfirmasi. Ambil buku paling lambat 26/09/2026 13:43.','2026-09-24 13:43:59','Terkirim'),(3,3,17,'Terlambat','Buku \"Buku Uji Denda dan Stok\" terlambat 3 hari. Denda saat ini Rp3.000. Segera hubungi atau datangi perpustakaan.','2026-09-24 13:47:18','Terkirim'),(4,3,15,'Gagal','Peminjaman buku \"23:59\" dibatalkan otomatis karena melewati tenggat pengambilan.','2026-09-27 12:04:30','Terkirim'),(5,3,16,'Gagal','Peminjaman buku \"oijoijoijoij\" dibatalkan otomatis karena melewati tenggat pengambilan.','2026-09-27 12:04:30','Terkirim');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -426,14 +426,14 @@ CREATE TABLE `reviews` (
   `user_id` int NOT NULL,
   `book_id` int NOT NULL,
   `rating` int DEFAULT NULL,
-  `review_text` text COLLATE utf8mb4_general_ci,
+  `review_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`review_id`),
   KEY `user_id` (`user_id`),
   KEY `book_id` (`book_id`),
   CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -442,7 +442,7 @@ CREATE TABLE `reviews` (
 
 LOCK TABLES `reviews` WRITE;
 /*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
-INSERT INTO `reviews` VALUES (1,3,1,5,'Buku yang sangat emosional dan membuka mata tentang perjuangan kemanusiaan. Sangat direkomendasikan!','2026-09-23 00:56:35'),(2,3,2,5,'Gaya kepenulisan Brian Khrisna selalu berhasil menyentuh perasaan dan relate dengan kehidupan sehari-hari.','2026-09-23 00:56:35'),(3,3,3,5,'Penjelasan data science dan implementasi kodenya sangat runtut dan mudah dipraktikkan langsung di Python.','2026-09-23 01:04:37'),(4,3,4,5,'Sangat cocok untuk yang baru pertama kali belajar akuntansi. Disertai studi kasus pencatatan jurnal yang jelas.','2026-09-23 01:04:37');
+INSERT INTO `reviews` VALUES (1,3,1,5,'Buku yang sangat emosional dan membuka mata tentang perjuangan kemanusiaan. Sangat direkomendasikan!','2026-09-23 00:56:35'),(2,3,2,5,'Gaya kepenulisan Brian Khrisna selalu berhasil menyentuh perasaan dan relate dengan kehidupan sehari-hari.','2026-09-23 00:56:35'),(3,3,3,5,'Penjelasan data science dan implementasi kodenya sangat runtut dan mudah dipraktikkan langsung di Python.','2026-09-23 01:04:37'),(4,3,4,5,'Sangat cocok untuk yang baru pertama kali belajar akuntansi. Disertai studi kasus pencatatan jurnal yang jelas.','2026-09-23 01:04:37'),(5,4,2,4,'mayan','2026-09-27 19:05:11');
 /*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -455,15 +455,15 @@ DROP TABLE IF EXISTS `users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `user_id` int NOT NULL AUTO_INCREMENT,
-  `role` enum('Peminjam','Admin') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Peminjam',
-  `nim_nip` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `class` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `email` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `phone` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `role` enum('Peminjam','Admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Peminjam',
+  `nim_nip` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `class` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `remember_token` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `remember_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `uk_users_nim_nip` (`nim_nip`)
@@ -479,14 +479,6 @@ LOCK TABLES `users` WRITE;
 INSERT INTO `users` VALUES (1,'Admin','ADM001','Admin Satu',NULL,'admin1@smartreadingroom.test','$2y$12$RUQsk1qjpI3riMatzNwtguFjyv58I/tK/Q/9my4aMs64G3Qfg32c.',NULL,'2026-09-21 17:38:16',NULL),(2,'Admin','ADM002','Admin Dua',NULL,'admin2@smartreadingroom.test','$2y$10$rl9w3q4Lnt8m3rRluEZbOOo4cpjGHa.UdDgPBXpl7w2baqtPETtI2',NULL,'2026-09-21 17:38:16',NULL),(3,'Peminjam','2024001','Budi Santoso','XII IPA 2','budi@test.com','$2y$12$f24EMQC2FjZVxHVRdLSlHe4JKoCBAwOS3BOydPCDvqjydCJesdTpq','1234567890','2026-09-21 18:27:39',NULL),(4,'Peminjam','s','ss','s','qsoudqh@gmail.com','$2y$12$1DqZtWBPPFs28SCXHz6pLuxQjVZAf.vfDKjnT23C41fwxyuKDBTv2','1','2026-09-22 08:03:31',NULL),(5,'Peminjam','1234','juliana martinelli','XII IPS 2','julianamartinelli@gmail.com','$2y$12$GcIUPGccnP9sTGsiwt5sCu.DHVPSIXFbGmjCGcrgP9R9TWnFAGot.','08123456789','2026-09-23 14:47:41',NULL),(6,'Peminjam','164241065','rafan','XII IPA 3','mmadanirafan@gmail.com','$2y$12$L0ECz5BFvSmyVpfg2/S.6e.EDlm0BgdPbXKa6JqIZ7ltLexNZSl1K','08117193666','2026-09-24 16:56:36',NULL),(9,'Peminjam','QASTOK','Penguji Stok','QA','qa.stok@smartreading.test','$2y$12$SyCnIGxGzRTEVA4ZnBe1M.NWAabsuk3Ns4MdkJl7eMBsm0v19I2vu','080000000003','2026-09-24 20:48:23',NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping events for database 'basdat'
---
-
---
--- Dumping routines for database 'basdat'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -497,4 +489,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-24 21:20:37
+-- Dump completed on 2026-09-27 19:33:24

@@ -151,6 +151,10 @@ Perintah pertama mengganti seluruh isi database `basdat`. Jika ada data penting,
 ekspor database tersebut terlebih dahulu. Jika password MySQL kosong, tekan Enter
 saat diminta.
 
+Gambar sampul buku ikut tersimpan di repository pada `storage/app/public/covers`,
+sehingga cukup menjalankan `php artisan storage:link` agar sampul tampil. Buku yang
+file sampulnya tidak tersedia akan ditampilkan dengan inisial judul.
+
 Akun yang sudah diverifikasi pada dump terbaru:
 
 | Role | NIS/NIP | Password |

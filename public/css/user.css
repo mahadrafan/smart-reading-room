@@ -221,8 +221,13 @@ td.aksi .bahaya { color: var(--merah); }
 /* ---------- kartu buku versi baru (dengan gambar sampul) ---------- */
 .kartu-buku { display: flex; }
 .kartu-buku-gambar { position: relative; display: block; }
-.sampul-gambar { height: 170px; padding: 0; }
-.sampul-gambar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* tinggi area sampul tetap supaya kartu seragam, gambar pakai contain agar cover tampil utuh */
+.kartu-buku .sampul { height: 240px; }
+.sampul-gambar { height: 240px; padding: 14px; background: #eceaf4; }
+.sampul-gambar img {
+    width: 100%; height: 100%; object-fit: contain; display: block;
+    filter: drop-shadow(0 4px 8px rgba(13,18,64,0.25));
+}
 .label-kat-overlay {
     position: absolute; top: 10px; right: 10px; color: #fff;
     background: rgba(13,18,64,0.75); backdrop-filter: blur(2px);
@@ -235,8 +240,103 @@ td.aksi .bahaya { color: var(--merah); }
 .info-buku .tombol-penuh { margin-top: 12px; background: var(--navy); }
 .info-buku .tombol-penuh:hover { background: #171d5c; }
 
-.detail-sampul .sampul-gambar { height: 280px; border-radius: 12px; overflow: hidden; }
-.detail-sampul .sampul-gambar img { border-radius: 12px; }
+/* di halaman detail tinggi sampul mengikuti rasio asli gambar */
+.detail-sampul .sampul-gambar { height: auto; padding: 0; background: none; border-radius: 12px; overflow: hidden; }
+.detail-sampul .sampul-gambar img { height: auto; border-radius: 12px; filter: none; }
+
+@media (max-width: 700px) {
+    .detail-sampul { max-width: 260px; }
+}
+
+/* ---------- rak buku ala perpustakaan (tampilan katalog) ---------- */
+.panel-rak {
+    padding: 22px 28px 12px; border-radius: 22px;
+    background: linear-gradient(180deg, #fbf8f3 0%, #f4eee4 100%);
+    box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(60,45,20,0.06), 0 12px 32px -18px rgba(60,45,20,0.25);
+}
+.tab-tampilan {
+    display: inline-flex; gap: 4px; padding: 5px; margin-bottom: 8px;
+    background: #fff; border: 1px solid #ece4d6; border-radius: 12px;
+}
+.tab-tampilan a {
+    padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    color: var(--abu); text-decoration: none;
+}
+.tab-tampilan a:hover { color: var(--navy); }
+.tab-tampilan a.aktif { color: var(--navy); background: #f1ebe0; }
+
+.rak-bagian { margin: 18px 0 26px; }
+.rak-kepala { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 22px 0 4px; }
+.rak-kepala h2 { margin: 0; font-size: 20px; font-weight: 600; color: var(--navy); }
+.rak-kepala h2 small { font-size: 14px; font-weight: 500; color: var(--abu); }
+.rak-bagian .rak-kepala { margin-top: 0; }
+.rak-tautan { flex-shrink: 0; font-size: 14px; font-weight: 600; color: var(--ungu); text-decoration: none; }
+.rak-tautan:hover { color: var(--ungu-gelap); }
+
+/* papan kayu digambar di belakang deretan buku, tepat di bawah sampul (22px padding + 190px sampul) */
+.rak-rak { position: relative; }
+.rak-rak::before {
+    content: ""; position: absolute; left: 0; right: 0; top: calc(22px + 190px); height: 20px; border-radius: 6px;
+    background: linear-gradient(180deg, #f3ebdd 0%, #e6d9c4 100%);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.75), 0 12px 14px -8px rgba(90,65,30,0.35);
+}
+.rak-isi {
+    position: relative; display: flex; align-items: flex-start; gap: 34px;
+    padding: 22px 26px 6px; overflow-x: auto; scrollbar-width: thin;
+}
+
+.buku-rak {
+    position: relative; z-index: 1; flex: 0 0 132px; width: 132px;
+    display: flex; flex-direction: column; text-decoration: none; color: inherit;
+}
+.buku-rak-sampul { position: relative; height: 190px; display: flex; align-items: flex-end; justify-content: center; }
+.buku-fisik {
+    position: relative; display: block; max-width: 132px; border-radius: 2px 4px 4px 2px; overflow: hidden;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.12), 6px 8px 14px -6px rgba(40,30,15,0.45);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.buku-fisik img { display: block; max-width: 132px; max-height: 190px; width: auto; height: auto; }
+/* bayangan punggung buku di sisi kiri */
+.buku-fisik::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(90deg, rgba(0,0,0,0.22) 0, rgba(255,255,255,0.18) 3%, rgba(0,0,0,0) 9%);
+}
+.buku-polos {
+    width: 124px; height: 186px; padding: 16px 12px 12px;
+    display: flex; flex-direction: column; justify-content: space-between; color: #fff;
+}
+.buku-polos-judul { font-size: 14px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.buku-polos-penulis { font-size: 11px; font-weight: 600; opacity: 0.8; }
+.buku-rak:hover .buku-fisik, .buku-rak:focus-visible .buku-fisik {
+    transform: translateY(-6px);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.12), 8px 14px 18px -6px rgba(40,30,15,0.45);
+}
+.buku-rak:focus-visible { outline: none; }
+.buku-rak:focus-visible .buku-fisik { outline: 3px solid var(--ungu); outline-offset: 3px; }
+.pita-habis {
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 2;
+    padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #fff; background: var(--merah);
+}
+
+/* area setinggi papan: tempat progress masa pinjam */
+.buku-rak-papan { height: 20px; display: flex; align-items: center; justify-content: center; }
+.progres-pinjam { width: 100px; height: 6px; border-radius: 999px; background: rgba(255,255,255,0.85); overflow: hidden; }
+.progres-pinjam span { display: block; height: 100%; border-radius: 999px; background: #b08a55; }
+.progres-pinjam.lewat span { background: var(--merah); }
+
+.buku-rak-judul {
+    margin-top: 12px; font-size: 13px; font-weight: 600; line-height: 1.3; color: var(--navy);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.buku-rak-ket { margin-top: 3px; font-size: 12px; font-weight: 600; color: var(--hijau); }
+.buku-rak-ket.merah { color: var(--merah); }
+.panel-rak > .rak { margin: 16px 0 22px; }
+.panel-rak .halaman { margin-top: 4px; }
+
+@media (max-width: 700px) {
+    .panel-rak { padding: 16px 14px 6px; border-radius: 16px; }
+    .rak-isi { gap: 22px; padding-left: 12px; padding-right: 12px; }
+}
 
 /* ---------- ulasan & notifikasi ---------- */
 .bagian-ulasan { margin-top: 32px; }

@@ -21,6 +21,10 @@ class KatalogController extends Controller
         $kataKunci = $request->q;
         $kategoriDipilih = $request->kategori;
 
+        // tampilan katalog: "rak" (default, buku berjajar di rak) atau "semua" (grid kartu)
+        $tampilan = $request->tampilan === 'semua' ? 'semua' : 'rak';
+        $sedangMencari = $kataKunci || $kategoriDipilih;
+
         // semua buku aktif + hitung berapa kali sudah dipinjam
         $query = Book::aktif()
             ->with(['category', 'author'])
@@ -47,14 +51,14 @@ class KatalogController extends Controller
 
         // bagian "Paling Sering Dipinjam" (hanya tampil kalau tidak sedang mencari)
         $populer = collect();
-        if (!$kataKunci && !$kategoriDipilih) {
+        if (!$sedangMencari) {
             $populer = Book::aktif()
                 ->with(['category', 'author'])
                 ->withCount(['loans as jumlah_dipinjam' => function ($q) {
                     $q->whereIn('status', ['Dikonfirmasi', 'Dipinjam', 'Dikembalikan']);
                 }])
                 ->orderByDesc('jumlah_dipinjam')
-                ->limit(4)
+                ->limit(8)
                 ->get()
                 ->filter(function ($b) {
                     return $b->jumlah_dipinjam > 0;
@@ -62,9 +66,46 @@ class KatalogController extends Controller
         }
 
         $kategori = Category::orderBy('category_name')->get();
+        $idUser = Auth::id();
+
+        // data khusus tampilan rak (hanya saat tidak sedang mencari / memfilter)
+        $pinjamanAktif = collect();
+        $rakKategori = collect();
+        if ($tampilan == 'rak' && !$sedangMencari) {
+            // rak "sedang kamu pinjam": pengajuan yang masih berjalan
+            $pinjamanAktif = Loan::where('user_id', $idUser)
+                ->whereIn('status', ['Menunggu', 'Dikonfirmasi', 'Dipinjam'])
+                ->with(['book.category', 'book.author'])
+                ->orderByDesc('loan_id')
+                ->get()
+                ->filter(function ($p) {
+                    return $p->book !== null;
+                });
+
+            // satu rak untuk setiap kategori yang punya buku aktif
+            $bukuPerKategori = Book::aktif()
+                ->with(['category', 'author'])
+                ->withCount(['loans as jumlah_dipinjam' => function ($q) {
+                    $q->whereIn('status', ['Dikonfirmasi', 'Dipinjam', 'Dikembalikan']);
+                }])
+                ->orderBy('title')
+                ->get()
+                ->groupBy('category_id');
+
+            $rakKategori = $kategori
+                ->filter(function ($k) use ($bukuPerKategori) {
+                    return $bukuPerKategori->has($k->category_id);
+                })
+                ->map(function ($k) use ($bukuPerKategori) {
+                    return [
+                        'kategori' => $k,
+                        'buku'     => $bukuPerKategori[$k->category_id]->take(10),
+                        'total'    => $bukuPerKategori[$k->category_id]->count(),
+                    ];
+                });
+        }
 
         // ringkasan peminjaman milik user yang sedang login
-        $idUser = Auth::id();
         $menunggu     = Loan::where('user_id', $idUser)->where('status', 'Menunggu')->count();
         $dikonfirmasi = Loan::where('user_id', $idUser)->where('status', 'Dikonfirmasi')->count();
         $dipinjam     = Loan::where('user_id', $idUser)->where('status', 'Dipinjam')->count();
@@ -77,6 +118,9 @@ class KatalogController extends Controller
             'buku'         => $buku,
             'populer'      => $populer,
             'kategori'     => $kategori,
+            'tampilan'     => $tampilan,
+            'pinjamanAktif' => $pinjamanAktif,
+            'rakKategori'  => $rakKategori,
             'menunggu'     => $menunggu,
             'dikonfirmasi' => $dikonfirmasi,
             'dipinjam'     => $dipinjam,
