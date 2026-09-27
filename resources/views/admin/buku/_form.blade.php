@@ -120,9 +120,9 @@ function togglePenulisBaru(val) {
     @error('cover_image')<p class="pesan-salah">{{ $message }}</p>@enderror
     <p class="pesan-info">Format JPG/PNG, maksimal 2MB.</p>
 
-    @if ($buku && $buku->cover_image)
+    @if ($buku && $buku->cover_url)
         <div style="margin-top:10px;">
-            <img src="{{ asset('storage/' . $buku->cover_image) }}" alt="Cover saat ini"
+            <img src="{{ $buku->cover_url }}" alt="Cover saat ini"
                  style="width:100px;height:140px;object-fit:cover;border-radius:8px;border:1px solid var(--garis);">
             <p class="pesan-info">Cover saat ini. Upload file baru untuk menggantinya.</p>
         </div>

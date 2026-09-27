@@ -1,7 +1,7 @@
-{{-- sampul buku: pakai cover_image kalau ada, fallback ke inisial --}}
-@if ($b->cover_image)
+{{-- sampul buku: pakai cover_image kalau filenya ada, fallback ke inisial --}}
+@if ($b->cover_url)
     <div class="sampul sampul-gambar">
-        <img src="{{ asset('storage/' . $b->cover_image) }}" alt="Sampul {{ $b->title }}" loading="lazy">
+        <img src="{{ $b->cover_url }}" alt="Sampul {{ $b->title }}" loading="lazy">
     </div>
 @else
     @php

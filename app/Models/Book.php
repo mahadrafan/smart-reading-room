@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Book extends Model
 {
@@ -15,6 +16,16 @@ class Book extends Model
     'description', 'location', 'stock', 'available_stock', 'is_active',
     'cover_image', 'created_by', 'updated_by', 'updated_at',
 ];
+
+    // url sampul yang bisa diakses browser, null kalau path kosong atau filenya tidak ada di disk public
+    public function getCoverUrlAttribute()
+    {
+        if (! $this->cover_image || ! Storage::disk('public')->exists($this->cover_image)) {
+            return null;
+        }
+
+        return asset('storage/' . $this->cover_image);
+    }
 
     // hanya buku yang masih aktif di katalog (buku "dihapus" = is_active 0)
     public function scopeAktif($query)
