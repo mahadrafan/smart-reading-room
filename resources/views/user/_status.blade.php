@@ -12,8 +12,8 @@
         $kelasBadge = 'b-konfirmasi';
         $teksBadge = 'Dikonfirmasi';
     } elseif ($pinjam->status == 'Dipinjam') {
-        $kelasBadge = 'b-setuju';
-        $teksBadge = 'Dipinjam';
+        $kelasBadge = 'b-dipinjam';
+        $teksBadge = 'Sedang Dipinjam';
     } elseif ($pinjam->status == 'Gagal') {
         $kelasBadge = 'b-tolak';
         $teksBadge = 'Gagal';
@@ -22,4 +22,4 @@
         $teksBadge = 'Dikembalikan';
     }
 @endphp
-<span class="badge {{ $kelasBadge }}">{{ $teksBadge }}</span>
+<span class="badge {{ $kelasBadge }}"><span class="badge-dot"></span>{{ $teksBadge }}</span>

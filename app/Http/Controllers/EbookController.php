@@ -19,6 +19,10 @@ class EbookController extends Controller
             });
         }
 
+        if ($request->kat) {
+            $query->whereHas('category', fn ($cat) => $cat->where('category_name', $request->kat));
+        }
+
         return view('user.ebooks', ['ebooks' => $query->orderBy('title')->get()]);
     }
 

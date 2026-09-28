@@ -25,10 +25,12 @@ class PeminjamanController extends Controller
         $filter = $request->filter;
 
         $query = Loan::where('user_id', Auth::id())
-            ->with(['book.author', 'approver']);
+            ->with(['book.author', 'book.category', 'approver']);
 
         if ($filter == 'aktif') {
             $query->whereIn('status', ['Menunggu', 'Dikonfirmasi', 'Dipinjam']);
+        } elseif ($filter == 'menunggu') {
+            $query->whereIn('status', ['Menunggu']);
         } elseif ($filter == 'riwayat') {
             $query->whereIn('status', ['Gagal', 'Dikembalikan']);
         }
