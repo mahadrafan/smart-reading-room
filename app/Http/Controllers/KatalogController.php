@@ -49,82 +49,59 @@ class KatalogController extends Controller
 
         $buku = $query->orderBy('title')->paginate(12)->withQueryString();
 
-        // bagian "Paling Sering Dipinjam" (hanya tampil kalau tidak sedang mencari)
+        $kategori = Category::orderBy('category_name')->get();
+
+        // tiga rak di tampilan utama (hanya saat tidak sedang mencari / memfilter)
+        $pinjamanAktif = collect();
         $populer = collect();
-        if (!$sedangMencari) {
+        $banyakUlasan = collect();
+        if ($tampilan == 'rak' && !$sedangMencari) {
+            // 1. buku yang sedang dipinjam user ini
+            $pinjamanAktif = Loan::where('user_id', Auth::id())
+                ->where('status', 'Dipinjam')
+                ->with(['book.category', 'book.author'])
+                ->orderBy('due_date')
+                ->get()
+                ->filter(function ($p) {
+                    return $p->book !== null;
+                });
+
+            // 2. buku yang paling sering dipinjam oleh semua user
             $populer = Book::aktif()
                 ->with(['category', 'author'])
                 ->withCount(['loans as jumlah_dipinjam' => function ($q) {
                     $q->whereIn('status', ['Dikonfirmasi', 'Dipinjam', 'Dikembalikan']);
                 }])
                 ->orderByDesc('jumlah_dipinjam')
+                ->orderBy('title')
                 ->limit(8)
                 ->get()
                 ->filter(function ($b) {
                     return $b->jumlah_dipinjam > 0;
                 });
-        }
 
-        $kategori = Category::orderBy('category_name')->get();
-        $idUser = Auth::id();
-
-        // data khusus tampilan rak (hanya saat tidak sedang mencari / memfilter)
-        $pinjamanAktif = collect();
-        $rakKategori = collect();
-        if ($tampilan == 'rak' && !$sedangMencari) {
-            // rak "sedang kamu pinjam": pengajuan yang masih berjalan
-            $pinjamanAktif = Loan::where('user_id', $idUser)
-                ->whereIn('status', ['Menunggu', 'Dikonfirmasi', 'Dipinjam'])
-                ->with(['book.category', 'book.author'])
-                ->orderByDesc('loan_id')
-                ->get()
-                ->filter(function ($p) {
-                    return $p->book !== null;
-                });
-
-            // satu rak untuk setiap kategori yang punya buku aktif
-            $bukuPerKategori = Book::aktif()
+            // 3. buku dengan komentar ulasan terbanyak (ulasan yang hanya berisi rating tidak dihitung)
+            $banyakUlasan = Book::aktif()
                 ->with(['category', 'author'])
-                ->withCount(['loans as jumlah_dipinjam' => function ($q) {
-                    $q->whereIn('status', ['Dikonfirmasi', 'Dipinjam', 'Dikembalikan']);
+                ->withCount(['reviews as jumlah_ulasan' => function ($q) {
+                    $q->whereNotNull('review_text')->where('review_text', '!=', '');
                 }])
+                ->orderByDesc('jumlah_ulasan')
                 ->orderBy('title')
+                ->limit(8)
                 ->get()
-                ->groupBy('category_id');
-
-            $rakKategori = $kategori
-                ->filter(function ($k) use ($bukuPerKategori) {
-                    return $bukuPerKategori->has($k->category_id);
-                })
-                ->map(function ($k) use ($bukuPerKategori) {
-                    return [
-                        'kategori' => $k,
-                        'buku'     => $bukuPerKategori[$k->category_id]->take(10),
-                        'total'    => $bukuPerKategori[$k->category_id]->count(),
-                    ];
+                ->filter(function ($b) {
+                    return $b->jumlah_ulasan > 0;
                 });
         }
-
-        // ringkasan peminjaman milik user yang sedang login
-        $menunggu     = Loan::where('user_id', $idUser)->where('status', 'Menunggu')->count();
-        $dikonfirmasi = Loan::where('user_id', $idUser)->where('status', 'Dikonfirmasi')->count();
-        $dipinjam     = Loan::where('user_id', $idUser)->where('status', 'Dipinjam')->count();
-        $terlambat    = Loan::where('user_id', $idUser)
-            ->where('status', 'Dipinjam')
-            ->where('due_date', '<', today()->format('Y-m-d'))
-            ->count();
 
         return view('user.katalog', [
-            'buku'         => $buku,
-            'populer'      => $populer,
-            'kategori'     => $kategori,
-            'tampilan'     => $tampilan,
+            'buku'          => $buku,
+            'kategori'      => $kategori,
+            'tampilan'      => $tampilan,
             'pinjamanAktif' => $pinjamanAktif,
-            'rakKategori'  => $rakKategori,
-            'menunggu'     => $menunggu,
-            'dikonfirmasi' => $dikonfirmasi,
-            'dipinjam'     => $dipinjam,
-            'terlambat'    => $terlambat,
+            'populer'       => $populer,
+            'banyakUlasan'  => $banyakUlasan,
         ]);
     }
 

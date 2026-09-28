@@ -3,7 +3,7 @@
 @section('title', 'Detail Peminjaman')
 
 @section('content')
-    <a href="{{ route('peminjaman.index') }}" class="kembali">&larr; Kembali ke peminjaman saya</a>
+    <a href="{{ route('peminjaman.index') }}" class="kembali">&larr; Kembali ke riwayat peminjaman</a>
 
     <div class="kepala">
         <h1>Detail Peminjaman</h1>

@@ -1,6 +1,8 @@
-{{-- satu buku yang berdiri di rak, butuh $b; opsional $pinjam untuk rak "sedang kamu pinjam" --}}
+{{-- satu buku yang berdiri di rak, butuh $b; opsional $pinjam untuk rak "sedang kamu pinjam",
+     atau $info ('dipinjam' / 'ulasan') untuk mengganti keterangan stok --}}
 @php
     $pinjam = $pinjam ?? null;
+    $info = $info ?? null;
     $tautan = $pinjam ? route('peminjaman.detail', $pinjam->loan_id) : route('buku.detail', $b->book_id);
     $penulis = $b->author ? $b->author->author_name : 'Penulis belum diisi';
 
@@ -20,6 +22,10 @@
         } else {
             $keterangan = 'Menunggu konfirmasi';
         }
+    } elseif ($info == 'dipinjam') {
+        $keterangan = ($b->jumlah_dipinjam ?? 0) . 'x dipinjam';
+    } elseif ($info == 'ulasan') {
+        $keterangan = ($b->jumlah_ulasan ?? 0) . ' ulasan';
     } else {
         $keterangan = $b->available_stock > 0 ? 'Tersedia ' . $b->available_stock : 'Stok habis';
     }
@@ -56,5 +62,5 @@
     </span>
 
     <span class="buku-rak-judul">{{ $b->title }}</span>
-    <span class="buku-rak-ket {{ $terlambat || (!$pinjam && $b->available_stock <= 0) ? 'merah' : '' }}">{{ $keterangan }}</span>
+    <span class="buku-rak-ket {{ $info ? 'netral' : '' }} {{ $terlambat || (!$pinjam && !$info && $b->available_stock <= 0) ? 'merah' : '' }}">{{ $keterangan }}</span>
 </a>

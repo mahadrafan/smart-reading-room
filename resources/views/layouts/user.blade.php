@@ -25,7 +25,7 @@
                 <a href="{{ route('dashboard') }}"
                    class="{{ request()->routeIs('dashboard', 'buku.detail') ? 'aktif' : '' }}">Katalog Buku</a>
                 <a href="{{ route('peminjaman.index') }}"
-                   class="{{ request()->routeIs('peminjaman.*') ? 'aktif' : '' }}">Peminjaman Saya</a>
+                   class="{{ request()->routeIs('peminjaman.*') ? 'aktif' : '' }}">Riwayat Peminjaman</a>
                 <a href="{{ route('ebooks.index') }}"
                    class="{{ request()->routeIs('ebooks.*') ? 'aktif' : '' }}">E-book</a>
                 <a href="{{ route('notifikasi.index') }}"

@@ -1,5 +1,6 @@
 {{-- satu rak buku: butuh $judul dan $buku (koleksi Book) atau $pinjaman (koleksi Loan);
-     opsional $tautan + $teksTautan untuk link "lihat semua" di pojok kanan --}}
+     opsional $tautan + $teksTautan untuk link "lihat semua" di pojok kanan,
+     dan $info ('dipinjam' / 'ulasan') untuk keterangan di bawah buku --}}
 <section class="rak-bagian">
     @if (!empty($judul) || !empty($tautan))
         <div class="rak-kepala">
@@ -20,7 +21,7 @@
                 @endforeach
             @else
                 @foreach ($buku as $b)
-                    @include('user._buku-rak', ['b' => $b])
+                    @include('user._buku-rak', ['b' => $b, 'info' => $info ?? null])
                 @endforeach
             @endif
         </div>

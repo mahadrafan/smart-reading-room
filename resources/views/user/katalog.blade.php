@@ -8,26 +8,6 @@
         <p class="ket">Cari buku, cek ketersediaannya, lalu ajukan peminjaman.</p>
     </div>
 
-    {{-- ringkasan peminjaman milik user --}}
-    <div class="ringkasan">
-        <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}" class="kartu-ringkas">
-            <span class="angka">{{ $menunggu }}</span>
-            <span class="label">Menunggu konfirmasi</span>
-        </a>
-        <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}" class="kartu-ringkas">
-            <span class="angka">{{ $dikonfirmasi }}</span>
-            <span class="label">Dikonfirmasi (Siap diambil)</span>
-        </a>
-        <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}" class="kartu-ringkas">
-            <span class="angka">{{ $dipinjam }}</span>
-            <span class="label">Sedang dipinjam</span>
-        </a>
-        <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}" class="kartu-ringkas {{ $terlambat > 0 ? 'peringatan' : '' }}">
-            <span class="angka">{{ $terlambat }}</span>
-            <span class="label">Melewati batas kembali</span>
-        </a>
-    </div>
-
     {{-- kolom pencarian --}}
     <form method="GET" action="{{ route('dashboard') }}" class="cari">
         <label for="q" class="sr-only">Cari buku</label>
@@ -67,32 +47,30 @@
         </nav>
 
         @if ($tampilan == 'rak' && !$sedangMencari)
-            {{-- rak utama: pinjaman aktif, populer, lalu satu rak per kategori --}}
+            {{-- rak utama: sedang dipinjam, paling sering dipinjam, banyak ulasan --}}
             @if ($pinjamanAktif->count() > 0)
                 @include('user._rak', [
                     'judul'      => 'Sedang Kamu Pinjam',
                     'pinjaman'   => $pinjamanAktif,
                     'tautan'     => route('peminjaman.index'),
-                    'teksTautan' => 'Peminjaman saya',
+                    'teksTautan' => 'Riwayat peminjaman',
                 ])
             @endif
 
             @if ($populer->count() > 0)
-                @include('user._rak', ['judul' => 'Paling Sering Dipinjam', 'buku' => $populer])
+                @include('user._rak', ['judul' => 'Paling Sering Dipinjam', 'buku' => $populer, 'info' => 'dipinjam'])
             @endif
 
-            @forelse ($rakKategori as $rak)
-                @include('user._rak', [
-                    'judul'      => $rak['kategori']->category_name,
-                    'buku'       => $rak['buku'],
-                    'tautan'     => route('dashboard', ['kategori' => $rak['kategori']->category_id]),
-                    'teksTautan' => 'Lihat semua (' . $rak['total'] . ')',
-                ])
-            @empty
+            @if ($banyakUlasan->count() > 0)
+                @include('user._rak', ['judul' => 'Banyak Ulasan', 'buku' => $banyakUlasan, 'info' => 'ulasan'])
+            @endif
+
+            @if ($pinjamanAktif->isEmpty() && $populer->isEmpty() && $banyakUlasan->isEmpty())
                 <div class="kosong">
-                    <p>Katalog masih kosong. Buku akan muncul setelah admin menambahkannya.</p>
+                    <p>Belum ada buku yang dipinjam atau diulas.</p>
+                    <a href="{{ route('dashboard', ['tampilan' => 'semua']) }}">Lihat semua buku</a>
                 </div>
-            @endforelse
+            @endif
         @else
             {{-- hasil pencarian / filter kategori, atau tampilan "semua buku" --}}
             <div class="rak-kepala">

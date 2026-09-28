@@ -1,11 +1,11 @@
 @extends('layouts.user')
 
-@section('title', 'Peminjaman Saya')
+@section('title', 'Riwayat Peminjaman')
 
 @section('content')
     <div class="kepala kepala-baris">
         <div>
-            <h1>Peminjaman Saya</h1>
+            <h1>Riwayat Peminjaman</h1>
             <p class="ket">Pantau status pengajuan dan buku yang sedang kamu pinjam.</p>
         </div>
         <a href="{{ route('peminjaman.buat') }}" class="tombol">Ajukan Peminjaman</a>

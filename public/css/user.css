@@ -34,8 +34,10 @@ body {
 .app { display: flex; min-height: 100vh; }
 
 /* ---------- sidebar ---------- */
+/* sidebar menempel setinggi layar, jadi tombol keluar selalu terlihat walau konten di-scroll */
 .sisi {
     width: 240px; flex-shrink: 0; display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto; align-self: flex-start;
     padding: 24px 0; color: #fff; background: var(--navy);
 }
 .sisi .brand { padding: 0 20px 20px; font-weight: 700; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.12); }
@@ -214,7 +216,7 @@ td.aksi .bahaya { color: var(--merah); }
 
 @media (max-width: 800px) {
     .app { flex-direction: column; }
-    .sisi { width: 100%; }
+    .sisi { width: 100%; position: static; height: auto; }
     .konten { padding: 20px; }
 }
 
@@ -329,6 +331,7 @@ td.aksi .bahaya { color: var(--merah); }
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .buku-rak-ket { margin-top: 3px; font-size: 12px; font-weight: 600; color: var(--hijau); }
+.buku-rak-ket.netral { color: var(--abu); }
 .buku-rak-ket.merah { color: var(--merah); }
 .panel-rak > .rak { margin: 16px 0 22px; }
 .panel-rak .halaman { margin-top: 4px; }
