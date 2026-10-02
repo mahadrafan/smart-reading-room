@@ -92,7 +92,7 @@ body {
 /* ---------- stat cards (ringkasan) ---------- */
 .ringkasan {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 14px;
     margin-bottom: 24px;
 }
@@ -124,6 +124,7 @@ body {
 .ikon-oranye { background: var(--oranye-muda); color: var(--oranye); }
 .ikon-hijau { background: var(--hijau-muda); color: var(--hijau); }
 .ikon-merah { background: var(--merah-muda); color: var(--merah); }
+.ikon-ungu { background: var(--ungu-muda); color: var(--ungu); }
 
 /* ---------- tab filter & pencarian baris ---------- */
 .filter-baris {
@@ -239,6 +240,11 @@ table.tabel tbody tr:hover { background: #fafafa; }
     background: var(--navy); display: flex; align-items: center; justify-content: center;
     color: rgba(255,255,255,0.8); font-size: 11px; font-weight: 700;
     flex-shrink: 0; text-align: center; line-height: 1.2;
+}
+/* cover asli di tabel: lebar tetap, tinggi mengikuti rasio gambar supaya tidak terpotong */
+.tabel-sampul-gambar {
+    display: block; height: auto; max-height: 64px; object-fit: contain; border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(13,18,64,0.12), 2px 3px 6px -2px rgba(13,18,64,0.25);
 }
 .tabel-buku-info .judul { font-weight: 700; font-size: 13.5px; color: var(--navy); margin-bottom: 2px; }
 .tabel-buku-info .meta { font-size: 11px; color: var(--abu); }
@@ -746,9 +752,64 @@ td.aksi .bahaya { color: var(--merah); }
 
 /* ---------- ulasan ---------- */
 .bagian-ulasan { margin-top: 32px; }
-.ulasan-item { margin-bottom: 12px; }
-.ulasan-item p { margin: 10px 0; line-height: 1.55; white-space: normal; }
 .rating-bintang { color: #d69e00; letter-spacing: 2px; margin-left: 8px; }
+
+/* kartu ulasan: avatar pengulas, slider ulasan, dan kotak rata-rata rating */
+.form-ulasan { align-self: start; min-width: 0; padding: 22px; border-radius: 26px; }
+
+/* min-width 0: kolom grid tidak ikut melebar mengikuti total lebar semua slide */
+.ulasan-widget {
+    display: flex; flex-direction: column; gap: 16px; align-self: start; min-width: 0;
+    padding: 22px; background: var(--putih); border: 1px solid var(--garis); border-radius: 26px;
+    box-shadow: 0 10px 30px -18px rgba(13,18,64,0.18);
+}
+.ulasan-kepala { display: flex; align-items: center; gap: 14px; }
+.ulasan-kepala h3 { margin: 0; font-size: 15px; font-weight: 700; color: var(--navy); }
+.ulasan-kepala p { margin: 3px 0 0; font-size: 14px; color: var(--abu); }
+.avatar-tumpuk { display: flex; flex-shrink: 0; }
+.avatar-tumpuk span {
+    width: 38px; height: 38px; margin-left: -10px; border: 2px solid var(--putih); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff;
+}
+.avatar-tumpuk span:first-child { margin-left: 0; }
+
+.slider-ulasan { position: relative; padding: 18px 0 14px; background: #f4f4f7; border-radius: 18px; }
+.slider-navigasi { position: absolute; top: 14px; right: 16px; z-index: 1; display: flex; gap: 8px; }
+.slider-tombol {
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--garis); background: var(--putih);
+    font: inherit; font-size: 20px; line-height: 1; color: var(--teks); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; padding-bottom: 3px;
+    transition: border-color 0.15s, color 0.15s;
+}
+.slider-tombol:hover:not(:disabled) { border-color: var(--ungu); color: var(--ungu); }
+.slider-tombol:disabled { opacity: 0.4; cursor: default; }
+.slider-tombol:focus-visible, .slider-jalur:focus-visible { outline: 3px solid var(--ungu); outline-offset: 2px; }
+
+/* jalur geser: tiap ulasan selebar kotak, berhenti tepat per ulasan */
+.slider-jalur {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+    scrollbar-width: none; border-radius: 18px;
+}
+.slider-jalur::-webkit-scrollbar { display: none; }
+.slide-ulasan { flex: 0 0 100%; scroll-snap-align: start; padding: 0 20px; }
+.bintang-ulasan { display: flex; gap: 2px; padding-right: 90px; font-size: 16px; line-height: 1; color: #dcdce4; }
+.bintang-ulasan .isi { color: #f2c94c; }
+.nama-pengulas { margin-top: 8px; padding-right: 90px; font-size: 14px; font-weight: 700; color: var(--teks); }
+.teks-ulasan { margin: 10px 0 6px; font-size: 13.5px; line-height: 1.6; color: #5f5f6e; overflow-wrap: anywhere; }
+.tanggal-ulasan { font-size: 12px; color: var(--abu); }
+.slider-penanda { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
+.slider-penanda span { width: 6px; height: 6px; border-radius: 999px; background: #d4d4de; transition: width 0.2s, background 0.2s; }
+.slider-penanda span.aktif { width: 18px; background: var(--ungu); }
+.slider-kosong { padding: 18px 20px; }
+.slider-kosong p { margin: 0; font-size: 14px; color: var(--abu); }
+
+.kotak-rating { padding: 18px 22px 20px; background: #f3d276; border-radius: 20px; color: #1a1a1a; }
+.bintang-rata { position: relative; display: inline-block; font-size: 22px; line-height: 1; letter-spacing: 2px; }
+.bintang-rata .bintang-dasar { color: rgba(0,0,0,0.15); }
+.bintang-rata .bintang-isi { position: absolute; top: 0; left: 0; overflow: hidden; white-space: nowrap; color: #1a1a1a; }
+.angka-rating { margin-top: 14px; font-size: 34px; font-weight: 500; line-height: 1; }
+.label-rating { margin-top: 8px; font-size: 14px; color: rgba(0,0,0,0.6); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 800px) {

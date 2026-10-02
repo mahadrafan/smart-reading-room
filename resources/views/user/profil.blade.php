@@ -5,27 +5,7 @@
 @section('content')
     <div class="kepala">
         <h1>Profil</h1>
-        <p class="ket">Ringkasan peminjamanmu dan data diri yang dipakai otomatis pada form peminjaman.</p>
-    </div>
-
-    {{-- ringkasan peminjaman milik user --}}
-    <div class="ringkasan">
-        <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}" class="kartu-ringkas">
-            <span class="angka">{{ $menunggu }}</span>
-            <span class="label">Menunggu konfirmasi</span>
-        </a>
-        <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}" class="kartu-ringkas">
-            <span class="angka">{{ $dikonfirmasi }}</span>
-            <span class="label">Dikonfirmasi (Siap diambil)</span>
-        </a>
-        <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}" class="kartu-ringkas">
-            <span class="angka">{{ $dipinjam }}</span>
-            <span class="label">Sedang dipinjam</span>
-        </a>
-        <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}" class="kartu-ringkas {{ $terlambat > 0 ? 'peringatan' : '' }}">
-            <span class="angka">{{ $terlambat }}</span>
-            <span class="label">Melewati batas kembali</span>
-        </a>
+        <p class="ket">Data ini dipakai otomatis pada form peminjaman.</p>
     </div>
 
     <div class="dua-kotak">

@@ -24,21 +24,26 @@ class PeminjamanController extends Controller
 
         $filter = $request->filter;
 
-        $query = Loan::where('user_id', Auth::id())
-            ->with(['book.author', 'book.category', 'approver']);
+        // semua peminjaman user: dipakai kartu ringkasan & angka di tab filter, jadi tidak ikut terfilter
+        $semua = Loan::where('user_id', Auth::id())
+            ->with(['book.author', 'book.category', 'approver'])
+            ->orderBy('loan_id', 'desc')
+            ->get();
 
+        // daftar untuk tabel sesuai tab filter yang dipilih
         if ($filter == 'aktif') {
-            $query->whereIn('status', ['Menunggu', 'Dikonfirmasi', 'Dipinjam']);
+            $daftar = $semua->whereIn('status', ['Menunggu', 'Dikonfirmasi', 'Dipinjam']);
         } elseif ($filter == 'menunggu') {
-            $query->whereIn('status', ['Menunggu']);
+            $daftar = $semua->whereIn('status', ['Menunggu']);
         } elseif ($filter == 'riwayat') {
-            $query->whereIn('status', ['Gagal', 'Dikembalikan']);
+            $daftar = $semua->whereIn('status', ['Gagal', 'Dikembalikan']);
+        } else {
+            $daftar = $semua;
         }
 
-        $daftar = $query->orderBy('loan_id', 'desc')->get();
-
         return view('user.peminjaman-saya', [
-            'daftar' => $daftar,
+            'semua'  => $semua,
+            'daftar' => $daftar->values(),
             'filter' => $filter,
         ]);
     }

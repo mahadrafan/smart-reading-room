@@ -12,13 +12,15 @@
         <a href="{{ route('peminjaman.buat') }}" class="tombol">Ajukan Peminjaman</a>
     </div>
 
-    {{-- stat cards --}}
+    {{-- stat cards: dihitung dari semua peminjaman user, tidak terpengaruh tab filter --}}
     @php
-        $aktif    = $daftar->whereIn('status', ['Dipinjam'])->count();
-        $menunggu = $daftar->whereIn('status', ['Menunggu', 'Dikonfirmasi'])->count();
-        $selesai  = $daftar->whereIn('status', ['Dikembalikan'])->count();
+        $aktif        = $semua->whereIn('status', ['Dipinjam'])->count();
+        $menunggu     = $semua->whereIn('status', ['Menunggu'])->count();
+        // sudah dikonfirmasi admin & siap diambil; berkurang saat admin mengubah status jadi Dipinjam
+        $siapDiambil  = $semua->whereIn('status', ['Dikonfirmasi'])->count();
+        $selesai      = $semua->whereIn('status', ['Dikembalikan'])->count();
         // cari yang paling dekat batas kembali (status Dipinjam)
-        $dipinjamItems = $daftar->where('status', 'Dipinjam');
+        $dipinjamItems = $semua->where('status', 'Dipinjam');
         $hariTersisa = null;
         $statusAman  = true;
         foreach ($dipinjamItems as $p) {
@@ -50,6 +52,14 @@
         </div>
         <div class="kartu-ringkas">
             <div class="kartu-ringkas-kiri">
+                <div class="label-kecil">Siap Diambil</div>
+                <div class="angka">{{ $siapDiambil }}</div>
+                <div class="sub-label">Dikonfirmasi</div>
+            </div>
+            <div class="kartu-ringkas-ikon ikon-ungu">📦</div>
+        </div>
+        <div class="kartu-ringkas">
+            <div class="kartu-ringkas-kiri">
                 <div class="label-kecil">Selesai Dibaca</div>
                 <div class="angka">{{ $selesai }}</div>
                 <div class="sub-label">Buku</div>
@@ -77,15 +87,15 @@
         <div class="chip-baris">
             <a href="{{ route('peminjaman.index') }}"
                class="chip {{ !$filter ? 'aktif' : '' }}">
-               Semua <strong>{{ $daftar->count() }}</strong>
+               Semua <strong>{{ $semua->count() }}</strong>
             </a>
             <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}"
                class="chip {{ $filter == 'aktif' ? 'aktif' : '' }}">
-               Aktif <strong>{{ $daftar->whereIn('status',['Menunggu','Dikonfirmasi','Dipinjam'])->count() }}</strong>
+               Aktif <strong>{{ $semua->whereIn('status',['Menunggu','Dikonfirmasi','Dipinjam'])->count() }}</strong>
             </a>
             <a href="{{ route('peminjaman.index', ['filter' => 'menunggu']) }}"
                class="chip {{ $filter == 'menunggu' ? 'aktif' : '' }}">
-               Menunggu <strong>{{ $daftar->whereIn('status',['Menunggu'])->count() }}</strong>
+               Menunggu <strong>{{ $menunggu }}</strong>
             </a>
             <a href="{{ route('peminjaman.index', ['filter' => 'riwayat']) }}"
                class="chip {{ $filter == 'riwayat' ? 'aktif' : '' }}">
@@ -143,7 +153,18 @@
                         </td>
                         <td>
                             <div class="tabel-buku">
-                                <div class="tabel-sampul">PDF</div>
+                                {{-- sampul buku: gambar cover kalau filenya ada, fallback ke inisial judul --}}
+                                @if ($p->book && $p->book->cover_url)
+                                    <img src="{{ $p->book->cover_url }}" alt="Sampul {{ $p->book->title }}"
+                                         class="tabel-sampul tabel-sampul-gambar" loading="lazy">
+                                @else
+                                    @php
+                                        $daftarWarna = ['#8671c9', '#1b2340', '#2f6f73', '#b5574b', '#5b7b3a', '#a07a2c'];
+                                        $kata = explode(' ', trim($p->book->title ?? '-'));
+                                        $inisial = mb_strtoupper(mb_substr($kata[0], 0, 1) . (isset($kata[1]) ? mb_substr($kata[1], 0, 1) : ''));
+                                    @endphp
+                                    <div class="tabel-sampul" style="background: {{ $daftarWarna[($p->book->category_id ?? 0) % count($daftarWarna)] }};">{{ $inisial }}</div>
+                                @endif
                                 <div class="tabel-buku-info">
                                     <div class="judul">{{ $p->book ? $p->book->title : '-' }}</div>
                                     <div class="meta">

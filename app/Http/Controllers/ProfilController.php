@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Loan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -10,27 +9,10 @@ use Illuminate\Validation\Rule;
 
 class ProfilController extends Controller
 {
-    // tampilkan halaman profil (ringkasan peminjaman + data diri + form ganti password)
+    // tampilkan halaman profil (data diri + form ganti password)
     public function show()
     {
-        Loan::prosesTenggatPengambilan();
-
-        // ringkasan peminjaman milik user yang sedang login
-        $idUser = Auth::id();
-        $menunggu     = Loan::where('user_id', $idUser)->where('status', 'Menunggu')->count();
-        $dikonfirmasi = Loan::where('user_id', $idUser)->where('status', 'Dikonfirmasi')->count();
-        $dipinjam     = Loan::where('user_id', $idUser)->where('status', 'Dipinjam')->count();
-        $terlambat    = Loan::where('user_id', $idUser)
-            ->where('status', 'Dipinjam')
-            ->where('due_date', '<', today()->format('Y-m-d'))
-            ->count();
-
-        return view('user.profil', [
-            'menunggu'     => $menunggu,
-            'dikonfirmasi' => $dikonfirmasi,
-            'dipinjam'     => $dipinjam,
-            'terlambat'    => $terlambat,
-        ]);
+        return view('user.profil');
     }
 
     // ubah data diri (name, email, class, phone)
