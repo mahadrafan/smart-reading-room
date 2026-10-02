@@ -176,27 +176,59 @@ class PeminjamanAdminController extends Controller
         return redirect()->route('admin.peminjaman.riwayat')->with('status', 'Buku ditandai sudah dikembalikan.');
     }
 
+    // UPDATE: tandai denda lunas. Lunas bersifat final (tidak bisa kembali ke Belum Lunas),
+    // dan kalau buku masih dipinjam, pembayaran sekaligus mencatat pengembalian buku.
     public function ubahStatusDenda($id)
     {
         $pinjam = Loan::with(['user', 'book'])->findOrFail($id);
 
         abort_if($pinjam->jumlah_denda < 1, 422, 'Peminjaman ini tidak memiliki denda.');
 
-        $menjadiLunas = $pinjam->fine_paid_at === null;
-        $pinjam->update([
-            'fine_paid_at' => $menjadiLunas ? now() : null,
-            'fine_paid_by' => $menjadiLunas ? Auth::id() : null,
-        ]);
+        $sekalianKembali = DB::transaction(function () use ($pinjam) {
+            // kunci baris agar dua klik bersamaan tidak memproses (dan menambah stok) dua kali
+            $terkunci = Loan::whereKey($pinjam->loan_id)->lockForUpdate()->first();
+            if ($terkunci->fine_paid_at !== null) {
+                return null;
+            }
 
-        AdminLog::catat(
-            $menjadiLunas ? 'Denda Lunas' : 'Denda Belum Lunas',
-            'loans',
-            $pinjam->loan_id,
-            'Mengubah status denda peminjaman "' . ($pinjam->book->title ?? '-') . '" oleh ' .
-                ($pinjam->user->name ?? '-') . ' menjadi ' . ($menjadiLunas ? 'Lunas' : 'Belum Lunas') . '.'
-        );
+            $sekalianKembali = $terkunci->status === 'Dipinjam';
 
-        return back()->with('status', 'Status denda berhasil diubah menjadi ' . ($menjadiLunas ? 'Lunas.' : 'Belum Lunas.'));
+            $pinjam->fine_paid_at = now();
+            $pinjam->fine_paid_by = Auth::id();
+
+            if ($sekalianKembali) {
+                $pinjam->status      = 'Dikembalikan';
+                $pinjam->return_date = now()->format('Y-m-d');
+                $pinjam->book->increment('available_stock');
+            }
+
+            $pinjam->save();
+
+            AdminLog::catat('Denda Lunas', 'loans', $pinjam->loan_id,
+                'Mengubah status denda peminjaman "' . ($pinjam->book->title ?? '-') . '" oleh ' .
+                    ($pinjam->user->name ?? '-') . ' menjadi Lunas' .
+                    ($sekalianKembali ? ' dan menandai buku sudah dikembalikan.' : '.'));
+
+            return $sekalianKembali;
+        });
+
+        if ($sekalianKembali === null) {
+            return back()->with('error', 'Denda ini sudah lunas dan statusnya tidak bisa diubah lagi.');
+        }
+
+        if ($sekalianKembali) {
+            app(LoanNotificationService::class)->send(
+                $pinjam->fresh()->load(['user', 'book']),
+                'Dikembalikan',
+                'Buku sudah dikembalikan',
+                'Denda Rp' . number_format($pinjam->jumlah_denda, 0, ',', '.') . ' untuk buku "' . $pinjam->book->title .
+                    '" sudah lunas dan pengembalian buku sudah tercatat. Terima kasih.'
+            );
+
+            return back()->with('status', 'Denda lunas dan buku ditandai sudah dikembalikan.');
+        }
+
+        return back()->with('status', 'Status denda berhasil diubah menjadi Lunas.');
     }
 
     // DELETE: hapus riwayat (berstatus Dikembalikan atau Gagal)

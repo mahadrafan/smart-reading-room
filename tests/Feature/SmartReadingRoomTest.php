@@ -367,17 +367,6 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('Rp3.000')
             ->assertSee('Belum Lunas');
 
-        $this->put('/admin/riwayat/' . $loan->loan_id . '/denda')
-            ->assertRedirect();
-        $this->assertNotNull($loan->fresh()->fine_paid_at);
-        $this->assertSame($admin->user_id, $loan->fresh()->fine_paid_by);
-        $this->get('/admin/dashboard')->assertOk()->assertSee('Lunas');
-
-        $this->put('/admin/riwayat/' . $loan->loan_id . '/denda')
-            ->assertRedirect();
-        $this->assertNull($loan->fresh()->fine_paid_at);
-        $this->assertNull($loan->fresh()->fine_paid_by);
-
         $this->get('/admin/peminjam')->assertOk()->assertSee($borrower->email);
 
         $this->artisan('loans:send-overdue-reminders')->assertExitCode(0);
@@ -388,6 +377,39 @@ class SmartReadingRoomTest extends TestCase
         ]);
         $this->artisan('loans:send-overdue-reminders')->assertExitCode(0);
         $this->assertDatabaseCount('notifications', 1);
+
+        // bayar denda = sekaligus mengembalikan buku
+        $this->put('/admin/riwayat/' . $loan->loan_id . '/denda')
+            ->assertRedirect()
+            ->assertSessionHas('status', 'Denda lunas dan buku ditandai sudah dikembalikan.');
+        $loan->refresh();
+        $this->assertNotNull($loan->fine_paid_at);
+        $this->assertSame($admin->user_id, $loan->fine_paid_by);
+        $this->assertSame('Dikembalikan', $loan->status);
+        $this->assertSame(today()->format('Y-m-d'), $loan->return_date->format('Y-m-d'));
+        $this->assertSame(3000, $loan->jumlah_denda);
+        $this->assertSame(3, $book->fresh()->available_stock);
+        $this->assertDatabaseHas('notifications', ['loan_id' => $loan->loan_id, 'type' => 'Dikembalikan']);
+
+        // yang sudah lunas hilang dari tabel peminjaman terlambat di dashboard
+        $this->get('/admin/dashboard')->assertOk()
+            ->assertDontSee($borrower->email)
+            ->assertSee('Tidak ada peminjaman yang terlambat.');
+
+        // status Lunas final: tidak bisa diubah kembali menjadi Belum Lunas, stok tidak bertambah lagi
+        $dibayarPada = $loan->fine_paid_at->toDateTimeString();
+        $this->put('/admin/riwayat/' . $loan->loan_id . '/denda')
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Denda ini sudah lunas dan statusnya tidak bisa diubah lagi.');
+        $loan->refresh();
+        $this->assertSame($dibayarPada, $loan->fine_paid_at->toDateTimeString());
+        $this->assertSame('Dikembalikan', $loan->status);
+        $this->assertSame(3, $book->fresh()->available_stock);
+
+        // di halaman riwayat admin, denda lunas hanya tampil sebagai label (tanpa tombol ubah)
+        $this->get('/admin/riwayat')->assertOk()
+            ->assertSee('<span class="badge b-setuju" style="margin-top:6px">Lunas</span>', false)
+            ->assertDontSee('/admin/riwayat/' . $loan->loan_id . '/denda');
     }
 
     public function test_user_can_add_and_update_review_and_admin_can_delete_it(): void

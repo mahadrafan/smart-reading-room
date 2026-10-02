@@ -41,14 +41,19 @@
                             @include('user._status', ['pinjam' => $p])
                             @if ($p->hari_terlambat > 0)
                                 <div class="pesan-salah">{{ $p->hari_terlambat }} hari terlambat<br>Denda Rp{{ number_format($p->jumlah_denda, 0, ',', '.') }}</div>
-                                <form method="POST" action="{{ route('admin.peminjaman.denda', $p->loan_id) }}" style="margin-top:6px">
-                                    @csrf
-                                    @method('PUT')
-                                    <button type="submit" class="tombol tombol-kecil {{ $p->denda_lunas ? 'tombol-lunas' : 'tombol-belum' }}"
-                                        onclick="return confirm('Ubah status denda menjadi {{ $p->denda_lunas ? 'Belum Lunas' : 'Lunas' }}?')">
-                                        {{ $p->denda_lunas ? 'Lunas' : 'Belum Lunas' }}
-                                    </button>
-                                </form>
+                                {{-- status Lunas final: setelah lunas hanya ditampilkan sebagai label, tidak bisa diubah lagi --}}
+                                @if ($p->denda_lunas)
+                                    <span class="badge b-setuju" style="margin-top:6px">Lunas</span>
+                                @else
+                                    <form method="POST" action="{{ route('admin.peminjaman.denda', $p->loan_id) }}" style="margin-top:6px">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="tombol tombol-kecil tombol-belum"
+                                            onclick="return confirm('{{ $p->status == 'Dipinjam' ? 'Tandai denda Lunas? Buku juga akan dicatat sudah dikembalikan. Status Lunas tidak bisa diubah lagi.' : 'Tandai denda Lunas? Status Lunas tidak bisa diubah lagi.' }}')">
+                                            Belum Lunas
+                                        </button>
+                                    </form>
+                                @endif
                             @endif
                         </td>
                         <td>

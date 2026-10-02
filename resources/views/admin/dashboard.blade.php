@@ -55,14 +55,19 @@
                         <td><span class="badge b-tolak">{{ $p->hari_terlambat }} hari</span><br><span class="pesan-info">Tenggat {{ $p->due_date->format('d/m/Y') }}</span></td>
                         <td><strong>Rp{{ number_format($p->jumlah_denda, 0, ',', '.') }}</strong></td>
                         <td>
-                            <form method="POST" action="{{ route('admin.peminjaman.denda', $p->loan_id) }}">
-                                @csrf
-                                @method('PUT')
-                                <button type="submit" class="tombol tombol-kecil {{ $p->denda_lunas ? 'tombol-lunas' : 'tombol-belum' }}"
-                                    onclick="return confirm('Ubah status denda menjadi {{ $p->denda_lunas ? 'Belum Lunas' : 'Lunas' }}?')">
-                                    {{ $p->denda_lunas ? 'Lunas' : 'Belum Lunas' }}
-                                </button>
-                            </form>
+                            {{-- status Lunas final: setelah lunas hanya ditampilkan sebagai label, tidak bisa diubah lagi --}}
+                            @if ($p->denda_lunas)
+                                <span class="badge b-setuju">Lunas</span>
+                            @else
+                                <form method="POST" action="{{ route('admin.peminjaman.denda', $p->loan_id) }}">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit" class="tombol tombol-kecil tombol-belum"
+                                        onclick="return confirm('{{ $p->status == 'Dipinjam' ? 'Tandai denda Lunas? Buku juga akan dicatat sudah dikembalikan. Status Lunas tidak bisa diubah lagi.' : 'Tandai denda Lunas? Status Lunas tidak bisa diubah lagi.' }}')">
+                                        Belum Lunas
+                                    </button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                 @empty
