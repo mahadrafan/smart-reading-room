@@ -80,7 +80,7 @@
             <div class="tombol-baris">
                 @if ($sudahAjukan)
                     <p class="catatan">Kamu sudah punya pengajuan atau peminjaman aktif untuk buku ini.
-                        <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}">Lihat peminjamanku</a></p>
+                        <a href="{{ route('peminjaman.index') }}">Lihat peminjamanku</a></p>
                 @elseif ($buku->available_stock > 0)
                     <a href="{{ route('peminjaman.buat', ['buku' => $buku->book_id]) }}" class="tombol">Pinjam Buku</a>
                 @else

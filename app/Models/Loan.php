@@ -56,6 +56,24 @@ class Loan extends Model
         return 'LOAN-' . $tanggal . '-' . str_pad($this->loan_id, 3, '0', STR_PAD_LEFT);
     }
 
+    // tanggal pinjam yang ditampilkan: hanya ada setelah buku diambil (status Dipinjam / Dikembalikan)
+    public function getTanggalPinjamAttribute()
+    {
+        return in_array($this->status, ['Dipinjam', 'Dikembalikan'], true) ? $this->loan_date : null;
+    }
+
+    // lama pinjam (hari) yang dipilih saat pengajuan, dihitung dari selisih tanggal mulai dan batas kembali.
+    // data lama yang sudah punya loan_date memakai tanggal itu, pengajuan baru memakai tanggal pengajuan.
+    public function getDurasiPinjamAttribute(): int
+    {
+        $mulai = $this->loan_date ?? $this->request_date;
+        if (! $mulai || ! $this->due_date) {
+            return 7;
+        }
+
+        return max(1, (int) $mulai->copy()->startOfDay()->diffInDays($this->due_date->copy()->startOfDay()));
+    }
+
     // Accessor untuk tenggat waktu pengambilan buku (2 hari setelah dikonfirmasi admin)
     public function getTenggatPengambilanAttribute()
     {

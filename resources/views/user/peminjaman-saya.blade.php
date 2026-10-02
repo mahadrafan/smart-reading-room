@@ -89,18 +89,12 @@
                class="chip {{ !$filter ? 'aktif' : '' }}">
                Semua <strong>{{ $semua->count() }}</strong>
             </a>
-            <a href="{{ route('peminjaman.index', ['filter' => 'aktif']) }}"
-               class="chip {{ $filter == 'aktif' ? 'aktif' : '' }}">
-               Aktif <strong>{{ $semua->whereIn('status',['Menunggu','Dikonfirmasi','Dipinjam'])->count() }}</strong>
-            </a>
-            <a href="{{ route('peminjaman.index', ['filter' => 'menunggu']) }}"
-               class="chip {{ $filter == 'menunggu' ? 'aktif' : '' }}">
-               Menunggu <strong>{{ $menunggu }}</strong>
-            </a>
-            <a href="{{ route('peminjaman.index', ['filter' => 'riwayat']) }}"
-               class="chip {{ $filter == 'riwayat' ? 'aktif' : '' }}">
-               Selesai <strong>{{ $selesai }}</strong>
-            </a>
+            @foreach (['aktif' => 'Aktif', 'menunggu' => 'Menunggu', 'selesai' => 'Selesai', 'terlambat' => 'Terlambat', 'gagal' => 'Gagal'] as $kunci => $teks)
+                <a href="{{ route('peminjaman.index', ['filter' => $kunci]) }}"
+                   class="chip {{ $filter == $kunci ? 'aktif' : '' }}">
+                   {{ $teks }} <strong>{{ $jumlahFilter[$kunci] }}</strong>
+                </a>
+            @endforeach
         </div>
         <div class="cari-periode">
             <input type="search" class="cari-input" placeholder="🔍  Cari judul atau ID..." id="cariTabel">
@@ -183,7 +177,7 @@
                         </td>
                         <td>
                             <span style="font-size:13px">
-                                {{ $p->loan_date ? $p->loan_date->format('d M Y') : '-' }}
+                                {{ $p->tanggal_pinjam ? $p->tanggal_pinjam->format('d M Y') : '-' }}
                             </span>
                         </td>
                         <td>
@@ -201,6 +195,9 @@
                                         @endif
                                     @elseif ($p->status == 'Dikembalikan')
                                         <div class="tepat-waktu">{{ $p->hari_terlambat > 0 ? 'Terlambat '.$p->hari_terlambat.' hari' : 'Tepat waktu' }}</div>
+                                    @elseif (in_array($p->status, ['Menunggu', 'Dikonfirmasi']))
+                                        {{-- batas kembali masih perkiraan, digeser saat buku diambil --}}
+                                        <div class="tepat-waktu">Perkiraan</div>
                                     @endif
                                 </div>
                             @else
@@ -220,9 +217,6 @@
                             @endif
                         </td>
                         <td class="aksi">
-                            @if ($p->status == 'Dipinjam' && isset($sisaHari) && $sisaHari <= 7)
-                                <span class="btn-tabel btn-tabel-ungu" style="margin-right:8px;display:inline-block">Perpanjang</span>
-                            @endif
                             <a href="{{ route('peminjaman.detail', $p->loan_id) }}" class="btn-tabel btn-tabel-abu">Detail</a>
                             @if ($p->status == 'Menunggu')
                                 <form method="POST" action="{{ route('peminjaman.batal', $p->loan_id) }}"
@@ -240,8 +234,13 @@
                 @empty
                     <tr>
                         <td colspan="7" class="kosong-tabel">
-                            Belum ada data peminjaman.
-                            <a href="{{ route('dashboard') }}">Cari buku di katalog</a>
+                            @if ($filter)
+                                Tidak ada peminjaman di filter ini.
+                                <a href="{{ route('peminjaman.index') }}">Lihat semua peminjaman</a>
+                            @else
+                                Belum ada data peminjaman.
+                                <a href="{{ route('dashboard') }}">Cari buku di katalog</a>
+                            @endif
                         </td>
                     </tr>
                 @endforelse

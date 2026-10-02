@@ -40,8 +40,28 @@
                         </td>
                     </tr>
                 @endif
-                <tr><th>Tanggal pinjam</th><td>{{ $pinjam->loan_date ? $pinjam->loan_date->format('d/m/Y') : '-' }}</td></tr>
-                <tr><th>Batas pengembalian</th><td>{{ $pinjam->due_date ? $pinjam->due_date->format('d/m/Y') : '-' }}</td></tr>
+                {{-- tanggal pinjam baru ada setelah buku diambil (status Dipinjam) --}}
+                <tr>
+                    <th>Tanggal pinjam</th>
+                    <td>
+                        @if ($pinjam->tanggal_pinjam)
+                            {{ $pinjam->tanggal_pinjam->format('d/m/Y') }}
+                        @elseif (in_array($pinjam->status, ['Menunggu', 'Dikonfirmasi']))
+                            <span class="pesan-info">Belum dipinjam, terisi saat buku diambil</span>
+                        @else
+                            -
+                        @endif
+                    </td>
+                </tr>
+                <tr>
+                    <th>Batas pengembalian</th>
+                    <td>
+                        {{ $pinjam->due_date ? $pinjam->due_date->format('d/m/Y') : '-' }}
+                        @if ($pinjam->due_date && in_array($pinjam->status, ['Menunggu', 'Dikonfirmasi']))
+                            <span class="pesan-info" style="display:block; font-size:12px;">(perkiraan, {{ $pinjam->durasi_pinjam }} hari sejak buku diambil)</span>
+                        @endif
+                    </td>
+                </tr>
                 <tr><th>Tanggal dikembalikan</th><td>{{ $pinjam->return_date ? $pinjam->return_date->format('d/m/Y') : '-' }}</td></tr>
                 @if ($pinjam->hari_terlambat > 0)
                     <tr><th>Keterlambatan</th><td><strong style="color:#d12b3d">{{ $pinjam->hari_terlambat }} hari</strong></td></tr>

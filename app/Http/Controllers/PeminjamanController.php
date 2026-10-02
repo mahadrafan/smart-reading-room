@@ -7,7 +7,6 @@ use App\Models\Loan;
 use App\Models\UserNotification;
 use App\Services\LoanNotificationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class PeminjamanController extends Controller
@@ -30,21 +29,31 @@ class PeminjamanController extends Controller
             ->orderBy('loan_id', 'desc')
             ->get();
 
-        // daftar untuk tabel sesuai tab filter yang dipilih
-        if ($filter == 'aktif') {
-            $daftar = $semua->whereIn('status', ['Menunggu', 'Dikonfirmasi', 'Dipinjam']);
-        } elseif ($filter == 'menunggu') {
-            $daftar = $semua->whereIn('status', ['Menunggu']);
-        } elseif ($filter == 'riwayat') {
-            $daftar = $semua->whereIn('status', ['Gagal', 'Dikembalikan']);
-        } else {
-            $daftar = $semua;
+        // aturan tiap tab filter
+        $aturanFilter = [
+            'aktif'     => fn ($p) => $p->status == 'Dipinjam',
+            'menunggu'  => fn ($p) => in_array($p->status, ['Menunggu', 'Dikonfirmasi']),
+            'selesai'   => fn ($p) => $p->status == 'Dikembalikan',
+            'terlambat' => fn ($p) => $p->jumlah_denda > 0 && ! $p->denda_lunas,   // punya denda yang belum lunas
+            'gagal'     => fn ($p) => $p->status == 'Gagal',
+        ];
+
+        // filter yang tidak dikenal dianggap "Semua"
+        if (! isset($aturanFilter[$filter])) {
+            $filter = null;
         }
 
+        // daftar untuk tabel sesuai tab filter yang dipilih
+        $daftar = $filter ? $semua->filter($aturanFilter[$filter]) : $semua;
+
+        // jumlah data di setiap tab filter
+        $jumlahFilter = collect($aturanFilter)->map(fn ($aturan) => $semua->filter($aturan)->count());
+
         return view('user.peminjaman-saya', [
-            'semua'  => $semua,
-            'daftar' => $daftar->values(),
-            'filter' => $filter,
+            'semua'        => $semua,
+            'daftar'       => $daftar->values(),
+            'filter'       => $filter,
+            'jumlahFilter' => $jumlahFilter,
         ]);
     }
 
@@ -76,14 +85,11 @@ class PeminjamanController extends Controller
 
         $request->validate([
             'book_id'       => 'required|exists:books,book_id',
-            'loan_date'     => 'required|date|after_or_equal:today',
             'durasi'        => 'required|in:1,3,5,7,custom',
             'durasi_custom' => 'required_if:durasi,custom|nullable|integer|min:1|max:30',
         ], [
             'required'             => ':attribute wajib diisi.',
             'exists'               => ':attribute tidak ditemukan.',
-            'date'                 => 'Format :attribute belum benar.',
-            'after_or_equal'       => ':attribute tidak boleh sebelum hari ini.',
             'in'                   => ':attribute tidak valid.',
             'integer'              => ':attribute harus berupa angka.',
             'min'                  => ':attribute minimal :min hari.',
@@ -91,7 +97,6 @@ class PeminjamanController extends Controller
             'durasi_custom.required_if' => 'Isi jumlah hari untuk durasi custom.',
         ], [
             'book_id'       => 'Nama buku',
-            'loan_date'     => 'Tanggal peminjaman',
             'durasi'        => 'Durasi',
             'durasi_custom' => 'Durasi custom',
         ]);
@@ -128,20 +133,21 @@ class PeminjamanController extends Controller
             ]);
         }
 
-        // hitung batas pengembalian
+        // hitung perkiraan batas pengembalian dari hari pengajuan (hari ini).
+        // batas sebenarnya digeser saat admin mengubah status menjadi Dipinjam.
         if ($request->durasi == 'custom') {
             $lama = (int) $request->durasi_custom;
         } else {
             $lama = (int) $request->durasi;
         }
-        $tglPinjam = Carbon::parse($request->loan_date);
-        $tglKembali = $tglPinjam->copy()->addDays($lama);
+        $tglKembali = today()->addDays($lama);
 
-        // simpan ke tabel loans (request_date terisi otomatis oleh database)
+        // simpan ke tabel loans (request_date terisi otomatis oleh database).
+        // loan_date dibiarkan kosong: tanggal pinjam baru diisi saat buku diambil.
         $loan = Loan::create([
             'user_id'   => $idUser,
             'book_id'   => $buku->book_id,
-            'loan_date' => $tglPinjam->format('Y-m-d'),
+            'loan_date' => null,
             'due_date'  => $tglKembali->format('Y-m-d'),
             'status'    => 'Menunggu',
         ]);

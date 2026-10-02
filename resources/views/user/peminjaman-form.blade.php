@@ -12,15 +12,11 @@
         <form method="POST" action="{{ route('peminjaman.simpan') }}">
             @csrf
 
+            {{-- tanggal pengajuan selalu hari ini dan tidak bisa diubah (tidak ikut dikirim ke server) --}}
             <div class="isian">
-                <label for="loan_date">Tanggal peminjaman</label>
-                <input type="date" id="loan_date" name="loan_date"
-                       value="{{ old('loan_date', today()->format('Y-m-d')) }}"
-                       min="{{ today()->format('Y-m-d') }}"
-                       class="@error('loan_date') salah @enderror" required>
-                @error('loan_date')
-                    <p class="pesan-salah">{{ $message }}</p>
-                @enderror
+                <label for="tanggal_pengajuan">Tanggal pengajuan</label>
+                <input type="text" id="tanggal_pengajuan" value="{{ today()->format('d/m/Y') }}"
+                       data-tanggal="{{ today()->format('Y-m-d') }}" readonly tabindex="-1" aria-readonly="true">
             </div>
 
             <div class="isian">
@@ -91,6 +87,7 @@
                 @enderror
 
                 <p class="pesan-info" id="batas-kembali"></p>
+                <p class="pesan-info">Tanggal pinjam dan batas pengembalian dihitung dari hari buku diambil di perpustakaan.</p>
             </div>
 
             <button type="submit" class="tombol tombol-penuh">Kirim Permintaan</button>
@@ -100,7 +97,7 @@
     <script>
         // menampilkan perkiraan batas pengembalian dan kolom durasi custom
         function hitungBatas() {
-            var tanggal = document.getElementById('loan_date').value;
+            var tanggal = document.getElementById('tanggal_pengajuan').dataset.tanggal;
             var pilih = document.querySelector('input[name="durasi"]:checked');
             var kotakCustom = document.getElementById('kotak-custom');
             var teks = document.getElementById('batas-kembali');
@@ -125,10 +122,9 @@
             d.setDate(d.getDate() + lama);
             var hari = ('0' + d.getDate()).slice(-2);
             var bulan = ('0' + (d.getMonth() + 1)).slice(-2);
-            teks.textContent = 'Perkiraan batas pengembalian: ' + hari + '/' + bulan + '/' + d.getFullYear();
+            teks.textContent = 'Perkiraan batas pengembalian (jika diambil hari ini): ' + hari + '/' + bulan + '/' + d.getFullYear();
         }
 
-        document.getElementById('loan_date').addEventListener('change', hitungBatas);
         document.getElementById('durasi_custom').addEventListener('input', hitungBatas);
         var radioDurasi = document.querySelectorAll('input[name="durasi"]');
         for (var i = 0; i < radioDurasi.length; i++) {

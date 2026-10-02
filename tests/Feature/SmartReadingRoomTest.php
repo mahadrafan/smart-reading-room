@@ -215,6 +215,85 @@ class SmartReadingRoomTest extends TestCase
         $this->assertDatabaseCount('admin_logs', 7);
     }
 
+    public function test_loan_date_is_set_when_book_is_picked_up_not_when_requested(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+
+        // tanggal yang dikirim dari luar diabaikan: pengajuan selalu tercatat hari ini
+        $this->actingAs($borrower)->post('/peminjaman', [
+            'book_id' => $book->book_id,
+            'loan_date' => today()->addDays(10)->format('Y-m-d'),
+            'durasi' => '5',
+        ])->assertRedirect(route('peminjaman.index'));
+
+        $loan = Loan::firstOrFail();
+        $this->assertNull($loan->loan_date);
+        $this->assertSame(today()->addDays(5)->format('Y-m-d'), $loan->due_date->format('Y-m-d'));
+
+        $this->get('/peminjaman/buat')->assertOk()
+            ->assertSee('Tanggal pengajuan')
+            ->assertSee(today()->format('d/m/Y'));
+
+        $this->actingAs($admin)->put('/admin/peminjaman/' . $loan->loan_id . '/setujui');
+        $this->assertNull($loan->fresh()->loan_date);
+        $this->assertNull($loan->fresh()->tanggal_pinjam);
+
+        // buku diambil sehari kemudian: tanggal pinjam = hari itu, batas kembali digeser 5 hari dari hari itu
+        $this->travel(1)->days();
+        $this->put('/admin/riwayat/' . $loan->loan_id . '/dipinjam');
+
+        $loan->refresh();
+        $this->assertSame('Dipinjam', $loan->status);
+        $this->assertSame(today()->format('Y-m-d'), $loan->loan_date->format('Y-m-d'));
+        $this->assertSame(today()->addDays(5)->format('Y-m-d'), $loan->due_date->format('Y-m-d'));
+        $this->assertSame(today()->format('Y-m-d'), $loan->tanggal_pinjam->format('Y-m-d'));
+    }
+
+    public function test_loan_history_filters_group_loans_by_status_and_unpaid_fine(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin, 10);
+
+        $menunggu = $this->makeLoan($borrower, $book, ['loan_date' => null]);
+        $dikonfirmasi = $this->makeLoan($borrower, $book, ['loan_date' => null, 'status' => 'Dikonfirmasi', 'approved_at' => now()]);
+        $dipinjam = $this->makeLoan($borrower, $book, ['status' => 'Dipinjam']);
+        $telatBelumLunas = $this->makeLoan($borrower, $book, [
+            'status' => 'Dipinjam', 'loan_date' => today()->subDays(10), 'due_date' => today()->subDays(3),
+        ]);
+        $kembaliTelatBelumLunas = $this->makeLoan($borrower, $book, [
+            'status' => 'Dikembalikan', 'loan_date' => today()->subDays(20),
+            'due_date' => today()->subDays(13), 'return_date' => today()->subDays(11),
+        ]);
+        $kembaliTelatLunas = $this->makeLoan($borrower, $book, [
+            'status' => 'Dikembalikan', 'loan_date' => today()->subDays(20),
+            'due_date' => today()->subDays(13), 'return_date' => today()->subDays(11), 'fine_paid_at' => now(),
+        ]);
+        $gagal = $this->makeLoan($borrower, $book, ['loan_date' => null, 'status' => 'Gagal']);
+
+        $isi = function (?string $filter) use ($borrower) {
+            $daftar = $this->actingAs($borrower)
+                ->get(route('peminjaman.index', $filter ? ['filter' => $filter] : []))
+                ->assertOk()->viewData('daftar');
+
+            return $daftar->pluck('loan_id')->sort()->values()->all();
+        };
+        $id = fn (...$loans) => collect($loans)->pluck('loan_id')->sort()->values()->all();
+
+        $this->assertSame($id($dipinjam, $telatBelumLunas), $isi('aktif'));
+        $this->assertSame($id($menunggu, $dikonfirmasi), $isi('menunggu'));
+        $this->assertSame($id($kembaliTelatBelumLunas, $kembaliTelatLunas), $isi('selesai'));
+        $this->assertSame($id($telatBelumLunas, $kembaliTelatBelumLunas), $isi('terlambat'));
+        $this->assertSame($id($gagal), $isi('gagal'));
+        $this->assertCount(7, $isi(null));
+        $this->assertCount(7, $isi('filter-tidak-dikenal'));
+
+        $this->get(route('peminjaman.index'))->assertSee('Terlambat <strong>2</strong>', false)
+            ->assertSee('Gagal <strong>1</strong>', false);
+    }
+
     public function test_complete_loan_approval_pickup_return_and_history_removal(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');

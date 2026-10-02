@@ -17,8 +17,8 @@
                     <th>Kontak</th>
                     <th>Buku</th>
                     <th>Diajukan</th>
-                    <th>Tgl pinjam</th>
-                    <th>Batas kembali</th>
+                    <th>Durasi</th>
+                    <th>Perkiraan kembali</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -30,7 +30,8 @@
                         <td><a href="mailto:{{ $p->user->email }}">{{ $p->user->email }}</a><br><a href="tel:{{ $p->user->phone }}">{{ $p->user->phone ?: '-' }}</a></td>
                         <td>{{ $p->book->title }}</td>
                         <td>{{ $p->request_date ? $p->request_date->format('d/m/Y') : '-' }}</td>
-                        <td>{{ $p->loan_date ? \Illuminate\Support\Carbon::parse($p->loan_date)->format('d/m/Y') : '-' }}</td>
+                        {{-- pengajuan belum punya tanggal pinjam; tampilkan lama pinjam yang diminta --}}
+                        <td>{{ $p->durasi_pinjam }} hari</td>
                         <td>{{ $p->due_date ? \Illuminate\Support\Carbon::parse($p->due_date)->format('d/m/Y') : '-' }}</td>
                         <td class="aksi">
                             <form method="POST" action="{{ route('admin.peminjaman.setujui', $p->loan_id) }}" style="display:inline"

@@ -127,7 +127,11 @@ class PeminjamanAdminController extends Controller
         }
 
         DB::transaction(function () use ($pinjam) {
-            $pinjam->status = 'Dipinjam';
+            // tanggal pinjam = hari buku diambil; batas kembali digeser agar durasi pilihan user tetap utuh
+            $durasi = $pinjam->durasi_pinjam;
+            $pinjam->status    = 'Dipinjam';
+            $pinjam->loan_date = today();
+            $pinjam->due_date  = today()->addDays($durasi);
             $pinjam->save();
 
             AdminLog::catat('Dipinjam', 'loans', $pinjam->loan_id,

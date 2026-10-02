@@ -162,7 +162,7 @@ body {
 .periode-wrap { position: relative; display: inline-block; }
 .periode-dropdown {
     position: absolute; right: 0; top: calc(100% + 8px);
-    width: 320px; background: #fff;
+    width: 340px; max-width: calc(100vw - 40px); background: #fff;
     border: 1px solid var(--garis); border-radius: 12px;
     padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     z-index: 100;
@@ -174,10 +174,11 @@ body {
 }
 .periode-dropdown-judul { font-weight: 700; color: var(--navy); margin-bottom: 12px; font-size: 14px; }
 .periode-baris { display: flex; gap: 12px; margin-bottom: 16px; }
-.periode-grup { flex: 1; }
+/* min-width 0: input tanggal punya lebar minimum bawaan browser, tanpa ini kolom kedua keluar kotak */
+.periode-grup { flex: 1; min-width: 0; }
 .periode-grup label { display: block; font-size: 11px; font-weight: 700; color: var(--abu); margin-bottom: 4px; text-transform: uppercase; }
 .periode-input {
-    width: 100%; padding: 8px 10px; font: inherit; font-size: 13px;
+    display: block; width: 100%; min-width: 0; padding: 8px 10px; font: inherit; font-size: 13px;
     border: 1.5px solid var(--garis); border-radius: 8px; color: var(--teks);
 }
 .periode-input:focus { outline: none; border-color: var(--ungu); }
@@ -268,14 +269,13 @@ td.aksi a, td.aksi button {
 }
 td.aksi .bahaya { color: var(--merah); }
 
-/* tombol aksi di tabel - perpanjang dll */
+/* tombol aksi di tabel (detail, batalkan, beri ulasan) */
 .btn-tabel {
     display: inline-block; padding: 6px 14px; font: inherit; font-size: 12px; font-weight: 700;
     border-radius: 8px; cursor: pointer; text-decoration: none; border: 0;
     transition: opacity 0.15s;
 }
 .btn-tabel:hover { opacity: 0.85; }
-.btn-tabel-ungu { color: #fff; background: var(--ungu); }
 .btn-tabel-outline { color: var(--ungu); background: var(--ungu-muda); border: 1.5px solid var(--ungu); }
 .btn-tabel-abu { color: var(--abu); background: #f0f0f5; }
 
