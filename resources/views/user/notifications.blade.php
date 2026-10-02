@@ -60,25 +60,8 @@
                 $badgeLabel = $tipe;
             }
 
-            // waktu relatif
-            if ($notif->sent_at) {
-                $diffMenit = now()->diffInMinutes($notif->sent_at);
-                $diffJam   = now()->diffInHours($notif->sent_at);
-                $diffHari  = now()->diffInDays($notif->sent_at);
-                if ($diffMenit < 60) {
-                    $waktuLabel = $diffMenit . ' menit yang lalu';
-                } elseif ($diffJam < 24) {
-                    $waktuLabel = $diffJam . ' jam yang lalu';
-                } elseif ($diffHari == 1) {
-                    $waktuLabel = 'Kemarin, ' . $notif->sent_at->format('H:i');
-                } elseif ($diffHari < 7) {
-                    $waktuLabel = $diffHari . ' hari yang lalu';
-                } else {
-                    $waktuLabel = $notif->sent_at->format('d M Y');
-                }
-            } else {
-                $waktuLabel = '-';
-            }
+            // waktu relatif (detik -> menit+detik -> jam+menit -> hari), lihat UserNotification::waktu_relatif
+            $waktuLabel = $notif->waktu_relatif;
         @endphp
 
         <div class="notif-grup">
