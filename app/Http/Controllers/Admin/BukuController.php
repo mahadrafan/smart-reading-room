@@ -108,9 +108,10 @@ class BukuController extends Controller
         return redirect()->route('admin.buku.index')->with('status', 'Buku berhasil dihapus dari katalog.');
     }
 
+    // kategori/penulis baru hanya dibuat bila admin memilih opsi "+ Tambah ... baru" (nilai "new")
     private function prosesKategoriPenulisBaru(Request $request)
     {
-        if ($request->category_id === 'new' || $request->filled('new_category_name')) {
+        if ($request->category_id === 'new') {
             $request->validate([
                 'new_category_name' => 'required|string|max:50',
             ], [
@@ -122,7 +123,7 @@ class BukuController extends Controller
             $request->merge(['category_id' => $kat->category_id]);
         }
 
-        if ($request->author_id === 'new' || $request->filled('new_author_name')) {
+        if ($request->author_id === 'new') {
             $request->validate([
                 'new_author_name' => 'required|string|max:100',
             ], [
@@ -138,8 +139,9 @@ class BukuController extends Controller
     private function validasi(Request $request, $idBukuSaatIni = null)
     {
         return $request->validate([
-            'category_id'      => 'nullable|exists:categories,category_id',
-            'author_id'        => 'nullable|exists:authors,author_id',
+            // setiap buku wajib punya kategori dan penulis
+            'category_id'      => 'required|exists:categories,category_id',
+            'author_id'        => 'required|exists:authors,author_id',
             'title'            => 'required|max:200',
             'publisher'        => 'nullable|max:100',
             'publication_year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
@@ -153,6 +155,8 @@ class BukuController extends Controller
             'integer'  => ':attribute harus berupa angka.',
             'min'      => ':attribute minimal :min.',
             'exists'   => ':attribute tidak ditemukan.',
+            'category_id.required' => 'Kategori wajib dipilih.',
+            'author_id.required'   => 'Penulis wajib dipilih.',
         ], [
             'category_id'      => 'Kategori',
             'author_id'        => 'Penulis',

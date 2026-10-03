@@ -216,6 +216,46 @@ class SmartReadingRoomTest extends TestCase
         $this->assertDatabaseCount('admin_logs', 7);
     }
 
+    public function test_book_must_always_have_category_and_author(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $book = $this->makeBook($admin);
+        $kategoriAwal = $book->category_id;
+        $penulisAwal = $book->author_id;
+        $dataBuku = ['title' => $book->title, 'stock' => 3];
+
+        // tanpa kategori & penulis: ditolak, data buku tidak berubah
+        $this->actingAs($admin)->put('/admin/buku/' . $book->book_id, $dataBuku + ['category_id' => '', 'author_id' => ''])
+            ->assertSessionHasErrors(['category_id' => 'Kategori wajib dipilih.', 'author_id' => 'Penulis wajib dipilih.']);
+        $this->assertSame($kategoriAwal, $book->fresh()->category_id);
+        $this->assertSame($penulisAwal, $book->fresh()->author_id);
+
+        $this->post('/admin/buku', ['title' => 'Buku Tanpa Kategori', 'stock' => 1])
+            ->assertSessionHasErrors(['category_id', 'author_id']);
+        $this->assertDatabaseMissing('books', ['title' => 'Buku Tanpa Kategori']);
+
+        // "+ Tambah baru" membuat kategori & penulis baru
+        $this->put('/admin/buku/' . $book->book_id, $dataBuku + [
+            'category_id' => 'new', 'new_category_name' => 'Sejarah',
+            'author_id' => 'new', 'new_author_name' => 'Penulis Baru',
+        ])->assertRedirect(route('admin.buku.index'));
+        $this->assertSame('Sejarah', $book->fresh()->category->category_name);
+        $this->assertSame('Penulis Baru', $book->fresh()->author->author_name);
+
+        // nama baru yang tertinggal tidak membuat kategori baru bila yang dipilih kategori lama
+        $this->put('/admin/buku/' . $book->book_id, $dataBuku + [
+            'category_id' => $kategoriAwal, 'new_category_name' => 'Tidak Boleh Dibuat',
+            'author_id' => $penulisAwal,
+        ])->assertRedirect(route('admin.buku.index'));
+        $this->assertSame($kategoriAwal, $book->fresh()->category_id);
+        $this->assertDatabaseMissing('categories', ['category_name' => 'Tidak Boleh Dibuat']);
+
+        // di form edit, pilihan kosong tidak bisa dipilih lagi
+        $this->get('/admin/buku/' . $book->book_id . '/edit')->assertOk()
+            ->assertSee('<option value="" disabled >- Pilih kategori -</option>', false)
+            ->assertSee('<option value="" disabled >- Pilih penulis -</option>', false);
+    }
+
     public function test_loan_date_is_set_when_book_is_picked_up_not_when_requested(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');
