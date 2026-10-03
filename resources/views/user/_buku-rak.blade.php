@@ -1,5 +1,5 @@
 {{-- satu buku yang berdiri di rak, butuh $b; opsional $pinjam untuk rak "sedang kamu pinjam",
-     atau $info ('dipinjam' / 'ulasan') untuk mengganti keterangan stok --}}
+     atau $info ('dipinjam' / 'rating') untuk mengganti keterangan stok --}}
 @php
     $pinjam = $pinjam ?? null;
     $info = $info ?? null;
@@ -24,8 +24,11 @@
         }
     } elseif ($info == 'dipinjam') {
         $keterangan = ($b->jumlah_dipinjam ?? 0) . 'x dipinjam';
-    } elseif ($info == 'ulasan') {
-        $keterangan = ($b->jumlah_ulasan ?? 0) . ' ulasan';
+    } elseif ($info == 'rating') {
+        // rata-rata rating, mis. "4.5 · 2 ulasan" (bintang ditampilkan terpisah)
+        $keterangan = $b->jumlah_rating
+            ? number_format((float) $b->rata_rating, 1) . ' · ' . $b->jumlah_rating . ' ulasan'
+            : 'Belum ada rating';
     } else {
         $keterangan = $b->available_stock > 0 ? 'Tersedia ' . $b->available_stock : 'Stok habis';
     }
@@ -62,5 +65,11 @@
     </span>
 
     <span class="buku-rak-judul">{{ $b->title }}</span>
-    <span class="buku-rak-ket {{ $info ? 'netral' : '' }} {{ $terlambat || (!$pinjam && !$info && $b->available_stock <= 0) ? 'merah' : '' }}">{{ $keterangan }}</span>
+    <span class="buku-rak-ket {{ $info ? 'netral' : '' }} {{ $terlambat || (!$pinjam && !$info && $b->available_stock <= 0) ? 'merah' : '' }}">
+        @if ($info == 'rating' && $b->jumlah_rating)
+            <span class="bintang-rak" aria-hidden="true">★</span>
+            <span class="sr-only">Rating rata-rata</span>
+        @endif
+        {{ $keterangan }}
+    </span>
 </a>

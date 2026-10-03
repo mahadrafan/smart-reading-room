@@ -6,6 +6,7 @@ use App\Models\Author;
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\Loan;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -292,6 +293,82 @@ class SmartReadingRoomTest extends TestCase
 
         $this->get(route('peminjaman.index'))->assertSee('Terlambat <strong>2</strong>', false)
             ->assertSee('Gagal <strong>1</strong>', false);
+    }
+
+    public function test_catalog_filter_supports_multiple_categories_sorting_and_availability(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $fiksi = Category::create(['category_name' => 'Fiksi']);
+        $sains = Category::create(['category_name' => 'Sains']);
+        $sejarah = Category::create(['category_name' => 'Sejarah']);
+        $author = Author::create(['author_name' => 'Penulis Filter']);
+
+        $buatBuku = fn (string $judul, Category $kat, int $stok = 3) => Book::create([
+            'category_id' => $kat->category_id, 'author_id' => $author->author_id, 'title' => $judul,
+            'stock' => 3, 'available_stock' => $stok, 'is_active' => true, 'created_by' => $admin->user_id,
+        ]);
+        $fiksiA = $buatBuku('A Fiksi Jarang', $fiksi);
+        $fiksiB = $buatBuku('B Fiksi Laris', $fiksi);
+        $sainsC = $buatBuku('C Sains Habis', $sains, 0);
+        $buatBuku('D Sejarah', $sejarah);
+
+        // B dipinjam 2x, A 1x -> urutan "paling sering dipinjam": B, A
+        $this->makeLoan($borrower, $fiksiB, ['status' => 'Dikembalikan']);
+        $this->makeLoan($borrower, $fiksiB, ['status' => 'Dikembalikan']);
+        $this->makeLoan($borrower, $fiksiA, ['status' => 'Dikembalikan']);
+
+        $judul = fn (array $param) => $this->actingAs($borrower)->get(route('dashboard', $param))
+            ->assertOk()->viewData('buku')->pluck('title')->all();
+
+        $this->assertSame(['B Fiksi Laris', 'A Fiksi Jarang'],
+            $judul(['kategori' => [$fiksi->category_id], 'urut' => 'populer']));
+        $this->assertSame(['A Fiksi Jarang', 'B Fiksi Laris', 'C Sains Habis'],
+            $judul(['kategori' => [$fiksi->category_id, $sains->category_id]]));
+        $this->assertSame(['A Fiksi Jarang', 'B Fiksi Laris'],
+            $judul(['kategori' => [$fiksi->category_id, $sains->category_id], 'tersedia' => 1]));
+        $this->assertSame(['C Sains Habis'], $judul(['kategori' => (string) $sains->category_id]));
+
+        // judul hasil filter menggabungkan kategori dan urutan, keterangan buku mengikuti urutan
+        $this->get(route('dashboard', ['kategori' => [$fiksi->category_id], 'urut' => 'populer']))
+            ->assertSee('Fiksi · Paling sering dipinjam')
+            ->assertSee('2x dipinjam');
+    }
+
+    public function test_top_review_shelf_orders_books_by_average_rating(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $category = Category::create(['category_name' => 'Kategori Review']);
+        $author = Author::create(['author_name' => 'Penulis Review']);
+        $buatBuku = fn (string $judul) => Book::create([
+            'category_id' => $category->category_id, 'author_id' => $author->author_id, 'title' => $judul,
+            'stock' => 2, 'available_stock' => 2, 'is_active' => true, 'created_by' => $admin->user_id,
+        ]);
+        $pembaca = collect(range(1, 3))->map(fn ($i) => $this->makeUser('Peminjam', 'PEMBACA-' . $i));
+        $ulas = function (Book $buku, array $ratings) use ($pembaca) {
+            foreach ($ratings as $i => $rating) {
+                Review::create(['user_id' => $pembaca[$i]->user_id, 'book_id' => $buku->book_id, 'rating' => $rating, 'review_text' => 'Ulasan ' . $rating]);
+            }
+        };
+
+        $sedang = $buatBuku('Rating Tiga');
+        $bagus = $buatBuku('Rating Empat Setengah');
+        $terbaik = $buatBuku('Rating Lima');
+        $buatBuku('Belum Diulas');
+        $ulas($sedang, [3]);
+        $ulas($bagus, [5, 4]);
+        $ulas($terbaik, [5]);
+
+        $rak = $this->actingAs($borrower)->get(route('dashboard'))->assertOk();
+        $this->assertSame(['Rating Lima', 'Rating Empat Setengah', 'Rating Tiga'],
+            $rak->viewData('topReview')->pluck('title')->all());
+        $rak->assertSee('Top Review')->assertDontSee('Banyak Ulasan')
+            ->assertSee('4.5 · 2 ulasan')->assertSee('3.0 · 1 ulasan');
+
+        // urutan "Top review" di panel filter memakai aturan yang sama; buku tanpa ulasan di paling bawah
+        $this->assertSame(['Rating Lima', 'Rating Empat Setengah', 'Rating Tiga', 'Belum Diulas'],
+            $this->get(route('dashboard', ['urut' => 'rating']))->viewData('buku')->pluck('title')->all());
     }
 
     public function test_complete_loan_approval_pickup_return_and_history_removal(): void

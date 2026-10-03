@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Auth;
 
 class KatalogController extends Controller
 {
+    // jumlah buku maksimal di rak utama; selebihnya lewat tautan "Lihat semua"
+    const ISI_RAK = 6;
+
     // ---------------------------------------------------------
     // LANDING PAGE peminjam setelah login: katalog buku
     // READ: books, categories, authors, loans
@@ -19,18 +22,35 @@ class KatalogController extends Controller
         Loan::prosesTenggatPengambilan();
 
         $kataKunci = $request->q;
-        $kategoriDipilih = $request->kategori;
+
+        // filter kategori bisa lebih dari satu (?kategori[]=1&kategori[]=3); ?kategori=1 tetap didukung
+        $kategoriDipilih = collect((array) $request->input('kategori', []))
+            ->filter(fn ($id) => ctype_digit((string) $id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()->values()->all();
+
+        // urutan hasil & filter ketersediaan dari panel "Filter"
+        $daftarUrut = [
+            'judul'   => 'Judul A–Z',
+            'populer' => 'Paling sering dipinjam',
+            'rating'  => 'Top review',
+            'terbaru' => 'Terbaru ditambahkan',
+        ];
+        $urut = array_key_exists($request->urut, $daftarUrut) ? $request->urut : 'judul';
+        $hanyaTersedia = $request->boolean('tersedia');
 
         // tampilan katalog: "rak" (default, buku berjajar di rak) atau "semua" (grid kartu)
         $tampilan = $request->tampilan === 'semua' ? 'semua' : 'rak';
-        $sedangMencari = $kataKunci || $kategoriDipilih;
+        $sedangMencari = $kataKunci || $kategoriDipilih || $urut !== 'judul' || $hanyaTersedia;
 
-        // semua buku aktif + hitung berapa kali sudah dipinjam
+        // semua buku aktif + hitung berapa kali sudah dipinjam, rata-rata rating & jumlah ulasan
         $query = Book::aktif()
             ->with(['category', 'author'])
             ->withCount(['loans as jumlah_dipinjam' => function ($q) {
                 $q->whereIn('status', ['Dikonfirmasi', 'Dipinjam', 'Dikembalikan']);
-            }]);
+            }])
+            ->withAvg('reviews as rata_rating', 'rating')
+            ->withCount('reviews as jumlah_rating');
 
         // pencarian: judul atau nama penulis
         if ($kataKunci) {
@@ -42,19 +62,41 @@ class KatalogController extends Controller
             });
         }
 
-        // filter kategori
+        // filter kategori (satu atau beberapa)
         if ($kategoriDipilih) {
-            $query->where('category_id', $kategoriDipilih);
+            $query->whereIn('category_id', $kategoriDipilih);
         }
 
+        if ($hanyaTersedia) {
+            $query->where('available_stock', '>', 0);
+        }
+
+        // urutan hasil; judul jadi urutan kedua agar hasil yang angkanya sama tetap rapi
+        if ($urut === 'populer') {
+            $query->orderByDesc('jumlah_dipinjam');
+        } elseif ($urut === 'rating') {
+            // buku tanpa ulasan (rata-rata NULL) berada di urutan paling bawah
+            $query->orderByDesc('rata_rating')->orderByDesc('jumlah_rating');
+        } elseif ($urut === 'terbaru') {
+            $query->orderByDesc('created_at')->orderByDesc('book_id');
+        }
         $buku = $query->orderBy('title')->paginate(12)->withQueryString();
 
-        $kategori = Category::orderBy('category_name')->get();
+        // semua kategori (untuk panel filter) + jumlah buku aktifnya
+        $kategori = Category::withCount(['books as jumlah_buku' => function ($q) {
+            $q->where('is_active', 1);
+        }])->orderBy('category_name')->get();
+
+        // tombol cepat: 5 kategori dengan buku terbanyak, ditambah kategori terpilih yang tidak masuk 5 besar
+        $kategoriCepat = $kategori->sortByDesc('jumlah_buku')->take(5);
+        $kategoriCepat = $kategoriCepat
+            ->merge($kategori->whereIn('category_id', $kategoriDipilih)->whereNotIn('category_id', $kategoriCepat->pluck('category_id')))
+            ->values();
 
         // tiga rak di tampilan utama (hanya saat tidak sedang mencari / memfilter)
         $pinjamanAktif = collect();
         $populer = collect();
-        $banyakUlasan = collect();
+        $topReview = collect();
         if ($tampilan == 'rak' && !$sedangMencari) {
             // 1. buku yang sedang dipinjam user ini
             $pinjamanAktif = Loan::where('user_id', Auth::id())
@@ -74,34 +116,38 @@ class KatalogController extends Controller
                 }])
                 ->orderByDesc('jumlah_dipinjam')
                 ->orderBy('title')
-                ->limit(8)
+                ->limit(self::ISI_RAK)
                 ->get()
                 ->filter(function ($b) {
                     return $b->jumlah_dipinjam > 0;
                 });
 
-            // 3. buku dengan komentar ulasan terbanyak (ulasan yang hanya berisi rating tidak dihitung)
-            $banyakUlasan = Book::aktif()
+            // 3. top review: rating rata-rata tertinggi (seri -> ulasan terbanyak), hanya buku yang sudah diulas
+            $topReview = Book::aktif()
                 ->with(['category', 'author'])
-                ->withCount(['reviews as jumlah_ulasan' => function ($q) {
-                    $q->whereNotNull('review_text')->where('review_text', '!=', '');
-                }])
-                ->orderByDesc('jumlah_ulasan')
+                ->whereHas('reviews')
+                ->withAvg('reviews as rata_rating', 'rating')
+                ->withCount('reviews as jumlah_rating')
+                ->orderByDesc('rata_rating')
+                ->orderByDesc('jumlah_rating')
                 ->orderBy('title')
-                ->limit(8)
-                ->get()
-                ->filter(function ($b) {
-                    return $b->jumlah_ulasan > 0;
-                });
+                ->limit(self::ISI_RAK)
+                ->get();
         }
 
         return view('user.katalog', [
-            'buku'          => $buku,
-            'kategori'      => $kategori,
-            'tampilan'      => $tampilan,
+            'buku'            => $buku,
+            'kategori'        => $kategori,
+            'kategoriCepat'   => $kategoriCepat,
+            'kategoriDipilih' => $kategoriDipilih,
+            'daftarUrut'      => $daftarUrut,
+            'urut'            => $urut,
+            'hanyaTersedia'   => $hanyaTersedia,
+            'sedangMencari'   => $sedangMencari,
+            'tampilan'        => $tampilan,
             'pinjamanAktif' => $pinjamanAktif,
             'populer'       => $populer,
-            'banyakUlasan'  => $banyakUlasan,
+            'topReview'       => $topReview,
         ]);
     }
 

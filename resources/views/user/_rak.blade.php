@@ -1,6 +1,6 @@
 {{-- satu rak buku: butuh $judul dan $buku (koleksi Book) atau $pinjaman (koleksi Loan);
      opsional $tautan + $teksTautan untuk link "lihat semua" di pojok kanan,
-     dan $info ('dipinjam' / 'ulasan') untuk keterangan di bawah buku --}}
+     dan $info ('dipinjam' / 'rating') untuk keterangan di bawah buku --}}
 <section class="rak-bagian">
     @if (!empty($judul) || !empty($tautan))
         <div class="rak-kepala">

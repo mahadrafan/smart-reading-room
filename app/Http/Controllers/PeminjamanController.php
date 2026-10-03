@@ -64,8 +64,9 @@ class PeminjamanController extends Controller
     {
         Loan::prosesTenggatPengambilan();
 
-        // hanya buku aktif yang stoknya masih ada
+        // hanya buku aktif yang stoknya masih ada (penulis ikut dimuat untuk pencarian buku di form)
         $daftarBuku = Book::aktif()
+            ->with('author')
             ->where('available_stock', '>', 0)
             ->orderBy('title')
             ->get();
