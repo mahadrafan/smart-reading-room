@@ -27,10 +27,6 @@
                 <div class="grup-menu">Kelola Data</div>
                 <a href="{{ route('admin.buku.index') }}"
                    class="{{ request()->routeIs('admin.buku.*') ? 'aktif' : '' }}">Kelola Buku</a>
-                <a href="{{ route('admin.kp.index') }}"
-                   class="{{ request()->routeIs('admin.kp.*') ? 'aktif' : '' }}">Kategori &amp; Penulis</a>
-                <a href="{{ route('admin.ebooks.index') }}"
-                   class="{{ request()->routeIs('admin.ebooks.*') ? 'aktif' : '' }}">Kelola E-book</a>
                 <a href="{{ route('admin.reviews.index') }}"
                    class="{{ request()->routeIs('admin.reviews.*') ? 'aktif' : '' }}">Kelola Ulasan</a>
                 <a href="{{ route('admin.peminjam.index') }}"

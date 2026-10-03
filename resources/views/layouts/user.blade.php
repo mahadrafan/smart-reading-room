@@ -28,8 +28,6 @@
                    class="{{ request()->routeIs('peminjaman.buat') ? 'aktif' : '' }}">Form Peminjaman</a>
                 <a href="{{ route('peminjaman.index') }}"
                    class="{{ request()->routeIs('peminjaman.index', 'peminjaman.detail') ? 'aktif' : '' }}">Riwayat Peminjaman</a>
-                <a href="{{ route('ebooks.index') }}"
-                   class="{{ request()->routeIs('ebooks.*') ? 'aktif' : '' }}">E-book</a>
                 <a href="{{ route('notifikasi.index') }}"
                    class="{{ request()->routeIs('notifikasi.*') ? 'aktif' : '' }}">Notifikasi</a>
                 <a href="{{ route('profil') }}"

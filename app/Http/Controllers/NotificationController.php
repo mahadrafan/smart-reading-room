@@ -1,4 +1,4 @@
-<?php
+n   <?php
 
 namespace App\Http\Controllers;
 
@@ -8,10 +8,14 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
+    public function index()
     public function index(Request $request)
     {
+        $notifications = UserNotification::where('user_id', Auth::id())
         $query = UserNotification::where('user_id', Auth::id())
             ->with('loan.book')
+            ->orderByDesc('notification_id')
+            ->get();
             ->orderByDesc('notification_id');
 
         // filter berdasarkan tab
