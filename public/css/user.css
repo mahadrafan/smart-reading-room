@@ -419,6 +419,11 @@ td.aksi .bahaya { color: var(--merah); }
 .opsi-judul { font-size: 14px; font-weight: 600; color: var(--navy); }
 .opsi-meta { font-size: 12px; color: var(--abu); }
 .pilih-buku-kosong { padding: 12px; font-size: 13px; color: var(--abu); }
+/* buku dalam jeda pinjam ulang: tampil di daftar tapi tidak bisa dipilih */
+.pilih-buku-daftar [role="option"].opsi-jeda { cursor: not-allowed; }
+.pilih-buku-daftar [role="option"].opsi-jeda .opsi-judul { color: var(--abu); }
+.pilih-buku-daftar [role="option"].opsi-jeda .opsi-meta { color: var(--oranye); }
+.pilih-buku-daftar [role="option"].opsi-jeda:hover, .pilih-buku-daftar [role="option"].opsi-jeda.aktif { background: #f6f6f9; }
 /* opsi memakai display:flex, jadi atribut hidden perlu dipaksa agar hasil saringan benar-benar tersembunyi */
 .pilih-buku[hidden], .pilih-buku [hidden] { display: none !important; }
 .pesan-salah { margin: 6px 0 0; font-size: 13px; color: var(--merah); }

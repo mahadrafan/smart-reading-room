@@ -148,6 +148,7 @@ class KatalogController extends Controller
             'pinjamanAktif' => $pinjamanAktif,
             'populer'       => $populer,
             'topReview'       => $topReview,
+            'jedaPinjam'      => Loan::jedaPinjamUlang(Auth::id()),
         ]);
     }
 
@@ -171,6 +172,9 @@ class KatalogController extends Controller
             ->whereIn('status', ['Menunggu', 'Dikonfirmasi', 'Dipinjam'])
             ->exists();
 
+        // buku yang baru dikembalikan user ini: [book_id => tanggal boleh dipinjam lagi]
+        $jedaPinjam = Loan::jedaPinjamUlang(Auth::id());
+
         // daftar peminjam aktif untuk buku ini (dikonfirmasi atau sedang dipinjam)
         $peminjamAktif = Loan::where('book_id', $buku->book_id)
             ->whereIn('status', ['Dikonfirmasi', 'Dipinjam'])
@@ -189,6 +193,9 @@ class KatalogController extends Controller
         return view('user.detail', [
             'buku'          => $buku,
             'sudahAjukan'   => $sudahAjukan,
+            // tanggal boleh meminjam lagi bila buku ini baru dikembalikan user (jeda pinjam ulang)
+            'bolehPinjamLagi' => $jedaPinjam[$buku->book_id] ?? null,
+            'jedaPinjam'    => $jedaPinjam,
             'peminjamAktif' => $peminjamAktif,
             'lainnya'       => $lainnya,
             'ulasanSaya'    => $buku->reviews->firstWhere('user_id', Auth::id()),

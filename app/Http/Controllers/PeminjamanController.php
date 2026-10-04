@@ -74,6 +74,8 @@ class PeminjamanController extends Controller
         return view('user.peminjaman-form', [
             'daftarBuku'  => $daftarBuku,
             'bukuDipilih' => $request->buku,
+            // buku yang baru dikembalikan user ini: tampil di daftar tapi belum bisa dipilih
+            'jedaPinjam'  => Loan::jedaPinjamUlang(Auth::id()),
         ]);
     }
 
@@ -121,6 +123,15 @@ class PeminjamanController extends Controller
         if ($sudahAda) {
             return back()->withInput()->withErrors([
                 'book_id' => 'Kamu masih punya pengajuan atau peminjaman aktif untuk buku ini.',
+            ]);
+        }
+
+        // jeda pinjam ulang: buku yang baru dikembalikan belum bisa dipinjam lagi oleh user yang sama
+        $bolehMulai = Loan::jedaPinjamUlang($idUser, $buku->book_id)->first();
+        if ($bolehMulai) {
+            return back()->withInput()->withErrors([
+                'book_id' => 'Kamu baru saja mengembalikan buku ini. Agar pembaca lain juga mendapat kesempatan, '
+                    . 'buku yang sama baru bisa kamu pinjam lagi mulai ' . $bolehMulai->format('d M Y') . '.',
             ]);
         }
 

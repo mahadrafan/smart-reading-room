@@ -30,11 +30,17 @@
                            role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="daftar_buku">
                     <ul id="daftar_buku" class="pilih-buku-daftar" role="listbox" aria-labelledby="label_buku" hidden>
                         @foreach ($daftarBuku as $b)
+                            @php $bolehMulai = $jedaPinjam[$b->book_id] ?? null; @endphp
                             <li id="opsi-buku-{{ $b->book_id }}" role="option" aria-selected="false"
                                 data-id="{{ $b->book_id }}" data-judul="{{ $b->title }}"
-                                data-cari="{{ Str::lower($b->title . ' ' . ($b->author->author_name ?? '')) }}">
+                                data-cari="{{ Str::lower($b->title . ' ' . ($b->author->author_name ?? '')) }}"
+                                @if ($bolehMulai) aria-disabled="true" class="opsi-jeda" @endif>
                                 <span class="opsi-judul">{{ $b->title }}</span>
-                                <span class="opsi-meta">{{ $b->author->author_name ?? 'Penulis belum diisi' }} · tersedia {{ $b->available_stock }}</span>
+                                @if ($bolehMulai)
+                                    <span class="opsi-meta">Baru kamu kembalikan · bisa dipinjam lagi mulai {{ $bolehMulai->format('d M Y') }}</span>
+                                @else
+                                    <span class="opsi-meta">{{ $b->author->author_name ?? 'Penulis belum diisi' }} · tersedia {{ $b->available_stock }}</span>
+                                @endif
                             </li>
                         @endforeach
                         <li class="pilih-buku-kosong" hidden>Tidak ada buku yang cocok dengan pencarianmu.</li>
@@ -44,8 +50,9 @@
                 <select id="book_id" name="book_id" class="@error('book_id') salah @enderror" required>
                     <option value="">Pilih buku</option>
                     @foreach ($daftarBuku as $b)
-                        <option value="{{ $b->book_id }}" {{ $idBukuDipilih === (string) $b->book_id ? 'selected' : '' }}>
-                            {{ $b->title }} (tersedia {{ $b->available_stock }})
+                        @php $bolehMulai = $jedaPinjam[$b->book_id] ?? null; @endphp
+                        <option value="{{ $b->book_id }}" {{ $bolehMulai ? 'disabled' : '' }} {{ !$bolehMulai && $idBukuDipilih === (string) $b->book_id ? 'selected' : '' }}>
+                            {{ $b->title }} ({{ $bolehMulai ? 'bisa dipinjam lagi mulai ' . $bolehMulai->format('d M Y') : 'tersedia ' . $b->available_stock }})
                         </option>
                     @endforeach
                 </select>
@@ -53,6 +60,13 @@
                 @error('book_id')
                     <p class="pesan-salah">{{ $message }}</p>
                 @enderror
+                {{-- datang dari tombol "Pinjam Buku" untuk buku yang masih dalam jeda pinjam ulang --}}
+                @if (!$errors->has('book_id') && isset($jedaPinjam[$idBukuDipilih]))
+                    <p class="pesan-info">
+                        Buku ini baru kamu kembalikan. Agar pembaca lain juga mendapat kesempatan, buku yang sama
+                        bisa kamu pinjam lagi mulai {{ $jedaPinjam[$idBukuDipilih]->format('d M Y') }}.
+                    </p>
+                @endif
                 @if ($daftarBuku->count() == 0)
                     <p class="pesan-info">Belum ada buku yang stoknya tersedia.</p>
                 @endif
@@ -215,6 +229,8 @@
             }
 
             function pilih(o) {
+                // buku dalam jeda pinjam ulang tampil di daftar tapi tidak bisa dipilih
+                if (o.getAttribute('aria-disabled') === 'true') { return; }
                 terakhir = o;
                 select.value = o.dataset.id;
                 input.value = o.dataset.judul;

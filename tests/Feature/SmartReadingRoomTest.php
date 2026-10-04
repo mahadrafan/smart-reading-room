@@ -666,6 +666,51 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('kartu-ulasan terpilih sedang-edit', false);
     }
 
+    public function test_returned_book_cannot_be_borrowed_again_by_same_user_until_two_days_later(): void
+    {
+        $this->travelTo(now()->setDate(2026, 10, 3)->setTime(9, 0));
+
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $saya = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $lain = $this->makeUser('Peminjam', 'SISWA-LAIN');
+        $book = $this->makeBook($admin);
+
+        // dikembalikan 3 Oktober
+        $this->makeLoan($saya, $book, [
+            'loan_date' => '2026-09-28',
+            'due_date' => '2026-10-05',
+            'return_date' => '2026-10-03',
+            'status' => 'Dikembalikan',
+        ]);
+        $ajukan = fn () => $this->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => '7']);
+
+        // 3 Oktober (hari pengembalian): ditolak, tombol di detail & katalog ikut terkunci
+        $this->actingAs($saya)->get('/buku/' . $book->book_id)->assertOk()
+            ->assertSee('Bisa dipinjam lagi 05 Oct 2026')
+            ->assertDontSee('>Pinjam Buku</a>', false);
+        $this->get('/dashboard?tampilan=semua')->assertOk()->assertSee('Bisa dipinjam 05 Oct');
+        $this->get('/peminjaman/buat?buku=' . $book->book_id)->assertOk()
+            ->assertSee('aria-disabled="true"', false)
+            ->assertSee('bisa dipinjam lagi mulai 05 Oct 2026');
+        $ajukan()->assertSessionHasErrors(['book_id' => 'Kamu baru saja mengembalikan buku ini. Agar pembaca lain juga mendapat kesempatan, buku yang sama baru bisa kamu pinjam lagi mulai 05 Oct 2026.']);
+
+        // pembaca lain tetap bisa meminjam buku yang sama
+        $this->actingAs($lain)->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => '7'])
+            ->assertRedirect(route('peminjaman.index'));
+
+        // 4 Oktober: masih ditolak
+        $this->travelTo(now()->setDate(2026, 10, 4)->setTime(23, 59));
+        $this->actingAs($saya);
+        $ajukan()->assertSessionHasErrors('book_id');
+        $this->assertSame(1, Loan::where('user_id', $saya->user_id)->count());
+
+        // 5 Oktober: boleh meminjam lagi
+        $this->travelTo(now()->setDate(2026, 10, 5)->setTime(0, 1));
+        $this->get('/buku/' . $book->book_id)->assertOk()->assertSee('>Pinjam Buku</a>', false);
+        $ajukan()->assertRedirect(route('peminjaman.index'))->assertSessionHasNoErrors();
+        $this->assertSame(2, Loan::where('user_id', $saya->user_id)->count());
+    }
+
     public function test_out_of_stock_book_is_locked_until_stock_returns(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');

@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Loan extends Model
 {
+    // jeda pinjam ulang: buku yang baru dikembalikan tidak bisa dipinjam lagi oleh user yang sama
+    // pada hari pengembalian + 1 hari berikutnya (dikembalikan 3 Okt -> boleh lagi mulai 5 Okt),
+    // agar pembaca lain mendapat kesempatan meminjam
+    const JEDA_PINJAM_ULANG = 1;
+
     protected $table = 'loans';
     protected $primaryKey = 'loan_id';
     public $timestamps = false;
@@ -23,6 +28,18 @@ class Loan extends Model
         'approved_at'  => 'datetime',
         'fine_paid_at' => 'datetime',
     ];
+
+    // buku yang masih dalam jeda pinjam ulang untuk user ini: [book_id => tanggal boleh dipinjam lagi]
+    public static function jedaPinjamUlang($userId, $bookId = null)
+    {
+        return static::where('user_id', $userId)
+            ->where('status', 'Dikembalikan')
+            ->whereDate('return_date', '>=', today()->subDays(self::JEDA_PINJAM_ULANG))
+            ->when($bookId, fn ($q) => $q->where('book_id', $bookId))
+            ->get(['book_id', 'return_date'])
+            ->groupBy('book_id')
+            ->map(fn ($pinjaman) => $pinjaman->max('return_date')->copy()->addDays(self::JEDA_PINJAM_ULANG + 1));
+    }
 
     public function user()
     {

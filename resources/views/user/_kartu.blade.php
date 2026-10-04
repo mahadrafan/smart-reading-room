@@ -26,7 +26,12 @@
             @endif
         </div>
 
-        @if ($b->available_stock > 0)
+        @if (isset($jedaPinjam[$b->book_id]))
+            {{-- baru dikembalikan user ini: jeda pinjam ulang --}}
+            <span class="tombol tombol-penuh nonaktif" title="Buku yang baru kamu kembalikan bisa dipinjam lagi mulai {{ $jedaPinjam[$b->book_id]->format('d M Y') }}">
+                Bisa dipinjam {{ $jedaPinjam[$b->book_id]->format('d M') }}
+            </span>
+        @elseif ($b->available_stock > 0)
             <a href="{{ route('peminjaman.buat', ['buku' => $b->book_id]) }}" class="tombol tombol-penuh">Pinjam Buku</a>
         @else
             <span class="tombol tombol-penuh nonaktif">Stok habis</span>
