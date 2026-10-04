@@ -65,7 +65,8 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // zona waktu WIB: pergantian hari (tanggal pengajuan, batas kembali, denda) mengikuti jam Indonesia
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
 
     /*
     |--------------------------------------------------------------------------
