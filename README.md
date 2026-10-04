@@ -1,7 +1,7 @@
 # Smart Reading Room
 
 Smart Reading Room adalah aplikasi perpustakaan berbasis Laravel 12 untuk
-mengelola katalog, peminjaman, denda, ulasan, e-book, dan notifikasi.
+mengelola katalog, peminjaman, denda, ulasan, dan notifikasi.
 
 Repository: <https://github.com/mahadrafan/smart-reading-room>
 
@@ -15,7 +15,6 @@ Repository: <https://github.com/mahadrafan/smart-reading-room>
 - Denda keterlambatan beserta status Belum Lunas/Lunas
 - Data kontak peminjam untuk tindak lanjut admin
 - Ulasan dan rating buku
-- Unggah serta unduh e-book PDF
 - Notifikasi dalam aplikasi dan email
 - Pengingat keterlambatan terjadwal
 
@@ -132,7 +131,7 @@ konfigurasi bawaan. Sesuaikan jika instalasi Anda berbeda.
 ## Menggunakan database terbaru dari repository
 
 File `basdat_final.sql` berisi salinan database pengembangan terbaru, termasuk katalog,
-akun, peminjaman, denda, ulasan, e-book, dan notifikasi. Gunakan cara ini jika
+akun, peminjaman, denda, ulasan, dan notifikasi. Gunakan cara ini jika
 ingin memperoleh data yang sama seperti laptop pengembangan.
 
 Pastikan konfigurasi `.env` memakai MySQL seperti pada bagian sebelumnya, lalu
@@ -232,9 +231,8 @@ pada backup lama.
 
 ### 3. Salin file unggahan
 
-Salin isi folder berikut ke lokasi yang sama di laptop baru:
+Salin isi folder sampul buku berikut ke lokasi yang sama di laptop baru:
 
-- `storage/app/private/ebooks`
 - `storage/app/public/covers`
 
 Kemudian jalankan:
@@ -381,6 +379,6 @@ File berikut sengaja tidak dikirim ke GitHub:
 - database SQLite lokal
 - `vendor` dan `node_modules`
 - log aplikasi
-- e-book dan sampul yang diunggah pengguna
+- sampul buku yang diunggah pengguna
 
 Gunakan `.env.example` sebagai templat konfigurasi pada setiap laptop.

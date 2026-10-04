@@ -79,8 +79,6 @@
                             <a href="{{ route('peminjaman.detail', $notif->loan_id) }}" class="notif-aksi-link">Detail Peminjaman</a>
                         @elseif ($notif->loan?->book && $tipe != 'Pengumuman')
                             <a href="{{ route('peminjaman.detail', $notif->loan_id) }}" class="notif-aksi-link">Lihat Peminjaman →</a>
-                        @elseif ($tipe == 'Pengumuman')
-                            <a href="{{ route('ebooks.index') }}" class="notif-tautan">Buka Koleksi E-book →</a>
                         @endif
                     </div>
                 </div>

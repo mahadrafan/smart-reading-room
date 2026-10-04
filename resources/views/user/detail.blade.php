@@ -95,7 +95,20 @@
 
         <div class="dua-kotak" style="margin-top:16px;">
             <div class="kotak form-ulasan">
-                <h3 style="margin-top:0;">{{ $ulasanSaya ? 'Perbarui ulasanmu' : 'Tulis ulasan' }}</h3>
+                @if ($ulasanSaya)
+                    {{-- satu user hanya satu ulasan per buku: perubahan dilakukan di halaman Review & Ulasan --}}
+                    <h3 style="margin-top:0;">Ulasanmu</h3>
+                    <div class="bintang-ulasan" role="img" aria-label="Rating {{ $ulasanSaya->rating }} dari 5" style="padding-right:0;">
+                        @for ($i = 1; $i <= 5; $i++)
+                            <span class="{{ $i <= $ulasanSaya->rating ? 'isi' : '' }}" aria-hidden="true">★</span>
+                        @endfor
+                    </div>
+                    <p class="teks-ulasan">“{{ $ulasanSaya->review_text }}”</p>
+                    <div class="tanggal-ulasan">{{ $ulasanSaya->created_at?->format('d M Y') }}</div>
+                    <p class="catatan">Kamu sudah memberi ulasan untuk buku ini. Setiap pembaca hanya bisa memberi satu ulasan per buku, tapi ulasanmu masih bisa diubah.</p>
+                    <a href="{{ route('ulasan.index', ['ulasan' => $ulasanSaya->review_id, 'edit' => 1]) }}#ulasan-{{ $ulasanSaya->review_id }}" class="tombol">Edit Ulasan</a>
+                @else
+                <h3 style="margin-top:0;">Tulis ulasan</h3>
                 <form method="POST" action="{{ route('ulasan.simpan', $buku->book_id) }}">
                     @csrf
                     <div class="isian">
@@ -115,15 +128,11 @@
                     </div>
                     <button class="tombol" type="submit">Simpan Ulasan</button>
                 </form>
+                @endif
             </div>
 
             @php
                 $daftarUlasan = $buku->reviews->sortByDesc('review_id')->values();
-                $warnaAvatar = ['#8671c9', '#2f6f73', '#b5574b', '#a07a2c', '#1b2340', '#5b7b3a'];
-                $inisialNama = function ($nama) {
-                    $kata = preg_split('/\s+/', trim($nama ?: 'P'));
-                    return mb_strtoupper(mb_substr($kata[0], 0, 1) . (isset($kata[1]) ? mb_substr($kata[1], 0, 1) : ''));
-                };
             @endphp
 
             {{-- kartu ulasan: avatar pengulas, slider ulasan, dan rata-rata rating --}}
@@ -132,7 +141,7 @@
                     @if ($daftarUlasan->count() > 0)
                         <div class="avatar-tumpuk" aria-hidden="true">
                             @foreach ($daftarUlasan->take(4) as $ulasan)
-                                <span style="background: {{ $warnaAvatar[$ulasan->user_id % count($warnaAvatar)] }};">{{ $inisialNama($ulasan->user->name ?? null) }}</span>
+                                <span style="background: {{ $ulasan->user->warna_avatar ?? '#8671c9' }};">{{ $ulasan->user->inisial ?? 'P' }}</span>
                             @endforeach
                         </div>
                     @endif

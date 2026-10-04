@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Loan;
 use App\Models\Review;
 use App\Models\User;
+use App\Models\UserNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -85,7 +86,6 @@ class SmartReadingRoomTest extends TestCase
         $this->get('/buku/' . $book->book_id)->assertOk();
         $this->get('/peminjaman')->assertOk();
         $this->get('/peminjaman/buat')->assertOk();
-        $this->get('/ebooks')->assertOk();
         $this->get('/notifikasi')->assertOk();
         $this->get('/profil')->assertOk();
         $this->get('/admin/dashboard')->assertRedirect(route('dashboard'));
@@ -94,11 +94,8 @@ class SmartReadingRoomTest extends TestCase
         $this->get('/admin/dashboard')->assertOk();
         $this->get('/admin/buku')->assertOk();
         $this->get('/admin/buku/create')->assertOk();
-        $this->get('/admin/kategori-penulis')->assertOk();
         $this->get('/admin/peminjam')->assertOk();
         $this->get('/admin/ulasan')->assertOk();
-        $this->get('/admin/ebooks')->assertOk();
-        $this->get('/admin/ebooks/tambah')->assertOk();
         $this->get('/admin/peminjaman')->assertOk();
         $this->get('/admin/riwayat')->assertOk();
         $this->get('/dashboard')->assertRedirect(route('admin.dashboard'));
@@ -163,30 +160,12 @@ class SmartReadingRoomTest extends TestCase
         $this->actingAs($admin);
         Storage::fake('public');
 
-        $this->post('/admin/kategori-penulis/kategori', [
-            'category_name' => 'Sains',
-            'description' => 'Buku sains',
-        ])->assertRedirect(route('admin.kp.index'));
-        $category = Category::where('category_name', 'Sains')->firstOrFail();
-
-        $this->post('/admin/kategori-penulis/penulis', [
-            'author_name' => 'Penulis Uji',
-            'biography' => 'Biografi pengujian.',
-        ])->assertRedirect(route('admin.kp.index'));
-        $author = Author::where('author_name', 'Penulis Uji')->firstOrFail();
-
-        $this->put('/admin/kategori-penulis/kategori/' . $category->category_id, [
-            'category_name' => 'Sains Terapan',
-            'description' => 'Diperbarui',
-        ])->assertRedirect(route('admin.kp.index'));
-        $this->put('/admin/kategori-penulis/penulis/' . $author->author_id, [
-            'author_name' => 'Penulis Diperbarui',
-            'biography' => 'Diperbarui.',
-        ])->assertRedirect(route('admin.kp.index'));
-
+        // kategori & penulis baru dibuat langsung dari form Kelola Buku
         $this->post('/admin/buku', [
-            'category_id' => $category->category_id,
-            'author_id' => $author->author_id,
+            'category_id' => 'new',
+            'new_category_name' => 'Sains',
+            'author_id' => 'new',
+            'new_author_name' => 'Penulis Uji',
             'title' => 'Buku Uji Fitur',
             'publisher' => 'Penerbit Uji',
             'publication_year' => 2026,
@@ -196,7 +175,11 @@ class SmartReadingRoomTest extends TestCase
             'cover_image' => UploadedFile::fake()->image('cover.jpg', 300, 450),
         ])->assertRedirect(route('admin.buku.index'));
 
+        $category = Category::where('category_name', 'Sains')->firstOrFail();
+        $author = Author::where('author_name', 'Penulis Uji')->firstOrFail();
         $book = Book::where('title', 'Buku Uji Fitur')->firstOrFail();
+        $this->assertSame($category->category_id, $book->category_id);
+        $this->assertSame($author->author_id, $book->author_id);
         $this->assertSame(4, $book->available_stock);
         Storage::disk('public')->assertExists($book->cover_image);
 
@@ -213,7 +196,7 @@ class SmartReadingRoomTest extends TestCase
 
         $this->delete('/admin/buku/' . $book->book_id)->assertRedirect(route('admin.buku.index'));
         $this->assertDatabaseHas('books', ['book_id' => $book->book_id, 'is_active' => 0]);
-        $this->assertDatabaseCount('admin_logs', 7);
+        $this->assertDatabaseCount('admin_logs', 3);
     }
 
     public function test_book_must_always_have_category_and_author(): void
@@ -541,18 +524,146 @@ class SmartReadingRoomTest extends TestCase
         ])->assertRedirect();
 
         $review = \App\Models\Review::firstOrFail();
-        $this->get('/buku/' . $book->book_id)->assertOk()->assertSee('Sangat membantu');
+        // sudah memberi ulasan: form tulis ulasan diganti tombol Edit Ulasan
+        $this->get('/buku/' . $book->book_id)->assertOk()
+            ->assertSee('Sangat membantu')
+            ->assertSee('Edit Ulasan')
+            ->assertDontSee('Tulis ulasan');
 
+        // ulasan kedua untuk buku yang sama ditolak dan diarahkan ke halaman edit
         $this->post('/buku/' . $book->book_id . '/ulasan', [
+            'rating' => 1,
+            'review_text' => 'Ulasan kedua.',
+        ])->assertRedirect(route('ulasan.index', ['ulasan' => $review->review_id, 'edit' => 1]) . '#ulasan-' . $review->review_id)
+            ->assertSessionHasErrors('review_text');
+        $this->assertDatabaseCount('reviews', 1);
+        $this->assertSame(5, $review->fresh()->rating);
+
+        $this->put('/ulasan/' . $review->review_id, [
+            'ulasan_id' => $review->review_id,
             'rating' => 4,
             'review_text' => 'Komentar diperbarui.',
-        ]);
+        ])->assertRedirect(route('ulasan.index', ['ulasan' => $review->review_id]) . '#ulasan-' . $review->review_id);
         $this->assertDatabaseCount('reviews', 1);
         $this->assertSame(4, $review->fresh()->rating);
 
         $this->actingAs($admin)->get('/admin/ulasan')->assertOk()->assertSee('Komentar diperbarui.');
         $this->delete('/admin/ulasan/' . $review->review_id)->assertRedirect(route('admin.reviews.index'));
         $this->assertDatabaseMissing('reviews', ['review_id' => $review->review_id]);
+    }
+
+    public function test_review_page_lists_all_reviews_and_only_owner_can_edit_or_delete(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $saya = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $lain = $this->makeUser('Peminjam', 'SISWA-LAIN');
+        $bukuA = $this->makeBook($admin);
+        $bukuB = $bukuA->replicate()->fill(['title' => 'Buku Kedua']);
+        $bukuB->save();
+
+        $milikSaya = Review::create(['user_id' => $saya->user_id, 'book_id' => $bukuA->book_id, 'rating' => 4, 'review_text' => 'Ulasan milik saya.']);
+        $milikLain = Review::create(['user_id' => $lain->user_id, 'book_id' => $bukuB->book_id, 'rating' => 2, 'review_text' => 'Ulasan pembaca lain.']);
+
+        // semua ulasan dari setiap buku tampil, dengan menu baru di sidebar
+        $this->actingAs($saya)->get('/ulasan')->assertOk()
+            ->assertSee('Review &amp; Ulasan', false)
+            ->assertSee('Ulasan milik saya.')
+            ->assertSee('Ulasan pembaca lain.')
+            ->assertSee('Edit Ulasan')
+            ->assertSee('Hapus Ulasan')
+            ->assertDontSee('Respond')
+            ->assertDontSee('Balas');
+
+        // filter "Ulasan Saya", per buku, dan pencarian
+        $this->get('/ulasan?saya=1')->assertOk()
+            ->assertSee('Ulasan milik saya.')->assertDontSee('Ulasan pembaca lain.');
+        $this->get('/ulasan?buku=' . $bukuB->book_id)->assertOk()
+            ->assertSee('Ulasan pembaca lain.')->assertDontSee('Ulasan milik saya.')
+            ->assertSee('Buku Kedua');
+        $this->get('/ulasan?q=pembaca+lain')->assertOk()
+            ->assertSee('Ulasan pembaca lain.')->assertDontSee('Ulasan milik saya.');
+
+        // filter rating berupa kotak centang 5 bintang sampai 1 bintang, boleh lebih dari satu
+        $this->get('/ulasan?bintang[]=2')->assertOk()
+            ->assertSee('Ulasan pembaca lain.')->assertDontSee('Ulasan milik saya.')
+            ->assertSee('name="bintang[]" value="2" class="centang-rating" checked', false)
+            ->assertSee('name="bintang[]" value="4" class="centang-rating" >', false)
+            ->assertDontSee('Rating terendah')
+            ->assertDontSee('class="wajah', false);
+        $this->get('/ulasan?bintang[]=4&bintang[]=2')->assertOk()
+            ->assertSee('Ulasan pembaca lain.')->assertSee('Ulasan milik saya.')
+            ->assertSee('4, 2 bintang');
+        $this->get('/ulasan?bintang[]=3&bintang[]=1')->assertOk()
+            ->assertSee('Tidak ada ulasan dengan rating 3, 1 bintang.');
+
+        // ulasan milik orang lain hanya bisa dibaca
+        $this->get('/ulasan?ulasan=' . $milikLain->review_id)->assertOk()
+            ->assertSee('Ulasan pembaca lain hanya bisa dibaca.');
+        $this->put('/ulasan/' . $milikLain->review_id, ['rating' => 5, 'review_text' => 'Diubah orang lain.'])->assertNotFound();
+        $this->delete('/ulasan/' . $milikLain->review_id)->assertNotFound();
+        $this->assertSame(2, $milikLain->fresh()->rating);
+
+        // edit ulasan sendiri: validasi gagal membuka kembali form edit ulasan tersebut
+        $this->from('/ulasan?ulasan=' . $milikSaya->review_id)
+            ->put('/ulasan/' . $milikSaya->review_id, ['ulasan_id' => $milikSaya->review_id, 'rating' => 9, 'review_text' => ''])
+            ->assertSessionHasErrors(['rating', 'review_text']);
+        $this->get('/ulasan?ulasan=' . $milikSaya->review_id)->assertOk()
+            ->assertSee('kartu-ulasan terpilih sedang-edit', false);
+
+        $this->put('/ulasan/' . $milikSaya->review_id, [
+            'ulasan_id' => $milikSaya->review_id,
+            'rating' => 5,
+            'review_text' => 'Ulasan sudah diedit.',
+            'saya' => '1',
+        ])->assertRedirect(route('ulasan.index', ['saya' => '1', 'ulasan' => $milikSaya->review_id]) . '#ulasan-' . $milikSaya->review_id);
+        $this->assertDatabaseHas('reviews', ['review_id' => $milikSaya->review_id, 'rating' => 5, 'review_text' => 'Ulasan sudah diedit.']);
+
+        // hapus ulasan sendiri, lalu boleh menulis ulasan baru lagi
+        $this->delete('/ulasan/' . $milikSaya->review_id)->assertRedirect(route('ulasan.index'));
+        $this->assertDatabaseMissing('reviews', ['review_id' => $milikSaya->review_id]);
+        $this->get('/buku/' . $bukuA->book_id)->assertOk()->assertSee('Tulis ulasan');
+    }
+
+    public function test_review_page_shows_five_reviews_per_page(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $book = $this->makeBook($admin);
+        $saya = null;
+
+        // 7 ulasan: ulasan ke-1 paling lama, ulasan ke-7 paling baru
+        foreach (range(1, 7) as $i) {
+            $pembaca = $this->makeUser('Peminjam', 'SISWA-' . $i);
+            $saya ??= $pembaca;
+            Review::create([
+                'user_id' => $pembaca->user_id,
+                'book_id' => $book->book_id,
+                'rating' => 5,
+                'review_text' => 'Ulasan nomor ' . $i . '.',
+                'created_at' => now()->subDays(10 - $i),
+            ]);
+        }
+
+        // halaman 1: 5 ulasan terbaru + tombol ke halaman berikutnya
+        $this->actingAs($saya)->get('/ulasan')->assertOk()
+            ->assertSee('Ulasan nomor 7.')->assertSee('Ulasan nomor 3.')
+            ->assertDontSee('Ulasan nomor 2.')
+            ->assertSee('Halaman 1 / 2')
+            ->assertSee('href="' . route('ulasan.index', ['halaman' => 2]) . '"', false);
+
+        // halaman 2: sisa 2 ulasan
+        $this->get('/ulasan?halaman=2')->assertOk()
+            ->assertSee('Ulasan nomor 2.')->assertSee('Ulasan nomor 1.')
+            ->assertDontSee('Ulasan nomor 3.')
+            ->assertSee('Halaman 2 / 2');
+
+        // nomor halaman di luar jangkauan kembali ke halaman terakhir
+        $this->get('/ulasan?halaman=9')->assertOk()->assertSee('Halaman 2 / 2');
+
+        // membuka ulasan tertentu (mis. dari tombol Edit Ulasan) langsung ke halaman tempat ulasan itu berada
+        $ulasanLama = Review::where('user_id', $saya->user_id)->firstOrFail();
+        $this->get('/ulasan?ulasan=' . $ulasanLama->review_id . '&edit=1')->assertOk()
+            ->assertSee('Halaman 2 / 2')
+            ->assertSee('kartu-ulasan terpilih sedang-edit', false);
     }
 
     public function test_out_of_stock_book_is_locked_until_stock_returns(): void
@@ -576,34 +687,41 @@ class SmartReadingRoomTest extends TestCase
         $this->get('/buku/' . $book->book_id)->assertOk()->assertSee('Pinjam Buku');
     }
 
-    public function test_admin_can_upload_user_can_download_and_admin_can_delete_ebook(): void
+    public function test_notifications_page_shows_all_types_and_filters_by_tab(): void
     {
-        Storage::fake('local');
         $admin = $this->makeUser('Admin', 'ADM-TEST');
         $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
-        $category = Category::create(['category_name' => 'Digital']);
-        $author = Author::create(['author_name' => 'Penulis Digital']);
+        $book = $this->makeBook($admin);
+        $loan = Loan::create([
+            'user_id' => $borrower->user_id,
+            'book_id' => $book->book_id,
+            'request_date' => now(),
+            'due_date' => today()->addDays(7),
+            'status' => 'Menunggu',
+        ]);
 
-        $this->actingAs($admin)->post('/admin/ebooks', [
-            'category_id' => $category->category_id,
-            'author_id' => $author->author_id,
-            'title' => 'Panduan Digital',
-            'publisher' => 'Penerbit Digital',
-            'publication_year' => 2026,
-            'description' => 'E-book pengujian.',
-            'pdf_file' => UploadedFile::fake()->create('panduan.pdf', 100, 'application/pdf'),
-        ])->assertRedirect(route('admin.ebooks.index'));
+        UserNotification::create([
+            'user_id' => $borrower->user_id, 'loan_id' => $loan->loan_id, 'type' => 'Pengajuan',
+            'message' => 'Pengajuan peminjaman terkirim.', 'sent_at' => now(), 'status' => 'Terkirim',
+        ]);
+        UserNotification::create([
+            'user_id' => $borrower->user_id, 'type' => 'Pengumuman',
+            'message' => 'Perpustakaan tutup hari Minggu.', 'sent_at' => now(), 'status' => 'Terkirim',
+        ]);
 
-        $ebook = \App\Models\Ebook::firstOrFail();
-        Storage::disk('local')->assertExists($ebook->file_url);
+        // fitur e-book sudah dihapus: pengumuman tampil tanpa tautan ke halaman e-book
+        $this->actingAs($borrower)->get('/notifikasi')->assertOk()
+            ->assertSee('Pengajuan peminjaman terkirim.')
+            ->assertSee('Perpustakaan tutup hari Minggu.')
+            ->assertDontSee('E-book');
 
-        $this->actingAs($borrower)->get('/ebooks')->assertOk()->assertSee('Panduan Digital');
-        $this->get('/ebooks/' . $ebook->ebook_id . '/download')->assertOk()->assertDownload('Panduan Digital.pdf');
+        $this->get('/notifikasi?tab=pengumuman')->assertOk()
+            ->assertSee('Perpustakaan tutup hari Minggu.')
+            ->assertDontSee('Pengajuan peminjaman terkirim.');
 
-        $this->actingAs($admin)->delete('/admin/ebooks/' . $ebook->ebook_id)
-            ->assertRedirect(route('admin.ebooks.index'));
-        Storage::disk('local')->assertMissing($ebook->file_url);
-        $this->assertDatabaseMissing('ebooks', ['ebook_id' => $ebook->ebook_id]);
+        $this->get('/notifikasi?tab=peminjaman')->assertOk()
+            ->assertSee('Pengajuan peminjaman terkirim.')
+            ->assertDontSee('Perpustakaan tutup hari Minggu.');
     }
 
     private function makeUser(string $role, string $nim): User

@@ -44,6 +44,11 @@ Route::middleware(CekRole::class . ':Peminjam')->group(function () {
     Route::get('/buku/{id}', [KatalogController::class, 'show'])->name('buku.detail');
     Route::post('/buku/{id}/ulasan', [ReviewController::class, 'store'])->name('ulasan.simpan');
 
+    // Review & Ulasan: semua ulasan, edit & hapus ulasan milik sendiri
+    Route::get('/ulasan', [ReviewController::class, 'index'])->name('ulasan.index');
+    Route::put('/ulasan/{id}', [ReviewController::class, 'update'])->name('ulasan.update');
+    Route::delete('/ulasan/{id}', [ReviewController::class, 'destroy'])->name('ulasan.hapus');
+
     Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
 
     // peminjaman (urutan penting: /peminjaman/buat harus di atas /peminjaman/{id})

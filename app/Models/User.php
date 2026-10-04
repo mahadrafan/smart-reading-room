@@ -33,6 +33,22 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    // inisial untuk avatar ulasan: huruf depan dua kata pertama nama, misalnya "Budi Santoso" -> "BS"
+    public function getInisialAttribute(): string
+    {
+        $kata = preg_split('/\s+/', trim($this->name ?: 'P'));
+
+        return mb_strtoupper(mb_substr($kata[0], 0, 1) . (isset($kata[1]) ? mb_substr($kata[1], 0, 1) : ''));
+    }
+
+    // warna avatar tetap untuk setiap user
+    public function getWarnaAvatarAttribute(): string
+    {
+        $warna = ['#8671c9', '#2f6f73', '#b5574b', '#a07a2c', '#1b2340', '#5b7b3a'];
+
+        return $warna[$this->user_id % count($warna)];
+    }
+
     public function loans()
     {
         return $this->hasMany(Loan::class, 'user_id', 'user_id');
