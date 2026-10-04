@@ -25,7 +25,6 @@ Repository: <https://github.com/mahadrafan/smart-reading-room>
   serta `pdo_sqlite` atau `pdo_mysql`
 - Composer 2
 - Git
-- Node.js dan npm hanya jika aset Vite ingin dikembangkan ulang
 
 Untuk Windows, Laragon direkomendasikan. Jangan memakai PHP 8.0 dari XAMPP
 karena Laravel 12 membutuhkan PHP 8.2+.
@@ -282,17 +281,10 @@ Pada server Linux, tambahkan cron berikut agar scheduler berjalan setiap menit:
 * * * * * cd /lokasi/smart-reading-room && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-## Mengembangkan aset frontend
+## Aset frontend
 
-Halaman utama menggunakan CSS publik yang sudah tersedia. Untuk mengembangkan
-aset Vite:
-
-```powershell
-npm install
-npm run dev
-```
-
-Untuk membuat aset produksi, jalankan `npm run build`.
+Tampilan memakai CSS dan JavaScript biasa di `public/css` dan `public/js`, tanpa
+proses build. Cukup ubah file tersebut lalu muat ulang halaman.
 
 ## Pengujian
 
@@ -308,9 +300,6 @@ composer install
 php artisan migrate --force
 php artisan optimize:clear
 ```
-
-Jalankan `npm install` dan `npm run build` hanya jika dependency atau aset Vite
-berubah.
 
 ## Perintah pemecahan masalah
 
@@ -377,7 +366,7 @@ File berikut sengaja tidak dikirim ke GitHub:
 
 - `.env`
 - database SQLite lokal
-- `vendor` dan `node_modules`
+- `vendor`
 - log aplikasi
 - sampul buku yang diunggah pengguna
 

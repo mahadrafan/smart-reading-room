@@ -18,7 +18,7 @@ class BukuController extends Controller
     // READ: daftar semua buku aktif (yang dihapus/nonaktif ada di tab Nonaktif)
     public function index(Request $request)
     {
-        $query = Book::with(['category', 'author'])
+        $query = Book::with(['category', 'author', 'creator'])
             ->withCount(['loans as pinjaman_aktif' => fn ($q) => $q->whereIn('status', Loan::STATUS_AKTIF)])
             ->aktif();
 

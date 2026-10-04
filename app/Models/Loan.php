@@ -59,11 +59,6 @@ class Loan extends Model
         return $this->belongsTo(User::class, 'approved_by', 'user_id');
     }
 
-    public function finePaidBy()
-    {
-        return $this->belongsTo(User::class, 'fine_paid_by', 'user_id');
-    }
-
     public function getDendaLunasAttribute(): bool
     {
         return $this->jumlah_denda > 0 && $this->fine_paid_at !== null;
