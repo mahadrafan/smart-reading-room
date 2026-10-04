@@ -580,22 +580,15 @@ td.aksi .bahaya { color: var(--merah); }
 .notif-waktu { font-size: 12px; color: var(--abu); margin-left: auto; white-space: nowrap; padding-left: 10px; }
 .notif-pesan { font-size: 13.5px; color: var(--teks); line-height: 1.55; margin-bottom: 10px; }
 .notif-aksi { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.notif-aksi-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 7px 14px; font: inherit; font-size: 13px; font-weight: 700;
-    color: #fff; background: var(--ungu); border: 0; border-radius: 8px;
-    cursor: pointer; text-decoration: none; transition: background 0.15s;
-}
-.notif-aksi-btn:hover { background: var(--ungu-gelap); }
 .notif-aksi-link {
     font-size: 13px; font-weight: 600; color: var(--abu);
     text-decoration: none; padding: 7px 4px;
 }
 .notif-aksi-link:hover { color: var(--ungu); }
 
-/* pengaturan notifikasi */
+/* info salinan notifikasi ke email */
 .notif-pengaturan {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
     padding: 18px 20px;
     background: var(--putih); border: 1px solid var(--garis);
     border-radius: 16px; gap: 16px;
@@ -607,23 +600,7 @@ td.aksi .bahaya { color: var(--merah); }
     font-size: 20px; color: var(--abu); flex-shrink: 0;
 }
 .notif-pengaturan-teks .judul { font-size: 14px; font-weight: 700; color: var(--navy); }
-.notif-pengaturan-teks .sub { font-size: 12px; color: var(--abu); margin-top: 2px; }
-/* toggle switch */
-.toggle-switch { position: relative; width: 48px; height: 26px; display: inline-block; }
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-slider {
-    position: absolute; inset: 0; border-radius: 999px;
-    background: #c8c8d8; cursor: pointer; transition: background 0.2s;
-}
-.toggle-slider::before {
-    content: ''; position: absolute;
-    width: 20px; height: 20px; border-radius: 50%;
-    left: 3px; top: 3px;
-    background: #fff; transition: transform 0.2s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-}
-.toggle-switch input:checked + .toggle-slider { background: var(--ungu); }
-.toggle-switch input:checked + .toggle-slider::before { transform: translateX(22px); }
+.notif-pengaturan-teks .sub { font-size: 12px; color: var(--abu); margin-top: 2px; overflow-wrap: anywhere; }
 
 /* ---------- rak buku ala perpustakaan ---------- */
 .panel-rak {

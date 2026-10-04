@@ -989,6 +989,31 @@ class SmartReadingRoomTest extends TestCase
         }
     }
 
+    public function test_notifications_page_has_no_fake_controls(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+        $loan = $this->makeLoan($borrower, $book, ['status' => 'Dipinjam', 'due_date' => today()->subDays(2)]);
+        UserNotification::create([
+            'user_id' => $borrower->user_id, 'loan_id' => $loan->loan_id, 'type' => 'Terlambat',
+            'message' => 'Buku sudah melewati batas pengembalian.', 'sent_at' => now(), 'status' => 'Terkirim',
+        ]);
+
+        // tidak ada tombol perpanjang (fiturnya tidak ada), cukup tautan ke detail peminjaman
+        // tanpa pengumuman: tab tidak ditampilkan, tab apa pun di alamat tetap menampilkan semua notifikasi
+        foreach (['', '?tab=pengumuman'] as $tab) {
+            $this->actingAs($borrower)->get('/notifikasi' . $tab)->assertOk()
+                ->assertSee('Buku sudah melewati batas pengembalian.')
+                ->assertSee('Lihat Peminjaman')
+                ->assertDontSee('Perpanjang')
+                ->assertDontSee('notif-tabs')
+                ->assertDontSee('type="checkbox"', false)
+                ->assertSee('Setiap notifikasi juga dikirim ke siswa-test@example.test.')
+                ->assertSee(route('profil'));
+        }
+    }
+
     private function makeUser(string $role, string $nim): User
     {
         return User::create([

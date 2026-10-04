@@ -11,21 +11,25 @@
         </div>
     </div>
 
-    {{-- tab filter (angka tiap tab dihitung di controller dari semua notifikasi) --}}
-    <div class="notif-tabs">
-        <a href="{{ route('notifikasi.index') }}"
-           class="notif-tab {{ $tabAktif == 'semua' ? 'aktif' : '' }}">
-            Semua ({{ $jumlahTab['semua'] }})
-        </a>
-        <a href="{{ route('notifikasi.index', ['tab' => 'peminjaman']) }}"
-           class="notif-tab {{ $tabAktif == 'peminjaman' ? 'aktif' : '' }}">
-            Peminjaman ({{ $jumlahTab['peminjaman'] }})
-        </a>
-        <a href="{{ route('notifikasi.index', ['tab' => 'pengumuman']) }}"
-           class="notif-tab {{ $tabAktif == 'pengumuman' ? 'aktif' : '' }}">
-            Pengumuman ({{ $jumlahTab['pengumuman'] }})
-        </a>
-    </div>
+    {{-- tab filter (angka tiap tab dihitung di controller dari semua notifikasi).
+         Hanya tampil bila ada pengumuman; tanpa pengumuman, semua notifikasi adalah notifikasi peminjaman
+         sehingga tab Semua dan Peminjaman isinya sama persis. --}}
+    @if ($jumlahTab['pengumuman'] > 0)
+        <div class="notif-tabs">
+            <a href="{{ route('notifikasi.index') }}"
+               class="notif-tab {{ $tabAktif == 'semua' ? 'aktif' : '' }}">
+                Semua ({{ $jumlahTab['semua'] }})
+            </a>
+            <a href="{{ route('notifikasi.index', ['tab' => 'peminjaman']) }}"
+               class="notif-tab {{ $tabAktif == 'peminjaman' ? 'aktif' : '' }}">
+                Peminjaman ({{ $jumlahTab['peminjaman'] }})
+            </a>
+            <a href="{{ route('notifikasi.index', ['tab' => 'pengumuman']) }}"
+               class="notif-tab {{ $tabAktif == 'pengumuman' ? 'aktif' : '' }}">
+                Pengumuman ({{ $jumlahTab['pengumuman'] }})
+            </a>
+        </div>
+    @endif
 
     {{-- daftar notifikasi --}}
     @forelse ($notifications as $notif)
@@ -68,14 +72,11 @@
                         <span class="notif-waktu">{{ $waktuLabel }}</span>
                     </div>
                     <p class="notif-pesan">{{ $notif->message }}</p>
-                    <div class="notif-aksi">
-                        @if ($tipe == 'Terlambat' && $notif->loan_id)
-                            <a href="{{ route('peminjaman.detail', $notif->loan_id) }}" class="notif-aksi-btn">🔄 Perpanjang Sekarang</a>
-                            <a href="{{ route('peminjaman.detail', $notif->loan_id) }}" class="notif-aksi-link">Detail Peminjaman</a>
-                        @elseif ($notif->loan?->book && $tipe != 'Pengumuman')
+                    @if ($notif->loan?->book && $tipe != 'Pengumuman')
+                        <div class="notif-aksi">
                             <a href="{{ route('peminjaman.detail', $notif->loan_id) }}" class="notif-aksi-link">Lihat Peminjaman →</a>
-                        @endif
-                    </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -87,20 +88,15 @@
         </div>
     @endforelse
 
-    {{-- pengaturan notifikasi --}}
+    {{-- info email: setiap notifikasi selalu dikirim juga ke email akun (tidak bisa dimatikan) --}}
     <div class="notif-pengaturan">
         <div class="notif-pengaturan-kiri">
             <div class="notif-pengaturan-ikon">✉️</div>
             <div class="notif-pengaturan-teks">
-                <div class="judul">Pengaturan Notifikasi</div>
-                <div class="sub">Kirim salinan notifikasi ke email
-                    ({{ Auth::user()->email }})
-                </div>
+                <div class="judul">Salinan ke email</div>
+                <div class="sub">Setiap notifikasi juga dikirim ke {{ Auth::user()->email }}.</div>
             </div>
         </div>
-        <label class="toggle-switch">
-            <input type="checkbox" checked>
-            <span class="toggle-slider"></span>
-        </label>
+        <a href="{{ route('profil') }}" class="notif-aksi-link">Ubah email di Profil →</a>
     </div>
 @endsection

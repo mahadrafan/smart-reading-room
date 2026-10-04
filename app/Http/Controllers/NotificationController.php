@@ -24,7 +24,10 @@ class NotificationController extends Controller
             'pengumuman' => $tabPengumuman(clone $milikSaya)->count(),
         ];
 
-        $tab = in_array($request->tab, ['peminjaman', 'pengumuman'], true) ? $request->tab : 'semua';
+        // tab hanya tampil bila ada pengumuman; tanpa pengumuman selalu tampilkan semua notifikasi
+        $tab = $jumlahTab['pengumuman'] > 0 && in_array($request->tab, ['peminjaman', 'pengumuman'], true)
+            ? $request->tab
+            : 'semua';
 
         $query = (clone $milikSaya)->with('loan.book')->orderByDesc('notification_id');
         if ($tab == 'peminjaman') {
