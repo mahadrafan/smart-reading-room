@@ -288,12 +288,17 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
     </div>
     <div class="isian">
         <label for="stock">Jumlah stok</label>
-        <input type="number" id="stock" name="stock" min="0"
+        {{-- saat edit, stok tidak boleh kurang dari eksemplar yang sedang dipinjam / menunggu diambil --}}
+        @php $sedangDipinjam = $buku ? max(0, $buku->stock - $buku->available_stock) : 0; @endphp
+        <input type="number" id="stock" name="stock" min="{{ $sedangDipinjam }}"
                value="{{ old('stock', $buku->stock ?? 1) }}"
                class="@error('stock') salah @enderror" required>
         @error('stock')<p class="pesan-salah">{{ $message }}</p>@enderror
         @if ($buku)
-            <p class="pesan-info">Sedang dipinjam: {{ $buku->stock - $buku->available_stock }} eksemplar. Stok tersedia menyesuaikan otomatis.</p>
+            <p class="pesan-info">
+                Sedang dipinjam / menunggu diambil: {{ $sedangDipinjam }} eksemplar{{ $sedangDipinjam > 0 ? ', jadi stok minimal ' . $sedangDipinjam : '' }}.
+                Stok tersedia menyesuaikan otomatis.
+            </p>
         @endif
     </div>
 </div>

@@ -165,6 +165,15 @@ class BukuController extends Controller
         $this->prosesKategoriPenulisBaru($request);
         $data = $this->validasi($request, $id);
 
+        // eksemplar yang sedang di luar (sudah dikonfirmasi / sedang dipinjam) tidak boleh "hilang" dari stok
+        $sedangDipinjam = max(0, $buku->stock - $buku->available_stock);
+        if ($data['stock'] < $sedangDipinjam) {
+            return back()->withInput()->withErrors([
+                'stock' => 'Jumlah stok minimal ' . $sedangDipinjam . ' karena ' . $sedangDipinjam
+                    . ' eksemplar sedang dipinjam atau menunggu diambil.',
+            ]);
+        }
+
         if ($request->hasFile('cover_image')) {
             if ($buku->cover_image) {
                 Storage::disk('public')->delete($buku->cover_image);
@@ -172,8 +181,7 @@ class BukuController extends Controller
             $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
         }
 
-        $sedangDipinjam = $buku->stock - $buku->available_stock;
-        $data['available_stock'] = max(0, $data['stock'] - $sedangDipinjam);
+        $data['available_stock'] = $data['stock'] - $sedangDipinjam;
 
         $data['updated_by'] = Auth::id();
         $data['updated_at'] = now();

@@ -330,6 +330,40 @@ class SmartReadingRoomTest extends TestCase
             ->assertDontSee('action="' . route('admin.buku.aktifkan', $salahInput->book_id) . '"', false);
     }
 
+    public function test_book_stock_cannot_be_edited_below_copies_currently_borrowed(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $siswaA = $this->makeUser('Peminjam', 'SISWA-A');
+        $siswaB = $this->makeUser('Peminjam', 'SISWA-B');
+        $book = $this->makeBook($admin, 3);
+        $dipinjam = $this->makeLoan($siswaA, $book, ['status' => 'Dipinjam']);
+        $this->makeLoan($siswaB, $book, ['status' => 'Dikonfirmasi', 'approved_by' => $admin->user_id, 'approved_at' => now()]);
+        $book->update(['available_stock' => 1]);
+        $dataBuku = ['title' => $book->title, 'category_id' => $book->category_id, 'author_id' => $book->author_id];
+
+        // form edit memberi tahu batas minimalnya
+        $this->actingAs($admin)->get('/admin/buku/' . $book->book_id . '/edit')->assertOk()
+            ->assertSee('min="2"', false)
+            ->assertSee('Sedang dipinjam / menunggu diambil: 2 eksemplar, jadi stok minimal 2.');
+
+        // di bawah jumlah yang sedang dipinjam / menunggu diambil: ditolak, data tidak berubah
+        $this->put('/admin/buku/' . $book->book_id, $dataBuku + ['stock' => 1])
+            ->assertSessionHasErrors(['stock' => 'Jumlah stok minimal 2 karena 2 eksemplar sedang dipinjam atau menunggu diambil.']);
+        $this->assertSame(3, (int) $book->fresh()->stock);
+        $this->assertSame(1, (int) $book->fresh()->available_stock);
+
+        // tepat di batas: boleh, stok tersedia jadi 0
+        $this->put('/admin/buku/' . $book->book_id, $dataBuku + ['stock' => 2])->assertRedirect(route('admin.buku.index'));
+        $this->assertSame(0, (int) $book->fresh()->available_stock);
+
+        // stok ditambah: stok tersedia ikut bertambah, dan setelah buku kembali tidak melebihi stok
+        $this->put('/admin/buku/' . $book->book_id, $dataBuku + ['stock' => 5])->assertRedirect(route('admin.buku.index'));
+        $this->assertSame(3, (int) $book->fresh()->available_stock);
+        $this->put('/admin/riwayat/' . $dipinjam->loan_id . '/kembalikan')->assertRedirect(route('admin.peminjaman.riwayat'));
+        $this->assertSame(4, (int) $book->fresh()->available_stock);
+        $this->assertSame(5, (int) $book->fresh()->stock);
+    }
+
     public function test_book_must_always_have_category_and_author(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');
@@ -596,9 +630,22 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee($borrower->email)
             ->assertSee($borrower->phone)
             ->assertSee('Rp3.000')
-            ->assertSee('Belum Lunas');
+            ->assertSee('Kembalikan & Lunasi');
 
         $this->get('/admin/peminjam')->assertOk()->assertSee($borrower->email);
+
+        // buku terlambat tidak bisa dikembalikan tanpa melunasi denda: hanya ada satu tombol gabungan
+        $this->get('/admin/riwayat')->assertOk()
+            ->assertSee('Kembalikan & Lunasi Denda (Rp3.000)')
+            ->assertDontSee('action="' . route('admin.peminjaman.kembalikan', $loan->loan_id) . '"', false);
+        $this->put('/admin/riwayat/' . $loan->loan_id . '/kembalikan')->assertSessionHas('error');
+        $this->assertSame('Dipinjam', $loan->fresh()->status);
+        $this->assertSame(2, $book->fresh()->available_stock);
+
+        // peminjam diberi tahu bahwa denda dibayar saat mengembalikan buku
+        $this->actingAs($borrower)->get('/peminjaman/' . $loan->loan_id)->assertOk()
+            ->assertSee('Denda dibayar langsung saat mengembalikan buku ke perpustakaan');
+        $this->actingAs($admin);
 
         $this->artisan('loans:send-overdue-reminders')->assertExitCode(0);
         $this->assertDatabaseHas('notifications', [
@@ -612,7 +659,7 @@ class SmartReadingRoomTest extends TestCase
         // bayar denda = sekaligus mengembalikan buku
         $this->put('/admin/riwayat/' . $loan->loan_id . '/denda')
             ->assertRedirect()
-            ->assertSessionHas('status', 'Denda lunas dan buku ditandai sudah dikembalikan.');
+            ->assertSessionHas('status', 'Buku dikembalikan dan denda Rp3.000 lunas.');
         $loan->refresh();
         $this->assertNotNull($loan->fine_paid_at);
         $this->assertSame($admin->user_id, $loan->fine_paid_by);
@@ -641,6 +688,23 @@ class SmartReadingRoomTest extends TestCase
         $this->get('/admin/riwayat')->assertOk()
             ->assertSee('<span class="badge b-setuju" style="margin-top:6px">Lunas</span>', false)
             ->assertDontSee('/admin/riwayat/' . $loan->loan_id . '/denda');
+
+        // data lama: sudah dikembalikan tapi denda belum lunas -> riwayat tidak bisa dihapus sampai dilunasi
+        $lama = $this->makeLoan($borrower, $book, [
+            'status' => 'Dikembalikan', 'loan_date' => today()->subDays(10),
+            'due_date' => today()->subDays(5), 'return_date' => today()->subDays(3),
+        ]);
+        $this->get('/admin/riwayat')->assertOk()
+            ->assertSee('Tandai Lunas')
+            ->assertDontSee('action="' . route('admin.peminjaman.destroy', $lama->loan_id) . '"', false);
+        $this->delete('/admin/riwayat/' . $lama->loan_id)->assertSessionHas('error');
+        $this->assertDatabaseHas('loans', ['loan_id' => $lama->loan_id]);
+
+        $this->put('/admin/riwayat/' . $lama->loan_id . '/denda')
+            ->assertSessionHas('status', 'Status denda berhasil diubah menjadi Lunas.');
+        $this->assertSame(3, $book->fresh()->available_stock);
+        $this->delete('/admin/riwayat/' . $lama->loan_id)->assertRedirect(route('admin.peminjaman.riwayat'));
+        $this->assertDatabaseMissing('loans', ['loan_id' => $lama->loan_id]);
     }
 
     public function test_user_can_add_and_update_review_and_admin_can_delete_it(): void
@@ -681,6 +745,10 @@ class SmartReadingRoomTest extends TestCase
         $this->actingAs($admin)->get('/admin/ulasan')->assertOk()->assertSee('Komentar diperbarui.');
         $this->delete('/admin/ulasan/' . $review->review_id)->assertRedirect(route('admin.reviews.index'));
         $this->assertDatabaseMissing('reviews', ['review_id' => $review->review_id]);
+        $this->assertDatabaseHas('admin_logs', [
+            'admin_id' => $admin->user_id, 'action' => 'Hapus', 'table_name' => 'reviews', 'record_id' => $review->review_id,
+            'description' => 'Menghapus ulasan 4 bintang oleh Peminjam Uji untuk buku "Buku Uji"',
+        ]);
     }
 
     public function test_review_page_lists_all_reviews_and_only_owner_can_edit_or_delete(): void
@@ -889,6 +957,10 @@ class SmartReadingRoomTest extends TestCase
             'message' => 'Pengajuan peminjaman terkirim.', 'sent_at' => now(), 'status' => 'Terkirim',
         ]);
         UserNotification::create([
+            'user_id' => $borrower->user_id, 'loan_id' => $loan->loan_id, 'type' => 'Dikonfirmasi',
+            'message' => 'Peminjaman sudah dikonfirmasi.', 'sent_at' => now(), 'status' => 'Terkirim',
+        ]);
+        UserNotification::create([
             'user_id' => $borrower->user_id, 'type' => 'Pengumuman',
             'message' => 'Perpustakaan tutup hari Minggu.', 'sent_at' => now(), 'status' => 'Terkirim',
         ]);
@@ -896,6 +968,7 @@ class SmartReadingRoomTest extends TestCase
         // fitur e-book sudah dihapus: pengumuman tampil tanpa tautan ke halaman e-book
         $this->actingAs($borrower)->get('/notifikasi')->assertOk()
             ->assertSee('Pengajuan peminjaman terkirim.')
+            ->assertSee('Peminjaman sudah dikonfirmasi.')
             ->assertSee('Perpustakaan tutup hari Minggu.')
             ->assertDontSee('E-book');
 
@@ -903,9 +976,17 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('Perpustakaan tutup hari Minggu.')
             ->assertDontSee('Pengajuan peminjaman terkirim.');
 
+        // notifikasi Dikonfirmasi ikut tampil di tab Peminjaman
         $this->get('/notifikasi?tab=peminjaman')->assertOk()
             ->assertSee('Pengajuan peminjaman terkirim.')
+            ->assertSee('Peminjaman sudah dikonfirmasi.')
             ->assertDontSee('Perpustakaan tutup hari Minggu.');
+
+        // angka tiap tab sama di tab mana pun yang sedang dibuka
+        foreach (['', '?tab=peminjaman', '?tab=pengumuman', '?tab=ngawur'] as $tab) {
+            $this->get('/notifikasi' . $tab)->assertOk()
+                ->assertSeeInOrder(['Semua (3)', 'Peminjaman (2)', 'Pengumuman (1)']);
+        }
     }
 
     private function makeUser(string $role, string $nim): User

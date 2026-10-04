@@ -143,8 +143,9 @@ class Loan extends Model
 
         foreach ($expiredLoans as $loan) {
             \Illuminate\Support\Facades\DB::transaction(function () use ($loan) {
-                // Pastikan status belum berubah di sesi/thread lain
-                $freshLoan = self::where('status', 'Dikonfirmasi')->find($loan->loan_id);
+                // Pastikan status belum berubah di sesi/thread lain; baris dikunci agar dua halaman yang
+                // dibuka bersamaan tidak sama-sama memproses (dan menambah stok) peminjaman yang sama
+                $freshLoan = self::where('status', 'Dikonfirmasi')->lockForUpdate()->find($loan->loan_id);
                 if ($freshLoan) {
                     $freshLoan->status = 'Gagal';
                     $freshLoan->save();

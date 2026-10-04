@@ -41,17 +41,18 @@
                             @include('user._status', ['pinjam' => $p])
                             @if ($p->hari_terlambat > 0)
                                 <div class="pesan-salah">{{ $p->hari_terlambat }} hari terlambat<br>Denda Rp{{ number_format($p->jumlah_denda, 0, ',', '.') }}</div>
-                                {{-- status Lunas final: setelah lunas hanya ditampilkan sebagai label, tidak bisa diubah lagi --}}
+                                {{-- denda dibayar bersamaan dengan pengembalian (tombol di kolom Aksi); di sini hanya label --}}
                                 @if ($p->denda_lunas)
                                     <span class="badge b-setuju" style="margin-top:6px">Lunas</span>
+                                @elseif ($p->status == 'Dipinjam')
+                                    <span class="badge b-tolak" style="margin-top:6px">Belum Lunas</span>
                                 @else
-                                    <form method="POST" action="{{ route('admin.peminjaman.denda', $p->loan_id) }}" style="margin-top:6px">
+                                    {{-- data lama: sudah dikembalikan tapi dendanya belum dibayar --}}
+                                    <form method="POST" action="{{ route('admin.peminjaman.denda', $p->loan_id) }}" style="margin-top:6px"
+                                          onsubmit="return confirm('Tandai denda Lunas? Status Lunas tidak bisa diubah lagi.')">
                                         @csrf
                                         @method('PUT')
-                                        <button type="submit" class="tombol tombol-kecil tombol-belum"
-                                            onclick="return confirm('{{ $p->status == 'Dipinjam' ? 'Tandai denda Lunas? Buku juga akan dicatat sudah dikembalikan. Status Lunas tidak bisa diubah lagi.' : 'Tandai denda Lunas? Status Lunas tidak bisa diubah lagi.' }}')">
-                                            Belum Lunas
-                                        </button>
+                                        <button type="submit" class="tombol tombol-kecil tombol-belum">Tandai Lunas</button>
                                     </form>
                                 @endif
                             @endif
@@ -76,6 +77,15 @@
                                     @method('PUT')
                                     <button type="submit">Tandai Dipinjam</button>
                                 </form>
+                            @elseif ($p->status == 'Dipinjam' && $p->jumlah_denda > 0)
+                                {{-- buku terlambat: pengembalian dan pelunasan denda selalu bersamaan --}}
+                                @php $teksDenda = 'Rp' . number_format($p->jumlah_denda, 0, ',', '.'); @endphp
+                                <form method="POST" action="{{ route('admin.peminjaman.denda', $p->loan_id) }}" style="display:inline"
+                                      onsubmit="return confirm({{ Js::from('Buku dikembalikan dan denda ' . $teksDenda . ' sudah dibayar? Status Lunas tidak bisa diubah lagi.') }});">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit" class="bahaya">Kembalikan &amp; Lunasi Denda ({{ $teksDenda }})</button>
+                                </form>
                             @elseif ($p->status == 'Dipinjam')
                                 <form method="POST" action="{{ route('admin.peminjaman.kembalikan', $p->loan_id) }}" style="display:inline"
                                       onsubmit="return confirm('Tandai bahwa buku sudah dikembalikan oleh user ke perpus?');">
@@ -83,6 +93,8 @@
                                     @method('PUT')
                                     <button type="submit">Tandai Kembali</button>
                                 </form>
+                            @elseif ($p->jumlah_denda > 0 && ! $p->denda_lunas)
+                                <span class="aksi-mati" title="Dendanya belum lunas, jadi riwayat ini belum bisa dihapus">Hapus</span>
                             @elseif ($p->status == 'Dikembalikan' || $p->status == 'Gagal')
                                 <form method="POST" action="{{ route('admin.peminjaman.destroy', $p->loan_id) }}" style="display:inline"
                                       onsubmit="return confirm('Hapus riwayat peminjaman ini?');">

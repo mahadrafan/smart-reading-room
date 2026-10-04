@@ -11,24 +11,19 @@
         </div>
     </div>
 
-    {{-- tab filter --}}
-    @php
-        $tabAktif   = request('tab', 'semua');
-        $jmlPinjam  = $notifications->whereIn('type', ['Pengajuan','Dipinjam','Dikembalikan','Gagal','Terlambat','Perpanjangan'])->count();
-        $jmlPengum  = $notifications->where('type', 'Pengumuman')->count();
-    @endphp
+    {{-- tab filter (angka tiap tab dihitung di controller dari semua notifikasi) --}}
     <div class="notif-tabs">
         <a href="{{ route('notifikasi.index') }}"
            class="notif-tab {{ $tabAktif == 'semua' ? 'aktif' : '' }}">
-            Semua ({{ $notifications->count() }})
+            Semua ({{ $jumlahTab['semua'] }})
         </a>
         <a href="{{ route('notifikasi.index', ['tab' => 'peminjaman']) }}"
            class="notif-tab {{ $tabAktif == 'peminjaman' ? 'aktif' : '' }}">
-            Peminjaman ({{ $jmlPinjam }})
+            Peminjaman ({{ $jumlahTab['peminjaman'] }})
         </a>
         <a href="{{ route('notifikasi.index', ['tab' => 'pengumuman']) }}"
            class="notif-tab {{ $tabAktif == 'pengumuman' ? 'aktif' : '' }}">
-            Pengumuman ({{ $jmlPengum }})
+            Pengumuman ({{ $jumlahTab['pengumuman'] }})
         </a>
     </div>
 

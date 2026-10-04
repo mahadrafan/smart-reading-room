@@ -10,20 +10,33 @@ class NotificationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = UserNotification::where('user_id', Auth::id())
-            ->with('loan.book')
-            ->orderByDesc('notification_id');
+        // semua notifikasi selain Pengumuman termasuk tab Peminjaman (Pengajuan, Dikonfirmasi, Dipinjam,
+        // Dikembalikan, Gagal, Terlambat, ...), jadi tipe baru otomatis ikut tanpa perlu didaftarkan
+        $tabPeminjaman = fn ($q) => $q->where(fn ($w) => $w->whereNull('type')->orWhere('type', '!=', 'Pengumuman'));
+        $tabPengumuman = fn ($q) => $q->where('type', 'Pengumuman');
 
-        // filter berdasarkan tab
-        $tab = $request->tab ?? 'semua';
+        $milikSaya = UserNotification::where('user_id', Auth::id());
+
+        // angka di setiap tab selalu dihitung dari semua notifikasi, bukan dari tab yang sedang dibuka
+        $jumlahTab = [
+            'semua'      => (clone $milikSaya)->count(),
+            'peminjaman' => $tabPeminjaman(clone $milikSaya)->count(),
+            'pengumuman' => $tabPengumuman(clone $milikSaya)->count(),
+        ];
+
+        $tab = in_array($request->tab, ['peminjaman', 'pengumuman'], true) ? $request->tab : 'semua';
+
+        $query = (clone $milikSaya)->with('loan.book')->orderByDesc('notification_id');
         if ($tab == 'peminjaman') {
-            $query->whereIn('type', ['Pengajuan', 'Dipinjam', 'Dikembalikan', 'Gagal', 'Terlambat', 'Perpanjangan']);
+            $tabPeminjaman($query);
         } elseif ($tab == 'pengumuman') {
-            $query->where('type', 'Pengumuman');
+            $tabPengumuman($query);
         }
 
-        $notifications = $query->get();
-
-        return view('user.notifications', compact('notifications'));
+        return view('user.notifications', [
+            'notifications' => $query->get(),
+            'tabAktif'      => $tab,
+            'jumlahTab'     => $jumlahTab,
+        ]);
     }
 }

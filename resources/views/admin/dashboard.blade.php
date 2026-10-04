@@ -55,16 +55,19 @@
                         <td><span class="badge b-tolak">{{ $p->hari_terlambat }} hari</span><br><span class="pesan-info">Tenggat {{ $p->due_date->format('d/m/Y') }}</span></td>
                         <td><strong>Rp{{ number_format($p->jumlah_denda, 0, ',', '.') }}</strong></td>
                         <td>
-                            {{-- status Lunas final: setelah lunas hanya ditampilkan sebagai label, tidak bisa diubah lagi --}}
+                            {{-- status Lunas final; buku terlambat dikembalikan bersamaan dengan pelunasan denda --}}
+                            @php $teksDenda = 'Rp' . number_format($p->jumlah_denda, 0, ',', '.'); @endphp
                             @if ($p->denda_lunas)
                                 <span class="badge b-setuju">Lunas</span>
                             @else
-                                <form method="POST" action="{{ route('admin.peminjaman.denda', $p->loan_id) }}">
+                                <form method="POST" action="{{ route('admin.peminjaman.denda', $p->loan_id) }}"
+                                      onsubmit="return confirm({{ Js::from($p->status == 'Dipinjam'
+                                          ? 'Buku dikembalikan dan denda ' . $teksDenda . ' sudah dibayar? Status Lunas tidak bisa diubah lagi.'
+                                          : 'Tandai denda Lunas? Status Lunas tidak bisa diubah lagi.') }})">
                                     @csrf
                                     @method('PUT')
-                                    <button type="submit" class="tombol tombol-kecil tombol-belum"
-                                        onclick="return confirm('{{ $p->status == 'Dipinjam' ? 'Tandai denda Lunas? Buku juga akan dicatat sudah dikembalikan. Status Lunas tidak bisa diubah lagi.' : 'Tandai denda Lunas? Status Lunas tidak bisa diubah lagi.' }}')">
-                                        Belum Lunas
+                                    <button type="submit" class="tombol tombol-kecil tombol-belum">
+                                        {{ $p->status == 'Dipinjam' ? 'Kembalikan & Lunasi' : 'Tandai Lunas' }}
                                     </button>
                                 </form>
                             @endif

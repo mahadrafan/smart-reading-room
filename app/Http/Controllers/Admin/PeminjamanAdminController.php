@@ -149,13 +149,26 @@ class PeminjamanAdminController extends Controller
     }
 
     // UPDATE: tandai buku sudah dikembalikan oleh user ke perpus (Dipinjam -> Dikembalikan)
+    // hanya untuk buku yang tidak terlambat; buku terlambat dikembalikan sekaligus melunasi denda (ubahStatusDenda)
     public function kembalikan($id)
     {
         Loan::prosesTenggatPengambilan();
 
         $pinjam = Loan::where('status', 'Dipinjam')->findOrFail($id);
 
-        DB::transaction(function () use ($pinjam) {
+        if ($pinjam->jumlah_denda > 0) {
+            return back()->with('error', 'Buku ini terlambat ' . $pinjam->hari_terlambat . ' hari dengan denda Rp'
+                . number_format($pinjam->jumlah_denda, 0, ',', '.') . '. Pengembalian harus bersamaan dengan pelunasan denda, '
+                . 'gunakan tombol "Kembalikan & Lunasi Denda".');
+        }
+
+        $selesai = DB::transaction(function () use ($pinjam) {
+            // kunci baris & cek ulang status, agar dua klik bersamaan tidak menambah stok dua kali
+            $terkunci = Loan::whereKey($pinjam->loan_id)->lockForUpdate()->first();
+            if (! $terkunci || $terkunci->status !== 'Dipinjam') {
+                return false;
+            }
+
             $pinjam->status      = 'Dikembalikan';
             $pinjam->return_date = now()->format('Y-m-d');
             $pinjam->save();
@@ -164,7 +177,13 @@ class PeminjamanAdminController extends Controller
 
             AdminLog::catat('Kembalikan', 'loans', $pinjam->loan_id,
                 'Menandai pengembalian "' . $pinjam->book->title . '" oleh ' . $pinjam->user->name);
+
+            return true;
         });
+
+        if (! $selesai) {
+            return redirect()->route('admin.peminjaman.riwayat')->with('error', 'Peminjaman ini sudah diproses sebelumnya.');
+        }
 
         app(LoanNotificationService::class)->send(
             $pinjam->fresh()->load(['user', 'book']),
@@ -176,8 +195,8 @@ class PeminjamanAdminController extends Controller
         return redirect()->route('admin.peminjaman.riwayat')->with('status', 'Buku ditandai sudah dikembalikan.');
     }
 
-    // UPDATE: tandai denda lunas. Lunas bersifat final (tidak bisa kembali ke Belum Lunas),
-    // dan kalau buku masih dipinjam, pembayaran sekaligus mencatat pengembalian buku.
+    // UPDATE: kembalikan buku terlambat sekaligus melunasi dendanya (pembayaran & pengembalian selalu bersamaan).
+    // Lunas bersifat final. Riwayat lama yang sudah Dikembalikan tapi belum lunas juga bisa dilunasi di sini.
     public function ubahStatusDenda($id)
     {
         $pinjam = Loan::with(['user', 'book'])->findOrFail($id);
@@ -225,7 +244,7 @@ class PeminjamanAdminController extends Controller
                     '" sudah lunas dan pengembalian buku sudah tercatat. Terima kasih.'
             );
 
-            return back()->with('status', 'Denda lunas dan buku ditandai sudah dikembalikan.');
+            return back()->with('status', 'Buku dikembalikan dan denda Rp' . number_format($pinjam->jumlah_denda, 0, ',', '.') . ' lunas.');
         }
 
         return back()->with('status', 'Status denda berhasil diubah menjadi Lunas.');
@@ -237,6 +256,12 @@ class PeminjamanAdminController extends Controller
         Loan::prosesTenggatPengambilan();
 
         $pinjam = Loan::whereIn('status', ['Dikembalikan', 'Gagal'])->findOrFail($id);
+
+        // riwayat yang dendanya belum lunas tidak boleh hilang
+        if ($pinjam->jumlah_denda > 0 && ! $pinjam->denda_lunas) {
+            return back()->with('error', 'Riwayat ini tidak bisa dihapus karena dendanya (Rp'
+                . number_format($pinjam->jumlah_denda, 0, ',', '.') . ') belum lunas.');
+        }
 
         $judul = $pinjam->book->title ?? '-';
         $nama  = $pinjam->user->name ?? '-';
