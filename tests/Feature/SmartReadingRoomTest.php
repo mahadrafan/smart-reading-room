@@ -656,6 +656,14 @@ class SmartReadingRoomTest extends TestCase
             ->assertDontSee('Ulasan nomor 3.')
             ->assertSee('Halaman 2 / 2');
 
+        // detail buku: hanya 5 ulasan teratas + tautan ke Review & Ulasan khusus buku ini
+        $this->get('/buku/' . $book->book_id)->assertOk()
+            ->assertSee('7 ulasan pembaca')
+            ->assertSee('Ulasan 5 dari 5')->assertDontSee('Ulasan 6 dari')
+            ->assertSee('Ulasan nomor 7.')->assertDontSee('Ulasan nomor 2.')
+            ->assertSee('href="' . route('ulasan.index', ['buku' => $book->book_id]) . '"', false)
+            ->assertSee('Lihat semua ulasan');
+
         // nomor halaman di luar jangkauan kembali ke halaman terakhir
         $this->get('/ulasan?halaman=9')->assertOk()->assertSee('Halaman 2 / 2');
 

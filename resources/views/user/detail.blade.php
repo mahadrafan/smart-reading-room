@@ -136,7 +136,12 @@
             </div>
 
             @php
-                $daftarUlasan = $buku->reviews->sortByDesc('review_id')->values();
+                // tampilan utama hanya 5 ulasan teratas (rating tertinggi, lalu terbaru); sisanya di halaman Review & Ulasan
+                $jumlahUlasan = $buku->reviews->count();
+                $daftarUlasan = $buku->reviews
+                    ->sortBy([['rating', 'desc'], ['review_id', 'desc']])
+                    ->take(5)
+                    ->values();
             @endphp
 
             {{-- kartu ulasan: avatar pengulas, slider ulasan, dan rata-rata rating --}}
@@ -151,8 +156,11 @@
                     @endif
                     <div>
                         <h3>Apa kata pembaca</h3>
-                        <p>{{ $daftarUlasan->count() }} ulasan pembaca</p>
+                        <p>{{ $jumlahUlasan }} ulasan pembaca</p>
                     </div>
+                    @if ($jumlahUlasan > 0)
+                        <a href="{{ route('ulasan.index', ['buku' => $buku->book_id]) }}" class="rak-tautan lihat-semua-ulasan">Lihat semua ulasan →</a>
+                    @endif
                 </div>
 
                 @if ($daftarUlasan->count() > 0)

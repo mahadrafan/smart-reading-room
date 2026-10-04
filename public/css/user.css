@@ -726,9 +726,10 @@ td.aksi .bahaya { color: var(--merah); }
     padding: 22px; background: var(--putih); border: 1px solid var(--garis); border-radius: 26px;
     box-shadow: 0 10px 30px -18px rgba(13,18,64,0.18);
 }
-.ulasan-kepala { display: flex; align-items: center; gap: 14px; }
+.ulasan-kepala { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
 .ulasan-kepala h3 { margin: 0; font-size: 15px; font-weight: 700; color: var(--navy); }
 .ulasan-kepala p { margin: 3px 0 0; font-size: 14px; color: var(--abu); }
+.lihat-semua-ulasan { margin-left: auto; align-self: flex-start; font-size: 13px; white-space: nowrap; }
 .avatar-tumpuk { display: flex; flex-shrink: 0; }
 .avatar-tumpuk span {
     width: 38px; height: 38px; margin-left: -10px; border: 2px solid var(--putih); border-radius: 50%;
