@@ -1,15 +1,15 @@
 /* auth.css - halaman login dan daftar akun Smart Reading Room */
-/* gaya mengikuti template: latar gradasi ungu, panel putih, ilustrasi kiri, form kanan */
+/* tema rak buku kayu: latar dinding papan kayu walnut, panel putih, ilustrasi kiri, form kanan */
 
 :root {
-    --latar: #3a2a63; /* sama dengan warna celana di ilustrasi */
-    --ungu: #8671c9;
-    --ungu-gelap: #7660bb;
-    --ungu-teks: #7e63c8;
-    --navy: #0d1240;
-    --teks: #2b2b36;
-    --abu: #8a8a96;
-    --garis: #6d6d78;
+    --latar: #3b2a1e; /* walnut tua, sama dengan sidebar portal */
+    --kayu: #8b5e34;
+    --kayu-gelap: #6f4a27;
+    --kayu-teks: #7a4f2a;
+    --coklat-tua: #3b2a1e;
+    --teks: #2b2119;
+    --abu: #857767;
+    --garis: #75685b;
     --merah: #d12b3d;
     --merah-muda: #fdecee;
     --hijau: #1e6b3a;
@@ -28,7 +28,12 @@ body {
     font-size: 15px;
     line-height: 1.5;
     color: var(--teks);
-    background: var(--latar);
+    /* dinding papan kayu: sambungan papan tiap 140px dan serat halus mendatar */
+    background:
+        repeating-linear-gradient(180deg, transparent 0 138px, rgba(0,0,0,0.22) 138px 140px),
+        repeating-linear-gradient(180deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 6px),
+        linear-gradient(135deg, #4a3425 0%, var(--latar) 50%, #2f2117 100%);
+    background-attachment: fixed;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -43,14 +48,14 @@ body {
     padding: 28px 40px 44px;
     background: #ffffff;
     border-radius: 10px;
-    box-shadow: 0 20px 50px rgba(20, 8, 40, 0.35);
+    box-shadow: 0 20px 50px rgba(30,18,10, 0.35);
 }
 
 .brand {
     margin-bottom: 8px;
     font-size: 15px;
     font-weight: 700;
-    color: var(--navy);
+    color: var(--coklat-tua);
 }
 
 .isi {
@@ -75,7 +80,7 @@ body {
     padding: 44px 44px 40px;
     background: #ffffff;
     border-radius: 16px;
-    box-shadow: 0 18px 60px rgba(60, 40, 120, 0.14);
+    box-shadow: 0 18px 60px rgba(70,45,20, 0.14);
 }
 
 .kartu h1 {
@@ -83,7 +88,7 @@ body {
     font-size: 32px;
     font-weight: 800;
     line-height: 1.2;
-    color: var(--navy);
+    color: var(--coklat-tua);
 }
 
 .sub {
@@ -93,13 +98,13 @@ body {
 }
 
 .sub a {
-    color: var(--ungu-teks);
+    color: var(--kayu-teks);
     font-weight: 700;
     text-decoration: underline;
 }
 
 .sub a:focus-visible {
-    outline: 3px solid rgba(134, 113, 201, 0.4);
+    outline: 3px solid rgba(139,94,52, 0.4);
     outline-offset: 2px;
 }
 
@@ -139,8 +144,8 @@ body {
 }
 
 .field input:focus-visible {
-    outline: 3px solid rgba(134, 113, 201, 0.35);
-    border-color: var(--ungu);
+    outline: 3px solid rgba(139,94,52, 0.35);
+    border-color: var(--kayu);
 }
 
 .field input.is-invalid {
@@ -151,12 +156,6 @@ body {
     margin: 6px 0 0 22px;
     font-size: 13px;
     color: var(--merah);
-}
-
-.field-hint {
-    margin: 6px 0 0 22px;
-    font-size: 13px;
-    color: var(--abu);
 }
 
 /* kolom password dengan tombol lihat */
@@ -177,7 +176,7 @@ body {
     font: inherit;
     font-size: 13px;
     font-weight: 600;
-    color: var(--ungu-teks);
+    color: var(--kayu-teks);
     background: transparent;
     border: 0;
     border-radius: 999px;
@@ -185,7 +184,7 @@ body {
 }
 
 .pw-toggle:focus-visible {
-    outline: 3px solid rgba(134, 113, 201, 0.4);
+    outline: 3px solid rgba(139,94,52, 0.4);
 }
 
 /* dua kolom (NIS/NIP dan kelas) */
@@ -213,19 +212,19 @@ body {
     margin: 0;
     font-size: 14px;
     font-weight: 500;
-    color: #555560;
+    color: #665849;
 }
 
 .ingat input {
     width: 17px;
     height: 17px;
-    accent-color: var(--ungu);
+    accent-color: var(--kayu);
 }
 
 .lupa-pw {
     font-size: 13px;
     font-weight: 600;
-    color: var(--ungu-teks);
+    color: var(--kayu-teks);
     text-decoration: none;
 }
 
@@ -243,18 +242,18 @@ body {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #ffffff;
-    background: var(--ungu);
+    background: var(--kayu);
     border: 0;
     border-radius: 999px;
     cursor: pointer;
 }
 
 .btn:hover {
-    background: var(--ungu-gelap);
+    background: var(--kayu-gelap);
 }
 
 .btn:focus-visible {
-    outline: 3px solid rgba(134, 113, 201, 0.45);
+    outline: 3px solid rgba(139,94,52, 0.45);
     outline-offset: 3px;
 }
 

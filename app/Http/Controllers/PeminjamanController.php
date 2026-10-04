@@ -64,16 +64,20 @@ class PeminjamanController extends Controller
     {
         Loan::prosesTenggatPengambilan();
 
-        // hanya buku aktif yang stoknya masih ada (penulis ikut dimuat untuk pencarian buku di form)
+        // hanya buku aktif yang stoknya masih ada (penulis & kategori ikut dimuat untuk pencarian dan panel sampul)
         $daftarBuku = Book::aktif()
-            ->with('author')
+            ->with(['author', 'category'])
             ->where('available_stock', '>', 0)
             ->orderBy('title')
             ->get();
 
+        // tombol Batal kembali ke detail buku asal, hanya bila buku itu memang ada di katalog
+        $bukuAsal = ctype_digit((string) $request->buku) ? Book::aktif()->find($request->buku) : null;
+
         return view('user.peminjaman-form', [
             'daftarBuku'  => $daftarBuku,
             'bukuDipilih' => $request->buku,
+            'urlBatal'    => $bukuAsal ? route('buku.detail', $bukuAsal->book_id) : route('dashboard'),
             // buku yang baru dikembalikan user ini: tampil di daftar tapi belum bisa dipilih
             'jedaPinjam'  => Loan::jedaPinjamUlang(Auth::id()),
         ]);

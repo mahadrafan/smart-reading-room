@@ -404,6 +404,37 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('<option value="" disabled >- Pilih penulis -</option>', false);
     }
 
+    public function test_loan_form_shows_selected_book_cover_panel(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+        $book->update(['location' => 'Rak U-01']);
+
+        // tanpa buku terpilih: panel sampul menampilkan petunjuk; hanya ada tombol Kirim Permintaan & Batal
+        $this->actingAs($borrower)->get('/peminjaman/buat')->assertOk()
+            ->assertSee('Sampul buku akan tampil di sini setelah kamu memilih buku.')
+            ->assertSee('Kirim Permintaan')
+            ->assertDontSee('Pinjam Lagi')
+            ->assertSee('href="' . route('dashboard') . '" class="tombol-pil-batal"', false);
+
+        // dari tombol "Pinjam Buku": panel langsung berisi buku itu, Batal kembali ke detail buku
+        $this->get('/peminjaman/buat?buku=' . $book->book_id)->assertOk()
+            ->assertSeeInOrder(['id="panel-judul"', 'Buku Uji', 'Penulis Uji', '3 dari 3', 'Rak U-01'], false)
+            ->assertSee('data-kategori="Kategori Uji"', false)
+            ->assertSee('href="' . route('buku.detail', $book->book_id) . '" class="tombol-pil-batal"', false);
+
+        // ?buku= yang tidak ada / bukan angka: Batal kembali ke katalog, bukan ke halaman 404
+        foreach (['999999', 'abc'] as $nilai) {
+            $this->get('/peminjaman/buat?buku=' . $nilai)->assertOk()
+                ->assertSee('href="' . route('dashboard') . '" class="tombol-pil-batal"', false);
+        }
+
+        // Kirim Permintaan menuju daftar peminjaman
+        $this->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => '3'])
+            ->assertRedirect(route('peminjaman.index'));
+    }
+
     public function test_loan_date_is_set_when_book_is_picked_up_not_when_requested(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');
@@ -749,6 +780,162 @@ class SmartReadingRoomTest extends TestCase
             'admin_id' => $admin->user_id, 'action' => 'Hapus', 'table_name' => 'reviews', 'record_id' => $review->review_id,
             'description' => 'Menghapus ulasan 4 bintang oleh Peminjam Uji untuk buku "Buku Uji"',
         ]);
+    }
+
+    public function test_admin_borrower_list_is_searchable_and_paginated_by_ten(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        // 12 peminjam: P01..P12, nama "Siswa 01".."Siswa 12", kelas XI-A (ganjil) / XII-B (genap)
+        for ($i = 1; $i <= 12; $i++) {
+            $no = str_pad($i, 2, '0', STR_PAD_LEFT);
+            $u = $this->makeUser('Peminjam', 'P' . $no);
+            $u->update(['name' => 'Siswa ' . $no, 'class' => $i % 2 ? 'XI-A' : 'XII-B']);
+        }
+
+        // 10 per halaman, urut nama; halaman 2 berisi sisanya
+        $this->actingAs($admin)->get('/admin/peminjam')->assertOk()
+            ->assertSee('Cari NIS/NIP, nama, atau kelas')
+            ->assertSee('Menampilkan 1–10 dari', false)
+            ->assertSee('Siswa 10')->assertDontSee('Siswa 11')
+            ->assertSee('Halaman 1 dari 2');
+        $this->get('/admin/peminjam?page=2')->assertOk()
+            ->assertSee('Siswa 11')->assertSee('Siswa 12')->assertDontSee('Siswa 01')
+            ->assertSee('Menampilkan 11–12 dari', false);
+        $this->get('/admin/peminjam?page=9')->assertRedirect('/admin/peminjam?page=2');
+
+        // pencarian NIS/NIP, nama, atau kelas
+        $this->get('/admin/peminjam?q=P07')->assertOk()->assertSee('Siswa 07')->assertDontSee('Siswa 08');
+        $this->get('/admin/peminjam?q=siswa 12')->assertOk()->assertSee('P12')->assertDontSee('P11');
+        $this->get('/admin/peminjam?q=XII-B')->assertOk()
+            ->assertSee('Siswa 02')->assertDontSee('Siswa 01')
+            ->assertSee('dari <strong>6</strong>', false)->assertSee('peminjam yang cocok (total 12)');
+        $this->get('/admin/peminjam?q=tidakada')->assertOk()
+            ->assertSee('Tidak ada peminjam dengan NIS/NIP, nama, atau kelas yang cocok dengan “tidakada”.', false);
+    }
+
+    public function test_incoming_requests_are_searchable_filterable_and_paginated_by_ten(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $bukuA = $this->makeBook($admin, 20);
+        $bukuB = $bukuA->replicate()->fill(['title' => 'Buku Kimia']);
+        $bukuB->save();
+
+        // 12 pengajuan menunggu: Pemohon 01..12; 01-03 meminjam Buku Kimia, sisanya Buku Uji
+        for ($i = 1; $i <= 12; $i++) {
+            $no = str_pad($i, 2, '0', STR_PAD_LEFT);
+            $u = $this->makeUser('Peminjam', 'R' . $no);
+            $u->update(['name' => 'Pemohon ' . $no]);
+            $this->makeLoan($u, $i <= 3 ? $bukuB : $bukuA, ['loan_date' => null]);
+        }
+
+        // 10 per halaman, dengan pencarian & filter buku
+        $this->actingAs($admin)->get('/admin/peminjaman')->assertOk()
+            ->assertSee('Cari nama peminjam atau NIS...')
+            ->assertSee('data-meta="3 pengajuan"', false)
+            ->assertSee('Menampilkan 1–10 dari', false)
+            ->assertSee('Pemohon 10')->assertDontSee('Pemohon 11')
+            ->assertSee('Halaman 1 dari 2');
+        $this->get('/admin/peminjaman?page=2')->assertOk()->assertSee('Pemohon 12')->assertDontSee('Pemohon 01');
+
+        $this->get('/admin/peminjaman?q=pemohon 05')->assertOk()->assertSee('Pemohon 05')->assertDontSee('Pemohon 06');
+        $this->get('/admin/peminjaman?q=R07')->assertOk()->assertSee('Pemohon 07')->assertDontSee('Pemohon 08');
+        $this->get('/admin/peminjaman?buku=' . $bukuB->book_id)->assertOk()
+            ->assertSee('Pemohon 03')->assertDontSee('Pemohon 04')
+            ->assertSee('dari <strong>3</strong>', false);
+        $this->get('/admin/peminjaman?buku=' . $bukuB->book_id . '&q=Pemohon 09')->assertOk()
+            ->assertSee('Tidak ada pengajuan untuk "Buku Kimia" dari peminjam yang cocok dengan “Pemohon 09”.');
+
+        // konfirmasi / tolak dari hasil filter: kembali ke filter & halaman yang sama
+        $loan = Loan::where('book_id', $bukuB->book_id)->first();
+        $this->put('/admin/peminjaman/' . $loan->loan_id . '/setujui', ['buku' => $bukuB->book_id, 'page' => 1])
+            ->assertRedirect(route('admin.peminjaman.index', ['buku' => $bukuB->book_id, 'page' => 1]));
+        $this->assertSame('Dikonfirmasi', $loan->fresh()->status);
+        $lain = Loan::where('book_id', $bukuB->book_id)->where('status', 'Menunggu')->first();
+        $this->put('/admin/peminjaman/' . $lain->loan_id . '/tolak', ['q' => 'Pemohon', 'buku' => $bukuB->book_id])
+            ->assertRedirect(route('admin.peminjaman.index', ['q' => 'Pemohon', 'buku' => $bukuB->book_id]));
+    }
+
+    public function test_admin_history_is_paginated_by_ten_and_actions_keep_status_filter(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $book = $this->makeBook($admin, 30);
+        for ($i = 1; $i <= 12; $i++) {
+            $no = str_pad($i, 2, '0', STR_PAD_LEFT);
+            $u = $this->makeUser('Peminjam', 'H' . $no);
+            $u->update(['name' => 'Riwayat ' . $no]);
+            $this->makeLoan($u, $book, ['status' => $i <= 11 ? 'Dipinjam' : 'Gagal', 'due_date' => today()->addDays(3)]);
+        }
+
+        // urut terbaru dulu: halaman 1 berisi Riwayat 12..03, halaman 2 berisi 02..01
+        $this->actingAs($admin)->get('/admin/riwayat')->assertOk()
+            ->assertSee('Menampilkan 1–10 dari', false)
+            ->assertSee('Riwayat 12')->assertSee('Riwayat 03')->assertDontSee('Riwayat 02')
+            ->assertSee('Halaman 1 dari 2');
+        $this->get('/admin/riwayat?page=2')->assertOk()->assertSee('Riwayat 01')->assertDontSee('Riwayat 03');
+
+        // filter status tetap terbawa saat pindah halaman; status tak dikenal = semua
+        $this->get('/admin/riwayat?status=Dipinjam')->assertOk()
+            ->assertSee('dari <strong>11</strong> peminjaman berstatus Dipinjam', false)
+            ->assertSee('status=Dipinjam&amp;page=2', false);
+        $this->get('/admin/riwayat?status=Ngawur')->assertOk()->assertSee('dari <strong>12</strong> peminjaman', false);
+
+        // aksi dari halaman 2 filter Dipinjam: kembali ke tempat yang sama
+        $loan = Loan::whereHas('user', fn ($q) => $q->where('name', 'Riwayat 01'))->first();
+        $this->put('/admin/riwayat/' . $loan->loan_id . '/kembalikan', ['status' => 'Dipinjam', 'page' => 2])
+            ->assertRedirect(route('admin.peminjaman.riwayat', ['status' => 'Dipinjam', 'page' => 2]));
+        $this->assertSame('Dikembalikan', $loan->fresh()->status);
+
+        // halaman 2 kini kosong (sisa 10 Dipinjam): dialihkan ke halaman terakhir
+        $this->get('/admin/riwayat?status=Dipinjam&page=2')
+            ->assertRedirect('/admin/riwayat?status=Dipinjam&page=1');
+    }
+
+    public function test_admin_can_search_and_filter_reviews_by_book_and_rating(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $andi = $this->makeUser('Peminjam', 'SISWA-A');
+        $andi->update(['name' => 'Andi Pembaca']);
+        $sari = $this->makeUser('Peminjam', 'SISWA-B');
+        $sari->update(['name' => 'Sari Pembaca']);
+        $bukuA = $this->makeBook($admin);
+        $bukuB = $bukuA->replicate()->fill(['title' => 'Buku Arsip', 'is_active' => 0]);
+        $bukuB->save();
+
+        Review::create(['user_id' => $andi->user_id, 'book_id' => $bukuA->book_id, 'rating' => 5, 'review_text' => 'Sangat bermanfaat.']);
+        Review::create(['user_id' => $sari->user_id, 'book_id' => $bukuA->book_id, 'rating' => 2, 'review_text' => 'Kurang lengkap.']);
+        $rendah = Review::create(['user_id' => $andi->user_id, 'book_id' => $bukuB->book_id, 'rating' => 1, 'review_text' => 'Halamannya rusak.']);
+
+        // tanpa filter: semua ulasan, termasuk buku nonaktif (ditandai), dengan pencarian & filter
+        $this->actingAs($admin)->get('/admin/ulasan')->assertOk()
+            ->assertSee('Cari ulasan, pengguna, atau buku...')
+            ->assertSee('Semua rating')
+            ->assertSee('Menampilkan 1–3 dari', false)
+            ->assertSee('Sangat bermanfaat.')->assertSee('Kurang lengkap.')->assertSee('Halamannya rusak.')
+            ->assertSee('<span class="label-nonaktif">nonaktif</span>', false)
+            ->assertSee('data-meta="1 ulasan · nonaktif"', false);
+
+        // pencarian: isi komentar, nama pengguna, atau judul buku
+        $this->get('/admin/ulasan?q=rusak')->assertOk()
+            ->assertSee('Halamannya rusak.')->assertDontSee('Sangat bermanfaat.');
+        $this->get('/admin/ulasan?q=Sari')->assertOk()
+            ->assertSee('Kurang lengkap.')->assertDontSee('Halamannya rusak.');
+        $this->get('/admin/ulasan?q=Arsip')->assertOk()
+            ->assertSee('Halamannya rusak.')->assertDontSee('Kurang lengkap.');
+
+        // filter buku + rating (boleh lebih dari satu); jumlah per rating mengikuti buku terpilih
+        $this->get('/admin/ulasan?buku=' . $bukuA->book_id)->assertOk()
+            ->assertSee('Sangat bermanfaat.')->assertSee('Kurang lengkap.')->assertDontSee('Halamannya rusak.');
+        $this->get('/admin/ulasan?bintang[]=1&bintang[]=2')->assertOk()
+            ->assertSee('2, 1 bintang')->assertSee('Kurang lengkap.')->assertSee('Halamannya rusak.')
+            ->assertDontSee('Sangat bermanfaat.');
+        $this->get('/admin/ulasan?buku=' . $bukuA->book_id . '&bintang[]=1')->assertOk()
+            ->assertSee('Tidak ada ulasan dengan rating 1 bintang untuk "Buku Uji".')
+            ->assertSee('Hapus filter');
+
+        // hapus dari hasil filter: kembali ke daftar dengan filter yang sama
+        $this->delete('/admin/ulasan/' . $rendah->review_id, ['q' => 'rusak', 'bintang' => [1], 'page' => 1])
+            ->assertRedirect(route('admin.reviews.index', ['q' => 'rusak', 'bintang' => [1], 'page' => 1]));
+        $this->assertDatabaseMissing('reviews', ['review_id' => $rendah->review_id]);
     }
 
     public function test_review_page_lists_all_reviews_and_only_owner_can_edit_or_delete(): void

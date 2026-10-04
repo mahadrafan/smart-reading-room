@@ -44,7 +44,7 @@ class User extends Authenticatable
     // warna avatar tetap untuk setiap user
     public function getWarnaAvatarAttribute(): string
     {
-        $warna = ['#8671c9', '#2f6f73', '#b5574b', '#a07a2c', '#1b2340', '#5b7b3a'];
+        $warna = ['#8b5e34', '#2f6f73', '#b5574b', '#a07a2c', '#3b2a1e', '#5b7b3a'];
 
         return $warna[$this->user_id % count($warna)];
     }

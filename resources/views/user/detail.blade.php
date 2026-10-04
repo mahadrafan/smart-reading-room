@@ -150,7 +150,7 @@
                     @if ($daftarUlasan->count() > 0)
                         <div class="avatar-tumpuk" aria-hidden="true">
                             @foreach ($daftarUlasan->take(4) as $ulasan)
-                                <span style="background: {{ $ulasan->user->warna_avatar ?? '#8671c9' }};">{{ $ulasan->user->inisial ?? 'P' }}</span>
+                                <span style="background: {{ $ulasan->user->warna_avatar ?? '#8b5e34' }};">{{ $ulasan->user->inisial ?? 'P' }}</span>
                             @endforeach
                         </div>
                     @endif

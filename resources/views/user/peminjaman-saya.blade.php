@@ -56,7 +56,7 @@
                 <div class="angka">{{ $siapDiambil }}</div>
                 <div class="sub-label">Dikonfirmasi</div>
             </div>
-            <div class="kartu-ringkas-ikon ikon-ungu">📦</div>
+            <div class="kartu-ringkas-ikon ikon-kayu">📦</div>
         </div>
         <div class="kartu-ringkas">
             <div class="kartu-ringkas-kiri">
@@ -153,7 +153,7 @@
                                          class="tabel-sampul tabel-sampul-gambar" loading="lazy">
                                 @else
                                     @php
-                                        $daftarWarna = ['#8671c9', '#1b2340', '#2f6f73', '#b5574b', '#5b7b3a', '#a07a2c'];
+                                        $daftarWarna = ['#8b5e34', '#3b2a1e', '#2f6f73', '#b5574b', '#5b7b3a', '#a07a2c'];
                                         $kata = explode(' ', trim($p->book->title ?? '-'));
                                         $inisial = mb_strtoupper(mb_substr($kata[0], 0, 1) . (isset($kata[1]) ? mb_substr($kata[1], 0, 1) : ''));
                                     @endphp

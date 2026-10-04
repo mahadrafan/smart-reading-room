@@ -3,6 +3,11 @@
 @section('title', 'Riwayat Peminjaman')
 
 @section('content')
+    @php
+        // filter status & halaman ikut dikirim saat aksi agar kembali ke tampilan yang sama
+        $bawaFilter = array_filter(['status' => $status, 'page' => $daftar->currentPage()]);
+    @endphp
+
     <div class="kepala">
         <h1>Riwayat & Kelola Peminjaman</h1>
         <p class="ket">Kelola status peminjaman (dikonfirmasi, dipinjam, gagal, atau dikembalikan).</p>
@@ -15,6 +20,12 @@
         <a href="{{ route('admin.peminjaman.riwayat', ['status' => 'Gagal']) }}" class="chip {{ $status == 'Gagal' ? 'aktif' : '' }}">Gagal</a>
         <a href="{{ route('admin.peminjaman.riwayat', ['status' => 'Dikembalikan']) }}" class="chip {{ $status == 'Dikembalikan' ? 'aktif' : '' }}">Dikembalikan</a>
     </div>
+
+    <p class="ringkasan-hasil">
+        @if ($daftar->total() > 0)
+            Menampilkan {{ $daftar->firstItem() }}–{{ $daftar->lastItem() }} dari <strong>{{ $daftar->total() }}</strong> peminjaman{{ $status ? ' berstatus ' . $status : '' }}
+        @endif
+    </p>
 
     <div class="kotak">
         <table class="tabel">
@@ -52,6 +63,7 @@
                                           onsubmit="return confirm('Tandai denda Lunas? Status Lunas tidak bisa diubah lagi.')">
                                         @csrf
                                         @method('PUT')
+                                    @include('admin._bawa-filter', ['bawa' => $bawaFilter])
                                         <button type="submit" class="tombol tombol-kecil tombol-belum">Tandai Lunas</button>
                                     </form>
                                 @endif
@@ -75,6 +87,7 @@
                                       onsubmit="return confirm('Tandai bahwa buku telah diambil manual oleh user di perpus?');">
                                     @csrf
                                     @method('PUT')
+                                    @include('admin._bawa-filter', ['bawa' => $bawaFilter])
                                     <button type="submit">Tandai Dipinjam</button>
                                 </form>
                             @elseif ($p->status == 'Dipinjam' && $p->jumlah_denda > 0)
@@ -84,6 +97,7 @@
                                       onsubmit="return confirm({{ Js::from('Buku dikembalikan dan denda ' . $teksDenda . ' sudah dibayar? Status Lunas tidak bisa diubah lagi.') }});">
                                     @csrf
                                     @method('PUT')
+                                    @include('admin._bawa-filter', ['bawa' => $bawaFilter])
                                     <button type="submit" class="bahaya">Kembalikan &amp; Lunasi Denda ({{ $teksDenda }})</button>
                                 </form>
                             @elseif ($p->status == 'Dipinjam')
@@ -91,6 +105,7 @@
                                       onsubmit="return confirm('Tandai bahwa buku sudah dikembalikan oleh user ke perpus?');">
                                     @csrf
                                     @method('PUT')
+                                    @include('admin._bawa-filter', ['bawa' => $bawaFilter])
                                     <button type="submit">Tandai Kembali</button>
                                 </form>
                             @elseif ($p->jumlah_denda > 0 && ! $p->denda_lunas)
@@ -100,6 +115,7 @@
                                       onsubmit="return confirm('Hapus riwayat peminjaman ini?');">
                                     @csrf
                                     @method('DELETE')
+                                    @include('admin._bawa-filter', ['bawa' => $bawaFilter])
                                     <button type="submit" class="bahaya">Hapus</button>
                                 </form>
                             @else
@@ -108,9 +124,11 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="kosong-tabel">Belum ada data peminjaman di riwayat.</td></tr>
+                    <tr><td colspan="8" class="kosong-tabel">{{ $status ? 'Tidak ada peminjaman berstatus ' . $status . '.' : 'Belum ada data peminjaman di riwayat.' }}</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+
+    @include('admin._halaman', ['halaman' => $daftar])
 @endsection

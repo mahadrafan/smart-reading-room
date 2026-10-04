@@ -6,7 +6,7 @@
     {{-- kepala --}}
     <div class="notif-kepala">
         <div>
-            <h1 style="margin:0 0 5px;font-size:26px;font-weight:800;color:var(--navy)">Notifikasi</h1>
+            <h1 style="margin:0 0 5px;font-size:26px;font-weight:800;color:var(--coklat-tua)">Notifikasi</h1>
             <p style="margin:0;color:var(--abu);font-size:14px">Riwayat informasi peminjaman yang juga dikirim ke emailmu.</p>
         </div>
     </div>

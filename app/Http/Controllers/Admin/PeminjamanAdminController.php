@@ -14,23 +14,65 @@ use Illuminate\Support\Facades\DB;
 
 class PeminjamanAdminController extends Controller
 {
+    const PER_HALAMAN = 10;
+
+    // status yang tampil di halaman Riwayat (urutan = urutan tombol filter)
+    const STATUS_RIWAYAT = ['Dikonfirmasi', 'Dipinjam', 'Gagal', 'Dikembalikan'];
+
     // ---------------------------------------------------------
-    // READ: Request Masuk (pengajuan yang masih Menunggu)
+    // READ: Request Masuk (pengajuan yang masih Menunggu) + cari peminjam & filter buku, 10 per halaman
     // ---------------------------------------------------------
-    public function index()
+    public function index(Request $request)
     {
         Loan::prosesTenggatPengambilan();
 
+        $cari = trim((string) $request->q);
+
+        // buku yang sedang punya pengajuan menunggu, untuk pilihan filter
+        $daftarBuku = Book::whereHas('loans', fn ($q) => $q->where('status', 'Menunggu'))
+            ->withCount(['loans as jumlah_menunggu' => fn ($q) => $q->where('status', 'Menunggu')])
+            ->orderBy('title')
+            ->get(['book_id', 'title']);
+        $bukuDipilih = $request->filled('buku') ? $daftarBuku->firstWhere('book_id', (int) $request->buku) : null;
+
         $daftar = Loan::where('status', 'Menunggu')
+            ->when($bukuDipilih, fn ($q) => $q->where('book_id', $bukuDipilih->book_id))
+            ->when($cari !== '', fn ($q) => $q->whereHas('user', function ($u) use ($cari) {
+                $u->where('name', 'like', '%' . $cari . '%')->orWhere('nim_nip', 'like', '%' . $cari . '%');
+            }))
             ->with(['user', 'book'])
             ->orderBy('loan_id')
-            ->get();
+            ->paginate(self::PER_HALAMAN)
+            ->withQueryString();
 
-        return view('admin.peminjaman.index', ['daftar' => $daftar]);
+        // halaman di luar jangkauan (mis. setelah memproses pengajuan terakhir di halaman terakhir)
+        if ($daftar->isEmpty() && $daftar->currentPage() > 1) {
+            return redirect()->to($daftar->url($daftar->lastPage()));
+        }
+
+        return view('admin.peminjaman.index', [
+            'daftar'       => $daftar,
+            'cari'         => $cari,
+            'daftarBuku'   => $daftarBuku,
+            'bukuDipilih'  => $bukuDipilih,
+            'jumlahTotal'  => Loan::where('status', 'Menunggu')->count(),
+            'filter'       => array_filter(['q' => $cari, 'buku' => $bukuDipilih?->book_id]),
+        ]);
+    }
+
+    // kembali ke Request Masuk / Riwayat dengan pencarian, filter, dan halaman yang sama
+    private function keRequestMasuk(Request $request)
+    {
+        return redirect()->route('admin.peminjaman.index', $request->only(['q', 'buku', 'page']));
+    }
+
+    private function keRiwayat(Request $request)
+    {
+        return redirect()->route('admin.peminjaman.riwayat', $request->only(['status', 'page']));
     }
 
     // UPDATE: setujui / konfirmasi pengajuan
-    public function setujui($id)
+    public function setujui(Request $request, $id)
     {
         Loan::prosesTenggatPengambilan();
 
@@ -65,11 +107,11 @@ class PeminjamanAdminController extends Controller
             'Peminjaman buku "' . $pinjam->book->title . '" sudah dikonfirmasi. Ambil buku paling lambat ' . $pinjam->tenggat_pengambilan->format('d/m/Y H:i') . '.'
         );
 
-        return redirect()->route('admin.peminjaman.index')->with('status', 'Peminjaman berhasil dikonfirmasi. Menunggu pengguna mengambil buku.');
+        return $this->keRequestMasuk($request)->with('status', 'Peminjaman berhasil dikonfirmasi. Menunggu pengguna mengambil buku.');
     }
 
     // UPDATE: tolak pengajuan (status menjadi Gagal)
-    public function tolak($id)
+    public function tolak(Request $request, $id)
     {
         Loan::prosesTenggatPengambilan();
 
@@ -90,33 +132,38 @@ class PeminjamanAdminController extends Controller
         AdminLog::catat('Tolak', 'loans', $pinjam->loan_id,
             'Menolak peminjaman "' . $pinjam->book->title . '" oleh ' . $pinjam->user->name . ' (status Gagal)');
 
-        return redirect()->route('admin.peminjaman.index')->with('status', 'Peminjaman ditolak (status menjadi Gagal).');
+        return $this->keRequestMasuk($request)->with('status', 'Peminjaman ditolak (status menjadi Gagal).');
     }
 
     // ---------------------------------------------------------
-    // READ: Riwayat (Dikonfirmasi / Dipinjam / Gagal / Dikembalikan)
+    // READ: Riwayat (Dikonfirmasi / Dipinjam / Gagal / Dikembalikan), 10 per halaman
     // ---------------------------------------------------------
     public function riwayat(Request $request)
     {
         Loan::prosesTenggatPengambilan();
 
-        $query = Loan::whereIn('status', ['Dikonfirmasi', 'Dipinjam', 'Gagal', 'Dikembalikan'])
-            ->with(['user', 'book', 'approver']);
+        // status di luar daftar diabaikan (dianggap "Semua")
+        $status = in_array($request->status, self::STATUS_RIWAYAT, true) ? $request->status : null;
 
-        if ($request->status) {
-            $query->where('status', $request->status);
+        $daftar = Loan::whereIn('status', self::STATUS_RIWAYAT)
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->with(['user', 'book', 'approver'])
+            ->orderBy('loan_id', 'desc')
+            ->paginate(self::PER_HALAMAN)
+            ->withQueryString();
+
+        if ($daftar->isEmpty() && $daftar->currentPage() > 1) {
+            return redirect()->to($daftar->url($daftar->lastPage()));
         }
-
-        $daftar = $query->orderBy('loan_id', 'desc')->get();
 
         return view('admin.peminjaman.riwayat', [
             'daftar' => $daftar,
-            'status' => $request->status,
+            'status' => $status,
         ]);
     }
 
     // UPDATE: tandai buku telah diambil manual oleh user ke perpus (Dikonfirmasi -> Dipinjam)
-    public function dipinjam($id)
+    public function dipinjam(Request $request, $id)
     {
         Loan::prosesTenggatPengambilan();
 
@@ -145,12 +192,12 @@ class PeminjamanAdminController extends Controller
             'Buku "' . $pinjam->book->title . '" tercatat sudah diambil. Batas pengembalian: ' . $pinjam->due_date->format('d/m/Y') . '.'
         );
 
-        return redirect()->route('admin.peminjaman.riwayat')->with('status', 'Status peminjaman diperbarui menjadi Dipinjam.');
+        return $this->keRiwayat($request)->with('status', 'Status peminjaman diperbarui menjadi Dipinjam.');
     }
 
     // UPDATE: tandai buku sudah dikembalikan oleh user ke perpus (Dipinjam -> Dikembalikan)
     // hanya untuk buku yang tidak terlambat; buku terlambat dikembalikan sekaligus melunasi denda (ubahStatusDenda)
-    public function kembalikan($id)
+    public function kembalikan(Request $request, $id)
     {
         Loan::prosesTenggatPengambilan();
 
@@ -182,7 +229,7 @@ class PeminjamanAdminController extends Controller
         });
 
         if (! $selesai) {
-            return redirect()->route('admin.peminjaman.riwayat')->with('error', 'Peminjaman ini sudah diproses sebelumnya.');
+            return $this->keRiwayat($request)->with('error', 'Peminjaman ini sudah diproses sebelumnya.');
         }
 
         app(LoanNotificationService::class)->send(
@@ -192,7 +239,7 @@ class PeminjamanAdminController extends Controller
             'Pengembalian buku "' . $pinjam->book->title . '" sudah tercatat. Terima kasih.'
         );
 
-        return redirect()->route('admin.peminjaman.riwayat')->with('status', 'Buku ditandai sudah dikembalikan.');
+        return $this->keRiwayat($request)->with('status', 'Buku ditandai sudah dikembalikan.');
     }
 
     // UPDATE: kembalikan buku terlambat sekaligus melunasi dendanya (pembayaran & pengembalian selalu bersamaan).
@@ -251,7 +298,7 @@ class PeminjamanAdminController extends Controller
     }
 
     // DELETE: hapus riwayat (berstatus Dikembalikan atau Gagal)
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         Loan::prosesTenggatPengambilan();
 
@@ -272,6 +319,6 @@ class PeminjamanAdminController extends Controller
         UserNotification::where('loan_id', $pinjam->loan_id)->update(['loan_id' => null]);
         $pinjam->delete();
 
-        return redirect()->route('admin.peminjaman.riwayat')->with('status', 'Riwayat berhasil dihapus.');
+        return $this->keRiwayat($request)->with('status', 'Riwayat berhasil dihapus.');
     }
 }

@@ -3,129 +3,187 @@
 @section('title', 'Form Peminjaman')
 
 @section('content')
+    @php
+        $idBukuDipilih = (string) old('book_id', $bukuDipilih);
+
+        // warna & inisial sampul polos untuk buku tanpa file cover (sama dengan partial user._sampul)
+        $daftarWarna = ['#8b5e34', '#3b2a1e', '#2f6f73', '#b5574b', '#5b7b3a', '#a07a2c'];
+        $sampulPolos = function ($b) use ($daftarWarna) {
+            $kata = explode(' ', trim($b->title));
+            return [
+                'warna'   => $daftarWarna[($b->category_id ?? 0) % count($daftarWarna)],
+                'inisial' => mb_strtoupper(mb_substr($kata[0], 0, 1) . (isset($kata[1]) ? mb_substr($kata[1], 0, 1) : '')),
+            ];
+        };
+
+        // buku yang langsung tampil di panel sampul (dari tombol "Pinjam Buku" atau isian lama)
+        $bukuAwal = isset($jedaPinjam[$idBukuDipilih]) ? null : $daftarBuku->firstWhere('book_id', (int) $idBukuDipilih);
+    @endphp
+
     <div class="kepala">
         <h1>Form Peminjaman</h1>
-        <p class="ket">Isi data di bawah, lalu kirim. Permintaan akan diperiksa admin.</p>
+        <p class="ket">Pilih buku dan durasi, lalu kirim. Permintaan akan diperiksa admin.</p>
     </div>
 
-    <div class="kotak kotak-form">
-        <form method="POST" action="{{ route('peminjaman.simpan') }}">
+    <div class="form-pinjam">
+        <form method="POST" action="{{ route('peminjaman.simpan') }}" class="form-pinjam-isi" id="form-pinjam">
             @csrf
 
-            {{-- tanggal pengajuan selalu hari ini dan tidak bisa diubah (tidak ikut dikirim ke server) --}}
-            <div class="isian">
-                <label for="tanggal_pengajuan">Tanggal pengajuan</label>
-                <input type="text" id="tanggal_pengajuan" value="{{ today()->format('d/m/Y') }}"
-                       data-tanggal="{{ today()->format('Y-m-d') }}" readonly tabindex="-1" aria-readonly="true">
-            </div>
+            <div class="form-grid">
+                {{-- tanggal pengajuan selalu hari ini dan tidak bisa diubah (tidak ikut dikirim ke server) --}}
+                <div class="isian">
+                    <label for="tanggal_pengajuan">Tanggal pengajuan</label>
+                    <input type="text" id="tanggal_pengajuan" value="{{ today()->format('d/m/Y') }}"
+                           data-tanggal="{{ today()->format('Y-m-d') }}" readonly tabindex="-1" aria-readonly="true">
+                </div>
+                <div class="isian">
+                    <label for="batas-kembali">Perkiraan batas kembali</label>
+                    <input type="text" id="batas-kembali" value="-" readonly tabindex="-1" aria-readonly="true">
+                </div>
 
-            @php $idBukuDipilih = (string) old('book_id', $bukuDipilih); @endphp
-            <div class="isian">
-                <label for="book_id" id="label_buku">Nama buku</label>
+                <div class="isian isian-penuh">
+                    <label for="book_id" id="label_buku">Nama buku</label>
 
-                {{-- pencarian buku: aktif lewat JavaScript, isinya mengisi <select> di bawah yang dikirim ke server --}}
-                <div class="pilih-buku" data-pilih-buku hidden>
-                    <input type="text" id="cari_buku" class="@error('book_id') salah @enderror"
-                           placeholder="Cari judul buku atau nama penulis..." autocomplete="off"
-                           role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="daftar_buku">
-                    <ul id="daftar_buku" class="pilih-buku-daftar" role="listbox" aria-labelledby="label_buku" hidden>
+                    {{-- pencarian buku: aktif lewat JavaScript, isinya mengisi <select> di bawah yang dikirim ke server --}}
+                    <div class="pilih-buku" data-pilih-buku hidden>
+                        <input type="text" id="cari_buku" class="@error('book_id') salah @enderror"
+                               placeholder="Cari judul buku atau nama penulis..." autocomplete="off"
+                               role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="daftar_buku">
+                        <ul id="daftar_buku" class="pilih-buku-daftar" role="listbox" aria-labelledby="label_buku" hidden>
+                            @foreach ($daftarBuku as $b)
+                                @php
+                                    $bolehMulai = $jedaPinjam[$b->book_id] ?? null;
+                                    $polos = $sampulPolos($b);
+                                @endphp
+                                <li id="opsi-buku-{{ $b->book_id }}" role="option" aria-selected="false"
+                                    data-id="{{ $b->book_id }}" data-judul="{{ $b->title }}"
+                                    data-cari="{{ Str::lower($b->title . ' ' . ($b->author->author_name ?? '')) }}"
+                                    data-sampul="{{ $b->cover_url }}" data-warna="{{ $polos['warna'] }}" data-inisial="{{ $polos['inisial'] }}"
+                                    data-penulis="{{ $b->author->author_name ?? 'Penulis belum diisi' }}"
+                                    data-kategori="{{ $b->category->category_name ?? '' }}"
+                                    data-tersedia="{{ $b->available_stock }}" data-stok="{{ $b->stock }}"
+                                    data-lokasi="{{ $b->location }}"
+                                    @if ($bolehMulai) aria-disabled="true" class="opsi-jeda" @endif>
+                                    <span class="opsi-judul">{{ $b->title }}</span>
+                                    @if ($bolehMulai)
+                                        <span class="opsi-meta">Baru kamu kembalikan · bisa dipinjam lagi mulai {{ $bolehMulai->format('d M Y') }}</span>
+                                    @else
+                                        <span class="opsi-meta">{{ $b->author->author_name ?? 'Penulis belum diisi' }} · tersedia {{ $b->available_stock }}</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                            <li class="pilih-buku-kosong" hidden>Tidak ada buku yang cocok dengan pencarianmu.</li>
+                        </ul>
+                    </div>
+
+                    <select id="book_id" name="book_id" class="@error('book_id') salah @enderror" required>
+                        <option value="">Pilih buku</option>
                         @foreach ($daftarBuku as $b)
                             @php $bolehMulai = $jedaPinjam[$b->book_id] ?? null; @endphp
-                            <li id="opsi-buku-{{ $b->book_id }}" role="option" aria-selected="false"
-                                data-id="{{ $b->book_id }}" data-judul="{{ $b->title }}"
-                                data-cari="{{ Str::lower($b->title . ' ' . ($b->author->author_name ?? '')) }}"
-                                @if ($bolehMulai) aria-disabled="true" class="opsi-jeda" @endif>
-                                <span class="opsi-judul">{{ $b->title }}</span>
-                                @if ($bolehMulai)
-                                    <span class="opsi-meta">Baru kamu kembalikan · bisa dipinjam lagi mulai {{ $bolehMulai->format('d M Y') }}</span>
-                                @else
-                                    <span class="opsi-meta">{{ $b->author->author_name ?? 'Penulis belum diisi' }} · tersedia {{ $b->available_stock }}</span>
-                                @endif
-                            </li>
+                            <option value="{{ $b->book_id }}" {{ $bolehMulai ? 'disabled' : '' }} {{ !$bolehMulai && $idBukuDipilih === (string) $b->book_id ? 'selected' : '' }}>
+                                {{ $b->title }} ({{ $bolehMulai ? 'bisa dipinjam lagi mulai ' . $bolehMulai->format('d M Y') : 'tersedia ' . $b->available_stock }})
+                            </option>
                         @endforeach
-                        <li class="pilih-buku-kosong" hidden>Tidak ada buku yang cocok dengan pencarianmu.</li>
-                    </ul>
+                    </select>
+                    <p class="pesan-salah" id="pesan_buku" hidden>Pilih buku dari hasil pencarian.</p>
+                    @error('book_id')
+                        <p class="pesan-salah">{{ $message }}</p>
+                    @enderror
+                    {{-- datang dari tombol "Pinjam Buku" untuk buku yang masih dalam jeda pinjam ulang --}}
+                    @if (!$errors->has('book_id') && isset($jedaPinjam[$idBukuDipilih]))
+                        <p class="pesan-info">
+                            Buku ini baru kamu kembalikan. Agar pembaca lain juga mendapat kesempatan, buku yang sama
+                            bisa kamu pinjam lagi mulai {{ $jedaPinjam[$idBukuDipilih]->format('d M Y') }}.
+                        </p>
+                    @endif
+                    @if ($daftarBuku->count() == 0)
+                        <p class="pesan-info">Belum ada buku yang stoknya tersedia.</p>
+                    @endif
                 </div>
 
-                <select id="book_id" name="book_id" class="@error('book_id') salah @enderror" required>
-                    <option value="">Pilih buku</option>
-                    @foreach ($daftarBuku as $b)
-                        @php $bolehMulai = $jedaPinjam[$b->book_id] ?? null; @endphp
-                        <option value="{{ $b->book_id }}" {{ $bolehMulai ? 'disabled' : '' }} {{ !$bolehMulai && $idBukuDipilih === (string) $b->book_id ? 'selected' : '' }}>
-                            {{ $b->title }} ({{ $bolehMulai ? 'bisa dipinjam lagi mulai ' . $bolehMulai->format('d M Y') : 'tersedia ' . $b->available_stock }})
-                        </option>
-                    @endforeach
-                </select>
-                <p class="pesan-salah" id="pesan_buku" hidden>Pilih buku dari hasil pencarian.</p>
-                @error('book_id')
-                    <p class="pesan-salah">{{ $message }}</p>
-                @enderror
-                {{-- datang dari tombol "Pinjam Buku" untuk buku yang masih dalam jeda pinjam ulang --}}
-                @if (!$errors->has('book_id') && isset($jedaPinjam[$idBukuDipilih]))
-                    <p class="pesan-info">
-                        Buku ini baru kamu kembalikan. Agar pembaca lain juga mendapat kesempatan, buku yang sama
-                        bisa kamu pinjam lagi mulai {{ $jedaPinjam[$idBukuDipilih]->format('d M Y') }}.
-                    </p>
-                @endif
-                @if ($daftarBuku->count() == 0)
-                    <p class="pesan-info">Belum ada buku yang stoknya tersedia.</p>
-                @endif
+                <div class="isian isian-penuh">
+                    <span class="label-grup" id="label_durasi">Durasi peminjaman</span>
+                    <div class="pilihan-durasi" role="radiogroup" aria-labelledby="label_durasi">
+                        @foreach (['1' => '1 hari', '3' => '3 hari', '5' => '5 hari', '7' => '7 hari', 'custom' => 'Custom'] as $nilai => $teks)
+                            <label class="pilihan">
+                                <input type="radio" name="durasi" value="{{ $nilai }}"
+                                       {{ old('durasi', '7') == $nilai ? 'checked' : '' }}>
+                                <span>{{ $teks }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <div id="kotak-custom" class="isian-custom">
+                        <label for="durasi_custom">Jumlah hari (1 sampai 30)</label>
+                        <input type="number" id="durasi_custom" name="durasi_custom" min="1" max="30"
+                               value="{{ old('durasi_custom') }}" placeholder="Contoh: 10"
+                               class="@error('durasi_custom') salah @enderror">
+                    </div>
+                    @error('durasi')
+                        <p class="pesan-salah">{{ $message }}</p>
+                    @enderror
+                    @error('durasi_custom')
+                        <p class="pesan-salah">{{ $message }}</p>
+                    @enderror
+                    <p class="pesan-info">Tanggal pinjam dan batas pengembalian dihitung dari hari buku diambil di perpustakaan.</p>
+                </div>
+
+                {{-- data peminjam diambil dari akun (hanya tampilan, tidak ikut dikirim) --}}
+                <div class="isian">
+                    <label for="nama_peminjam">Nama peminjam</label>
+                    <input type="text" id="nama_peminjam" value="{{ Auth::user()->name }}" readonly>
+                </div>
+                <div class="isian">
+                    <label for="kelas_peminjam">Kelas</label>
+                    <input type="text" id="kelas_peminjam" value="{{ Auth::user()->class }}" readonly>
+                </div>
+                <div class="isian">
+                    <label for="telepon_peminjam">No. telepon</label>
+                    <input type="text" id="telepon_peminjam" value="{{ Auth::user()->phone }}" readonly>
+                </div>
+                <div class="isian">
+                    <label for="email_peminjam">Email</label>
+                    <input type="text" id="email_peminjam" value="{{ Auth::user()->email }}" readonly>
+                </div>
+                <p class="pesan-info isian-penuh catatan-peminjam">
+                    Data peminjam diambil dari akunmu. Ubah lewat menu <a href="{{ route('profil') }}">Profil</a> kalau ada yang salah.
+                </p>
             </div>
 
-            <div class="dua-kolom">
-                <div class="isian">
-                    <label>Nama peminjam</label>
-                    <input type="text" value="{{ Auth::user()->name }}" readonly>
-                </div>
-                <div class="isian">
-                    <label>Kelas</label>
-                    <input type="text" value="{{ Auth::user()->class }}" readonly>
-                </div>
+            <div class="form-aksi form-aksi-pil">
+                <button type="submit" class="tombol-pil-utama">Kirim Permintaan</button>
+                <a href="{{ $urlBatal }}" class="tombol-pil-batal">Batal</a>
             </div>
-
-            <div class="dua-kolom">
-                <div class="isian">
-                    <label>No. telepon</label>
-                    <input type="text" value="{{ Auth::user()->phone }}" readonly>
-                </div>
-                <div class="isian">
-                    <label>Email</label>
-                    <input type="text" value="{{ Auth::user()->email }}" readonly>
-                </div>
-            </div>
-            <p class="pesan-info">Data peminjam diambil dari akunmu. Ubah lewat menu Profil kalau ada yang salah.</p>
-
-            <div class="isian">
-                <span class="label-grup">Durasi peminjaman</span>
-                <div class="pilihan-durasi">
-                    @foreach (['1' => '1 hari', '3' => '3 hari', '5' => '5 hari', '7' => '7 hari', 'custom' => 'Custom'] as $nilai => $teks)
-                        <label class="pilihan">
-                            <input type="radio" name="durasi" value="{{ $nilai }}"
-                                   {{ old('durasi', '7') == $nilai ? 'checked' : '' }}>
-                            {{ $teks }}
-                        </label>
-                    @endforeach
-                </div>
-
-                <div id="kotak-custom" class="isian-custom">
-                    <label for="durasi_custom">Jumlah hari (1 sampai 30)</label>
-                    <input type="number" id="durasi_custom" name="durasi_custom" min="1" max="30"
-                           value="{{ old('durasi_custom') }}"
-                           class="@error('durasi_custom') salah @enderror">
-                </div>
-                @error('durasi')
-                    <p class="pesan-salah">{{ $message }}</p>
-                @enderror
-                @error('durasi_custom')
-                    <p class="pesan-salah">{{ $message }}</p>
-                @enderror
-
-                <p class="pesan-info" id="batas-kembali"></p>
-                <p class="pesan-info">Tanggal pinjam dan batas pengembalian dihitung dari hari buku diambil di perpustakaan.</p>
-            </div>
-
-            <button type="submit" class="tombol tombol-penuh">Kirim Permintaan</button>
         </form>
+
+        {{-- panel sampul buku yang dipilih; diperbarui JavaScript saat memilih buku --}}
+        <aside class="panel-sampul" aria-label="Buku yang akan dipinjam">
+            <div class="panel-sampul-kosong" id="panel-kosong" @if ($bukuAwal) hidden @endif>
+                <span class="panel-sampul-ikon" aria-hidden="true">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6.5A2.5 2.5 0 0 0 4 21.5"/><path d="M19 17v4H6.5"/></svg>
+                </span>
+                <p>Sampul buku akan tampil di sini setelah kamu memilih buku.</p>
+            </div>
+
+            <div class="panel-sampul-isi" id="panel-isi" @unless ($bukuAwal) hidden @endunless aria-live="polite">
+                @php $polosAwal = $bukuAwal ? $sampulPolos($bukuAwal) : ['warna' => '', 'inisial' => '']; @endphp
+                <div class="panel-sampul-gambar">
+                    <img id="panel-gambar" src="{{ $bukuAwal?->cover_url }}" alt="Sampul {{ $bukuAwal?->title }}"
+                         @unless ($bukuAwal?->cover_url) hidden @endunless>
+                    <div class="panel-sampul-polos" id="panel-polos" style="background: {{ $polosAwal['warna'] }}"
+                         @if ($bukuAwal?->cover_url || ! $bukuAwal) hidden @endif>
+                        <span id="panel-inisial">{{ $polosAwal['inisial'] }}</span>
+                    </div>
+                </div>
+                <span class="label-kat" id="panel-kategori" @unless ($bukuAwal?->category) hidden @endunless>{{ $bukuAwal?->category?->category_name }}</span>
+                <h2 id="panel-judul">{{ $bukuAwal?->title }}</h2>
+                <p class="panel-sampul-penulis" id="panel-penulis">{{ $bukuAwal ? ($bukuAwal->author->author_name ?? 'Penulis belum diisi') : '' }}</p>
+                <dl class="panel-sampul-data">
+                    <div><dt>Tersedia</dt><dd id="panel-tersedia">{{ $bukuAwal ? $bukuAwal->available_stock . ' dari ' . $bukuAwal->stock : '' }}</dd></div>
+                    <div><dt>Lokasi rak</dt><dd id="panel-lokasi">{{ $bukuAwal?->location ?: '-' }}</dd></div>
+                </dl>
+            </div>
+        </aside>
     </div>
 
     <script>
@@ -134,7 +192,7 @@
             var tanggal = document.getElementById('tanggal_pengajuan').dataset.tanggal;
             var pilih = document.querySelector('input[name="durasi"]:checked');
             var kotakCustom = document.getElementById('kotak-custom');
-            var teks = document.getElementById('batas-kembali');
+            var isian = document.getElementById('batas-kembali');
 
             if (!pilih) { return; }
 
@@ -147,8 +205,8 @@
                 lama = parseInt(pilih.value);
             }
 
-            if (!tanggal || isNaN(lama)) {
-                teks.textContent = '';
+            if (!tanggal || isNaN(lama) || lama < 1 || lama > 30) {
+                isian.value = '-';
                 return;
             }
 
@@ -156,7 +214,7 @@
             d.setDate(d.getDate() + lama);
             var hari = ('0' + d.getDate()).slice(-2);
             var bulan = ('0' + (d.getMonth() + 1)).slice(-2);
-            teks.textContent = 'Perkiraan batas pengembalian (jika diambil hari ini): ' + hari + '/' + bulan + '/' + d.getFullYear();
+            isian.value = hari + '/' + bulan + '/' + d.getFullYear() + ' (jika diambil hari ini)';
         }
 
         document.getElementById('durasi_custom').addEventListener('input', hitungBatas);
@@ -187,6 +245,30 @@
             select.hidden = true;
             select.required = false;
             document.getElementById('label_buku').htmlFor = 'cari_buku';
+
+            // panel sampul di kanan mengikuti buku yang dipilih
+            function tampilkanSampul(o) {
+                var el = function (id) { return document.getElementById(id); };
+                el('panel-kosong').hidden = !!o;
+                el('panel-isi').hidden = !o;
+                if (!o) { return; }
+
+                var d = o.dataset;
+                el('panel-gambar').hidden = !d.sampul;
+                if (d.sampul) {
+                    el('panel-gambar').src = d.sampul;
+                    el('panel-gambar').alt = 'Sampul ' + d.judul;
+                }
+                el('panel-polos').hidden = !!d.sampul;
+                el('panel-polos').style.background = d.warna;
+                el('panel-inisial').textContent = d.inisial;
+                el('panel-kategori').hidden = !d.kategori;
+                el('panel-kategori').textContent = d.kategori;
+                el('panel-judul').textContent = d.judul;
+                el('panel-penulis').textContent = d.penulis;
+                el('panel-tersedia').textContent = d.tersedia + ' dari ' + d.stok;
+                el('panel-lokasi').textContent = d.lokasi || '-';
+            }
 
             function opsiTerlihat() {
                 return opsi.filter(function (o) { return !o.hidden; });
@@ -237,6 +319,7 @@
                 opsi.forEach(function (x) { x.setAttribute('aria-selected', x === o ? 'true' : 'false'); });
                 input.classList.remove('salah');
                 pesan.hidden = true;
+                tampilkanSampul(o);
                 tutup();
             }
 
@@ -284,9 +367,12 @@
                 if (input.value.trim() === '') {
                     // kolom dikosongkan: pilihan memang dihapus
                     terakhir = null;
+                    tampilkanSampul(null);
                 } else if (terakhir) {
                     // diketik tapi tidak memilih apa pun: kembalikan buku yang terakhir dipilih
                     pilih(terakhir);
+                } else {
+                    tampilkanSampul(null);
                 }
             });
 

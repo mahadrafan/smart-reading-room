@@ -33,7 +33,7 @@
         $keterangan = $b->available_stock > 0 ? 'Tersedia ' . $b->available_stock : 'Stok habis';
     }
 
-    $daftarWarna = ['#8671c9', '#1b2340', '#2f6f73', '#b5574b', '#5b7b3a', '#a07a2c'];
+    $daftarWarna = ['#8b5e34', '#3b2a1e', '#2f6f73', '#b5574b', '#5b7b3a', '#a07a2c'];
     $warnaSampul = $daftarWarna[($b->category_id ?? 0) % count($daftarWarna)];
 @endphp
 <a href="{{ $tautan }}" class="buku-rak" title="{{ $b->title }} — {{ $penulis }}">
