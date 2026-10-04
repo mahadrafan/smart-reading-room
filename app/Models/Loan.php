@@ -11,6 +11,9 @@ class Loan extends Model
     // agar pembaca lain mendapat kesempatan meminjam
     const JEDA_PINJAM_ULANG = 1;
 
+    // status peminjaman yang masih berjalan (buku sedang diajukan, siap diambil, atau dipinjam)
+    const STATUS_AKTIF = ['Menunggu', 'Dikonfirmasi', 'Dipinjam'];
+
     protected $table = 'loans';
     protected $primaryKey = 'loan_id';
     public $timestamps = false;

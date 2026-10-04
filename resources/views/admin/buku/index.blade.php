@@ -11,7 +11,9 @@
         <a href="{{ route('admin.buku.create') }}" class="tombol">Tambah Buku</a>
     </div>
 
-    <form method="GET" action="{{ route('admin.buku.index') }}" class="cari" style="margin-bottom:20px;">
+    @include('admin.buku._tab')
+
+    <form method="GET" action="{{ route('admin.buku.index') }}" class="cari cari-admin" style="margin-bottom:20px;">
         <label for="q" class="sr-only">Cari judul buku</label>
         <input type="search" id="q" name="q" value="{{ request('q') }}" placeholder="Cari judul buku">
         <button type="submit" class="tombol tombol-kecil">Cari</button>
@@ -41,12 +43,17 @@
                         <td>{{ $b->creator ? $b->creator->name : '-' }}</td>
                         <td class="aksi">
                             <a href="{{ route('admin.buku.edit', $b->book_id) }}">Edit</a>
-                            <form method="POST" action="{{ route('admin.buku.destroy', $b->book_id) }}"
-                                  style="display:inline" onsubmit="return confirm('Hapus buku {{ $b->title }} dari katalog?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="bahaya">Hapus</button>
-                            </form>
+                            @if ($b->pinjaman_aktif > 0)
+                                {{-- masih diajukan / siap diambil / dipinjam: belum boleh dihapus dari katalog --}}
+                                <span class="aksi-mati" title="Masih ada {{ $b->pinjaman_aktif }} peminjaman aktif, jadi belum bisa dihapus">Hapus</span>
+                            @else
+                                <form method="POST" action="{{ route('admin.buku.destroy', $b->book_id) }}" style="display:inline"
+                                      onsubmit="return confirm({{ Js::from('Hapus buku "' . $b->title . '" dari katalog? Buku akan dipindah ke tab Nonaktif dan bisa diaktifkan kembali.') }})">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="bahaya">Hapus</button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                 @empty

@@ -87,6 +87,11 @@ class KatalogController extends Controller
             $q->where('is_active', 1);
         }])->orderBy('category_name')->get();
 
+        // kategori tanpa buku aktif tidak ditampilkan ke peminjam (kecuali sedang dipilih lewat alamat halaman)
+        $kategori = $kategori
+            ->filter(fn ($k) => $k->jumlah_buku > 0 || in_array($k->category_id, $kategoriDipilih))
+            ->values();
+
         // tombol cepat: 5 kategori dengan buku terbanyak, ditambah kategori terpilih yang tidak masuk 5 besar
         $kategoriCepat = $kategori->sortByDesc('jumlah_buku')->take(5);
         $kategoriCepat = $kategoriCepat

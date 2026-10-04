@@ -199,6 +199,137 @@ class SmartReadingRoomTest extends TestCase
         $this->assertDatabaseCount('admin_logs', 3);
     }
 
+    public function test_admin_can_edit_and_delete_unused_categories_and_authors_from_kelola_buku(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);   // memakai "Kategori Uji" & "Penulis Uji"
+        $kategoriKosong = Category::create(['category_name' => 'Pendidikan']);
+        $penulisKosong = Author::create(['author_name' => 'Tim Lama']);
+        $kategoriNonaktif = Category::create(['category_name' => 'Arsip']);
+        $bukuNonaktif = $book->replicate()->fill(['title' => 'Buku Arsip', 'category_id' => $kategoriNonaktif->category_id, 'is_active' => 0]);
+        $bukuNonaktif->save();
+
+        // tab Kategori & Penulis di halaman Kelola Buku
+        $this->actingAs($admin)->get('/admin/buku')->assertOk()
+            ->assertSee(route('admin.buku.kategori.index'))->assertSee(route('admin.buku.penulis.index'));
+        $this->get('/admin/buku/kategori')->assertOk()
+            ->assertSee('Kategori Uji')->assertSee('Pendidikan')->assertSee('Tidak dipakai')
+            ->assertSee('(1 nonaktif)')
+            ->assertSee(route('admin.buku.kategori.destroy', $kategoriKosong->category_id))
+            ->assertDontSee(route('admin.buku.kategori.destroy', $book->category_id));
+        $this->get('/admin/buku/penulis?q=lama')->assertOk()
+            ->assertSee('Tim Lama')->assertDontSee('Penulis Uji');
+
+        // edit nama & deskripsi (nama tidak boleh kembar)
+        $this->get('/admin/buku/kategori?edit=' . $kategoriKosong->category_id)->assertOk()
+            ->assertSee('name="category_name"', false);
+        $this->from('/admin/buku/kategori?edit=' . $kategoriKosong->category_id)
+            ->put('/admin/buku/kategori/' . $kategoriKosong->category_id, ['id_edit' => $kategoriKosong->category_id, 'category_name' => 'Kategori Uji'])
+            ->assertSessionHasErrors('category_name');
+        $this->put('/admin/buku/kategori/' . $kategoriKosong->category_id, ['category_name' => 'Pendidikan & Sekolah', 'description' => 'Buku pelajaran.'])
+            ->assertRedirect(route('admin.buku.kategori.index'));
+        $this->assertDatabaseHas('categories', ['category_id' => $kategoriKosong->category_id, 'category_name' => 'Pendidikan & Sekolah', 'description' => 'Buku pelajaran.']);
+        $this->put('/admin/buku/penulis/' . $book->author_id, ['author_name' => 'Penulis Uji Diperbarui', 'biography' => 'Bio baru.'])
+            ->assertRedirect(route('admin.buku.penulis.index'));
+        $this->assertSame('Penulis Uji Diperbarui', $book->fresh()->author->author_name);
+
+        // yang masih dipakai buku (termasuk buku nonaktif) tidak bisa dihapus
+        $this->delete('/admin/buku/kategori/' . $book->category_id)->assertSessionHas('error');
+        $this->delete('/admin/buku/kategori/' . $kategoriNonaktif->category_id)->assertSessionHas('error');
+        $this->delete('/admin/buku/penulis/' . $book->author_id)->assertSessionHas('error');
+        $this->assertDatabaseHas('categories', ['category_id' => $kategoriNonaktif->category_id]);
+
+        // yang tidak dipakai bisa dihapus
+        $this->delete('/admin/buku/kategori/' . $kategoriKosong->category_id)->assertRedirect(route('admin.buku.kategori.index'));
+        $this->delete('/admin/buku/penulis/' . $penulisKosong->author_id)->assertRedirect(route('admin.buku.penulis.index'));
+        $this->assertDatabaseMissing('categories', ['category_id' => $kategoriKosong->category_id]);
+        $this->assertDatabaseMissing('authors', ['author_id' => $penulisKosong->author_id]);
+
+        // peminjam tidak bisa membuka halaman admin, dan kategori tanpa buku aktif tidak tampil di filter katalog
+        $this->actingAs($borrower)->get('/admin/buku/kategori')->assertRedirect(route('dashboard'));
+        $this->get('/dashboard')->assertOk()->assertSee('Kategori Uji')->assertDontSee('Arsip');
+    }
+
+    public function test_deleted_books_move_to_inactive_tab_and_can_be_reactivated(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+        $loan = $this->makeLoan($borrower, $book, ['status' => 'Dipinjam']);
+
+        // masih dipinjam: tombol hapus terkunci dan server menolak
+        $this->actingAs($admin)->get('/admin/buku')->assertOk()
+            ->assertSee('Masih ada 1 peminjaman aktif')
+            ->assertDontSee('action="' . route('admin.buku.destroy', $book->book_id) . '"', false);
+        $this->delete('/admin/buku/' . $book->book_id)->assertSessionHas('error');
+        $this->assertSame(1, (int) $book->fresh()->is_active);
+
+        // setelah peminjaman selesai: buku bisa dihapus dan pindah ke tab Nonaktif
+        $loan->update(['status' => 'Dikembalikan', 'return_date' => today()]);
+        $this->delete('/admin/buku/' . $book->book_id)->assertRedirect(route('admin.buku.index'));
+        $this->assertSame(0, (int) $book->fresh()->is_active);
+        $this->get('/admin/buku')->assertOk()->assertDontSee('<td>Buku Uji</td>', false);
+        $this->get('/admin/buku/nonaktif')->assertOk()
+            ->assertSee('Buku Uji')->assertSee('1x dipinjam')->assertSee('Aktifkan kembali');
+        $this->actingAs($borrower)->get('/buku/' . $book->book_id)->assertNotFound();
+
+        // aktifkan kembali: tampil lagi di katalog
+        $this->actingAs($admin)->put('/admin/buku/' . $book->book_id . '/aktifkan')
+            ->assertRedirect(route('admin.buku.nonaktif'));
+        $this->assertSame(1, (int) $book->fresh()->is_active);
+        $this->assertDatabaseHas('admin_logs', ['action' => 'Aktifkan', 'table_name' => 'books', 'record_id' => $book->book_id]);
+        $this->get('/admin/buku/nonaktif')->assertOk()->assertSee('Tidak ada buku nonaktif.');
+        $this->put('/admin/buku/' . $book->book_id . '/aktifkan')->assertNotFound();
+        $this->actingAs($borrower)->get('/buku/' . $book->book_id)->assertOk();
+    }
+
+    public function test_only_inactive_books_never_borrowed_or_reviewed_can_be_deleted_permanently(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('covers/salah-input.jpg', 'cover');
+
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $dipinjam = $this->makeBook($admin);
+        $this->makeLoan($borrower, $dipinjam, ['status' => 'Dikembalikan', 'return_date' => today()]);
+        $diulas = $dipinjam->replicate()->fill(['title' => 'Buku Diulas']);
+        $diulas->save();
+        Review::create(['user_id' => $borrower->user_id, 'book_id' => $diulas->book_id, 'rating' => 4, 'review_text' => 'Bagus.']);
+        $salahInput = $dipinjam->replicate()->fill(['title' => 'Buku Salah Input', 'cover_image' => 'covers/salah-input.jpg']);
+        $salahInput->save();
+
+        $permanen = fn (Book $b) => '/admin/buku/' . $b->book_id . '/permanen';
+
+        // buku aktif harus dinonaktifkan dulu sebelum bisa dihapus permanen
+        $this->actingAs($admin)->delete($permanen($salahInput))->assertNotFound();
+        foreach ([$dipinjam, $diulas, $salahInput] as $b) {
+            $this->delete('/admin/buku/' . $b->book_id)->assertRedirect(route('admin.buku.index'));
+        }
+
+        // hanya buku tanpa riwayat yang punya tombol hapus permanen
+        $this->get('/admin/buku/nonaktif')->assertOk()
+            ->assertSee('Belum pernah dipakai')
+            ->assertSee('action="' . route('admin.buku.hapus-permanen', $salahInput->book_id) . '"', false)
+            ->assertDontSee('action="' . route('admin.buku.hapus-permanen', $dipinjam->book_id) . '"', false)
+            ->assertDontSee('action="' . route('admin.buku.hapus-permanen', $diulas->book_id) . '"', false);
+
+        // buku yang pernah dipinjam / diulas ditolak server dan tetap tersimpan
+        $this->delete($permanen($dipinjam))->assertSessionHas('error');
+        $this->delete($permanen($diulas))->assertSessionHas('error');
+        $this->assertDatabaseHas('books', ['book_id' => $dipinjam->book_id]);
+        $this->assertDatabaseHas('books', ['book_id' => $diulas->book_id]);
+
+        // buku tanpa riwayat terhapus dari database beserta file cover-nya
+        $this->delete($permanen($salahInput))->assertRedirect(route('admin.buku.nonaktif'));
+        $this->assertDatabaseMissing('books', ['book_id' => $salahInput->book_id]);
+        Storage::disk('public')->assertMissing('covers/salah-input.jpg');
+        $this->assertDatabaseHas('admin_logs', ['action' => 'Hapus Permanen', 'table_name' => 'books', 'record_id' => $salahInput->book_id]);
+        $this->get('/admin/buku/nonaktif')->assertOk()
+            ->assertSee('Buku &quot;Buku Salah Input&quot; dihapus permanen.', false)
+            ->assertDontSee('action="' . route('admin.buku.aktifkan', $salahInput->book_id) . '"', false);
+    }
+
     public function test_book_must_always_have_category_and_author(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');
