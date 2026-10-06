@@ -108,7 +108,7 @@ DROP TABLE IF EXISTS `books`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `books` (
   `book_id` int NOT NULL AUTO_INCREMENT,
-  `category_id` int DEFAULT NULL,
+  `category_id` int NOT NULL,
   `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `publisher` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `publication_year` year DEFAULT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE `books` (
   KEY `category_id` (`category_id`),
   KEY `fk_books_created_by` (`created_by`),
   KEY `fk_books_updated_by` (`updated_by`),
-  CONSTRAINT `books_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`),
+  CONSTRAINT `fk_books_category_id` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_books_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`),
   CONSTRAINT `fk_books_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -257,6 +257,7 @@ CREATE TABLE `reviews` (
   `review_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`review_id`),
+  UNIQUE KEY `uk_reviews_user_book` (`user_id`,`book_id`),
   KEY `user_id` (`user_id`),
   KEY `book_id` (`book_id`),
   CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
@@ -317,4 +318,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-06 17:00:50
+-- Dump completed on 2026-10-06 18:33:33

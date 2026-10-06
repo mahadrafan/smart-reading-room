@@ -408,6 +408,11 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('<option value="" disabled >- Pilih kategori -</option>', false)
             ->assertSee('<option value="' . $penulisAwal . '" selected>', false)
             ->assertSee('data-pilih-penulis', false);
+
+        // database juga menolak buku tanpa kategori dan penghapusan kategori yang masih dipakai buku
+        $this->assertThrows(fn () => DB::table('books')->where('book_id', $book->book_id)->update(['category_id' => null]), QueryException::class);
+        $this->assertThrows(fn () => DB::table('categories')->where('category_id', $kategoriAwal)->delete(), QueryException::class);
+        $this->assertSame($kategoriAwal, $book->fresh()->category_id);
     }
 
     public function test_book_can_have_several_authors_in_chosen_order(): void
@@ -914,6 +919,12 @@ class SmartReadingRoomTest extends TestCase
             ->assertSessionHasErrors('review_text');
         $this->assertDatabaseCount('reviews', 1);
         $this->assertSame(5, $review->fresh()->rating);
+
+        // database juga menolak ulasan kedua dari peminjam yang sama untuk buku yang sama
+        $this->assertThrows(fn () => DB::table('reviews')->insert([
+            'user_id' => $borrower->user_id, 'book_id' => $book->book_id, 'rating' => 1, 'review_text' => 'Ulasan ganda.',
+        ]), QueryException::class);
+        $this->assertDatabaseCount('reviews', 1);
 
         $this->put('/ulasan/' . $review->review_id, [
             'ulasan_id' => $review->review_id,
