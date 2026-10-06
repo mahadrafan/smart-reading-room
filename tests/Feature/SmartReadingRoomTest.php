@@ -801,22 +801,26 @@ class SmartReadingRoomTest extends TestCase
         $this->assertDatabaseHas('authors', ['author_name' => 'Aris Defiana, S.Kom']);
     }
 
-    public function test_book_authors_migration_moves_existing_author_and_can_be_rolled_back(): void
+    public function test_migrations_create_the_same_tables_and_columns_as_the_sql_dump(): void
     {
-        $admin = $this->makeUser('Admin', 'ADM-TEST');
-        $book = $this->makeBook($admin);
-        $penulis = $book->authors->first()->author_id;
-        $migration = require database_path('migrations/2026_10_07_100000_create_book_authors_table.php');
+        // tabel & kolom (berurutan) dari setiap CREATE TABLE di basdat_final.sql
+        preg_match_all('/CREATE TABLE `(\w+)` \((.*?)\n\) ENGINE/s', file_get_contents(base_path('basdat_final.sql')), $tabel, PREG_SET_ORDER);
+        $dump = collect($tabel)->mapWithKeys(function ($t) {
+            preg_match_all('/^\s+`(\w+)` /m', $t[2], $kolom);
+            return [$t[1] => $kolom[1]];
+        })->sortKeys();
 
-        // rollback: penulis pertama kembali ke books.author_id, tabel book_authors hilang
-        $migration->down();
-        $this->assertFalse(Schema::hasTable('book_authors'));
-        $this->assertSame($penulis, (int) DB::table('books')->where('book_id', $book->book_id)->value('author_id'));
+        $this->assertCount(9, $dump);
 
-        // migrate lagi: author_id dipindah ke book_authors (urutan 1) lalu kolomnya dihapus
-        $migration->up();
-        $this->assertFalse(Schema::hasColumn('books', 'author_id'));
-        $this->assertDatabaseHas('book_authors', ['book_id' => $book->book_id, 'author_id' => $penulis, 'urutan' => 1]);
+        // migration hanya membuat 9 tabel aplikasi itu (tanpa tabel bawaan sessions/cache/jobs)
+        $migrasi = collect(Schema::getTableListing(schemaQualified: false))
+            ->reject(fn ($nama) => $nama === 'migrations' || str_starts_with($nama, 'sqlite_'))
+            ->sort()->values();
+        $this->assertSame($dump->keys()->all(), $migrasi->all());
+
+        foreach ($dump as $nama => $kolom) {
+            $this->assertSame($kolom, Schema::getColumnListing($nama), "Kolom tabel $nama berbeda dengan basdat_final.sql");
+        }
     }
 
     public function test_custom_loan_duration_is_limited_to_14_days(): void

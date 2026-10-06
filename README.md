@@ -139,6 +139,8 @@ karena satu buku bisa ditulis lebih dari satu penulis. Karena itu, **jangan menj
 database hasil impor: Laravel akan mencoba membuat ulang semua tabel dan berhenti
 dengan error *table already exists*. Perubahan struktur database dibagikan dengan
 memperbarui `basdat_final.sql`, lalu setiap anggota mengimpor ulang file tersebut.
+Migration di `database/migrations` (2 file) membuat 9 tabel yang sama persis dengan dump
+ini; migration hanya dipakai untuk instalasi baru dengan data demo dan untuk pengujian.
 
 Pastikan konfigurasi `.env` memakai MySQL seperti pada bagian sebelumnya, lalu
 jalankan dari folder proyek:
@@ -343,7 +345,7 @@ Lalu buka <http://127.0.0.1:8001>.
 | --- | --- |
 | `app/Http/Controllers` | Logika halaman dan proses aplikasi |
 | `app/Models` | Model database |
-| `database/migrations` | Struktur database |
+| `database/migrations` | Struktur database (2 file, sama dengan `basdat_final.sql`) |
 | `database/seeders` | Data awal dan akun demo |
 | `resources/views` | Tampilan Blade |
 | `public/css` | CSS aplikasi |
