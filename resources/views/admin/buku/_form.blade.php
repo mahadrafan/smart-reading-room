@@ -72,6 +72,14 @@
                        aria-labelledby="label_penulis" aria-describedby="info_penulis">
                 <ul class="pilih-cari-daftar" id="daftar_penulis" role="listbox" aria-labelledby="label_penulis" hidden></ul>
             </div>
+            {{-- muncul saat "+ Tambah penulis baru..." dipilih; tanpa name, nilainya masuk ke daftar penulis terpilih --}}
+            <div class="penulis-baru" data-penulis-baru hidden>
+                <div class="penulis-baru-baris">
+                    <input type="text" maxlength="100" placeholder="Tuliskan nama penulis baru..." aria-label="Nama penulis baru">
+                    <button type="button" class="tombol tombol-kecil">Tambahkan</button>
+                </div>
+                <p class="pesan-salah" hidden></p>
+            </div>
         </div>
 
         {{-- tanpa JavaScript: pilih beberapa penulis di daftar + satu nama penulis baru --}}
@@ -281,6 +289,9 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
     var input = wadah.querySelector('input[role="combobox"]');
     var daftar = wadah.querySelector('[role="listbox"]');
     var pesan = document.querySelector('[data-pesan-penulis]');
+    var kotakBaru = wadah.querySelector('[data-penulis-baru]');
+    var inputBaru = kotakBaru.querySelector('input');
+    var pesanBaru = kotakBaru.querySelector('.pesan-salah');
     var maks = parseInt(wadah.dataset.maks, 10);
     var placeholder = input.placeholder;
     var aktif = -1;
@@ -340,7 +351,8 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
         input.placeholder = penuh ? 'Maksimal ' + maks + ' penulis' : (dipilih.length ? 'Tambah penulis lain...' : placeholder);
     }
 
-    // opsi daftar: penulis yang cocok & belum dipilih, lalu opsi tambah penulis baru dari teks yang diketik
+    // opsi daftar: penulis yang cocok & belum dipilih, lalu opsi tambah penulis baru
+    // (dari teks yang diketik, atau "+ Tambah penulis baru..." yang membuka kolom nama baru)
     function opsiDaftar() {
         var teks = input.value.trim();
         var kata = teks.toLowerCase().split(/\s+/).filter(Boolean);
@@ -352,6 +364,8 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
             || dipilih.some(function (p) { return sama(p.teks, teks); });
         if (teks && !adaPersis) {
             opsi.push({ nilai: 'baru:' + teks, teks: teks, baru: true });
+        } else if (!teks) {
+            opsi.push({ bukaKolomBaru: true });
         }
         return opsi;
     }
@@ -363,8 +377,9 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
             var li = document.createElement('li');
             li.id = 'opsi_penulis_' + i;
             li.setAttribute('role', 'option');
-            li.textContent = p.baru ? '+ Tambah "' + p.teks + '" sebagai penulis baru' : p.teks;
-            if (p.baru) { li.className = 'opsi-baru'; }
+            li.textContent = p.bukaKolomBaru ? '+ Tambah penulis baru...'
+                : (p.baru ? '+ Tambah "' + p.teks + '" sebagai penulis baru' : p.teks);
+            if (p.baru || p.bukaKolomBaru) { li.className = 'opsi-baru'; }
             li.addEventListener('mousedown', function (e) {
                 e.preventDefault();   // terpilih sebelum kolom kehilangan fokus
                 pilih(p);
@@ -374,7 +389,7 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
         if (opsi.length === 0) {
             var kosong = document.createElement('li');
             kosong.className = 'pilih-cari-kosong';
-            kosong.textContent = input.value.trim() ? 'Penulis ini sudah dipilih.' : 'Semua penulis sudah dipilih. Ketik nama untuk menambah penulis baru.';
+            kosong.textContent = 'Penulis ini sudah dipilih.';
             daftar.appendChild(kosong);
         }
         tandaiAktif(0);
@@ -402,6 +417,7 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
     }
 
     function pilih(p) {
+        if (p.bukaKolomBaru) { bukaKolomBaru(); return; }
         if (dipilih.length >= maks || sudahDipilih(p)) { return; }
         dipilih.push(p);
         input.value = '';
@@ -410,6 +426,45 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
         gambarTerpilih();
         if (input.disabled) { tutup(); } else { buka(); }
     }
+
+    // kolom nama penulis baru (seperti kolom kategori baru)
+    function bukaKolomBaru() {
+        tutup();
+        kotakBaru.hidden = false;
+        pesanBaru.hidden = true;
+        inputBaru.focus();
+    }
+    function tutupKolomBaru() {
+        kotakBaru.hidden = true;
+        inputBaru.value = '';
+        pesanBaru.hidden = true;
+    }
+    // penulis lama dipakai bila namanya sama persis; mengembalikan false bila belum bisa ditambahkan
+    function tambahDariKolomBaru() {
+        var teks = inputBaru.value.trim();
+        var salah = !teks ? 'Nama penulis baru wajib diisi.'
+            : dipilih.some(function (d) { return sama(d.teks, teks); }) ? 'Penulis ini sudah dipilih.'
+            : dipilih.length >= maks ? 'Penulis maksimal ' + maks + ' orang.' : '';
+        if (salah) {
+            pesanBaru.textContent = salah;
+            pesanBaru.hidden = false;
+            inputBaru.focus();
+            return false;
+        }
+        var ada = semuaPenulis.filter(function (p) { return sama(p.teks, teks); })[0];
+        tutupKolomBaru();
+        pilih(ada || { nilai: 'baru:' + teks, teks: teks, baru: true });
+        tutup();
+        return true;
+    }
+
+    kotakBaru.querySelector('button').addEventListener('click', tambahDariKolomBaru);
+    inputBaru.addEventListener('keydown', function (e) {
+        // Enter menambahkan penulis, bukan mengirim form
+        if (e.key === 'Enter') { e.preventDefault(); tambahDariKolomBaru(); }
+        else if (e.key === 'Escape') { tutupKolomBaru(); input.focus(); }
+    });
+    inputBaru.addEventListener('input', function () { pesanBaru.hidden = true; });
 
     input.addEventListener('focus', buka);
     input.addEventListener('click', buka);
@@ -433,6 +488,11 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
     input.addEventListener('blur', tutup);
 
     input.form.addEventListener('submit', function (e) {
+        // nama di kolom penulis baru yang belum ditambahkan ikut tersimpan
+        if (!kotakBaru.hidden && inputBaru.value.trim() && !tambahDariKolomBaru()) {
+            e.preventDefault();
+            return;
+        }
         // nama yang sudah diketik tapi belum dipilih tetap ikut tersimpan (penulis lama bila namanya sama persis)
         var teks = input.value.trim();
         if (teks && !input.disabled) {

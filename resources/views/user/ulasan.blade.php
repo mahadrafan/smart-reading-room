@@ -275,7 +275,7 @@
 @endsection
 
 @section('scripts')
-<script src="{{ asset('js/filter-daftar.js') }}"></script>
+<script src="{{ asset('js/filter-daftar.js') }}?v={{ filemtime(public_path('js/filter-daftar.js')) }}"></script>
 <script>
 (function () {
     // filter: pilihan buku & rating langsung diterapkan (public/js/filter-daftar.js)

@@ -112,7 +112,7 @@
 @endsection
 
 @section('scripts')
-    <script src="{{ asset('js/filter-daftar.js') }}"></script>
+    <script src="{{ asset('js/filter-daftar.js') }}?v={{ filemtime(public_path('js/filter-daftar.js')) }}"></script>
     <script>
         var formFilter = document.querySelector('[data-filter-daftar]');
         if (formFilter) { pasangFilterDaftar(formFilter); }

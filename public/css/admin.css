@@ -169,7 +169,8 @@ a:hover { color: var(--kayu-gelap); }
     text-decoration: none;
     text-align: center;
 }
-.tombol:hover { background: var(--kayu-gelap); }
+/* warna teks ditulis ulang: tanpa ini aturan a:hover ikut mewarnai teks tombol <a> sewarna latarnya */
+.tombol:hover { background: var(--kayu-gelap); color: #fff; }
 .tombol-kecil { padding: 6px 14px; font-size: 13px; }
 .tombol-bahaya { background: var(--merah); }
 .tombol-bahaya:hover { background: #ad1f2f; }
@@ -178,6 +179,7 @@ a:hover { color: var(--kayu-gelap); }
     color: var(--kayu);
     border: 1.5px solid var(--kayu);
 }
+.tombol-luar:hover { background: var(--kayu-muda); color: var(--kayu-gelap); }
 .tombol-belum { background: var(--merah); }
 .tombol-belum:hover { background: #ad1f2f; }
 
@@ -243,6 +245,8 @@ table.tabel td.aksi .bahaya { color: var(--merah); }
 .pilih-cari-daftar [role="option"]:hover, .pilih-cari-daftar [role="option"].aktif { background: #f5ebdf; }
 .pilih-cari-daftar [role="option"][aria-selected="true"] { color: var(--kayu); font-weight: 700; }
 .pilih-cari-daftar .opsi-baru { margin-top: 4px; border-top: 1px solid var(--garis); border-radius: 0 0 6px 6px; color: var(--kayu); font-weight: 600; }
+/* opsi tambah baru menempel di bawah daftar agar tetap terlihat walau daftarnya panjang */
+.pilih-cari-daftar .opsi-baru { position: sticky; bottom: -6px; background: #fff; }
 .pilih-cari-kosong { padding: 8px 12px; font-size: 13px; color: var(--abu); }
 
 /* penulis terpilih di form buku (bisa lebih dari satu) */
@@ -260,6 +264,11 @@ table.tabel td.aksi .bahaya { color: var(--merah); }
     color: var(--abu); background: transparent; border: 0; border-radius: 50%; cursor: pointer;
 }
 .penulis-chip-hapus:hover, .penulis-chip-hapus:focus-visible { color: var(--merah); background: #fff; }
+.penulis-baru { margin-top: 10px; }
+.penulis-baru[hidden] { display: none !important; }
+.penulis-baru-baris { display: flex; align-items: center; gap: 8px; }
+.penulis-baru-baris input { flex: 1; min-width: 0; }
+.penulis-baru-baris .tombol { flex-shrink: 0; }
 #penulis_cadangan { width: 100%; padding: 6px; border: 1.5px solid var(--garis); border-radius: 10px; font: inherit; font-size: 14px; }
 /* opsi hasil saringan disembunyikan dengan atribut hidden */
 .pilih-cari[hidden], .pilih-cari [hidden] { display: none !important; }
