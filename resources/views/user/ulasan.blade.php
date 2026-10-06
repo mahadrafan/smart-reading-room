@@ -122,7 +122,7 @@
                         </div>
                         <div class="ringkasan-buku-info">
                             <div class="ringkasan-buku-judul">{{ $bukuDipilih->title }}</div>
-                            <div class="ringkasan-buku-penulis">{{ $bukuDipilih->author->author_name ?? 'Penulis tidak diketahui' }}</div>
+                            <div class="ringkasan-buku-penulis">{{ $bukuDipilih->nama_penulis ?? 'Penulis tidak diketahui' }}</div>
                         </div>
                         <div class="ringkasan-buku-rating">
                             <div class="bintang-rata" role="img" aria-label="Rating rata-rata {{ number_format($bukuDipilih->rata_rating, 1) }} dari 5">

@@ -11,7 +11,7 @@
         <a href="{{ route('buku.detail', $b->book_id) }}" class="tautan-judul">
             <h3>{{ $b->title }}</h3>
         </a>
-        <p class="penulis">{{ $b->author ? $b->author->author_name : 'Penulis belum diisi' }}</p>
+        <p class="penulis">{{ $b->nama_penulis ?? 'Penulis belum diisi' }}</p>
 
         @if ($b->description)
             <p class="sinopsis-ringkas">{{ Str::limit($b->description, 90) }}</p>

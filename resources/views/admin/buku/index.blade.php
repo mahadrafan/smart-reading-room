@@ -37,7 +37,7 @@
                     <tr>
                         <td>{{ $b->title }}</td>
                         <td>{{ $b->category ? $b->category->category_name : '-' }}</td>
-                        <td>{{ $b->author ? $b->author->author_name : '-' }}</td>
+                        <td>{{ $b->nama_penulis ?? '-' }}</td>
                         <td>{{ $b->stock }}</td>
                         <td>{{ $b->available_stock }}</td>
                         <td>{{ $b->creator ? $b->creator->name : '-' }}</td>

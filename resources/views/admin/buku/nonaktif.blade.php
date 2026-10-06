@@ -49,7 +49,7 @@
                             @endif
                         </td>
                         <td>{{ $b->category->category_name ?? '-' }}</td>
-                        <td>{{ $b->author->author_name ?? '-' }}</td>
+                        <td>{{ $b->nama_penulis ?? '-' }}</td>
                         <td>{{ $b->stock }}</td>
                         <td class="info-nonaktif">
                             @if ($b->jumlah_pinjaman == 0 && $b->jumlah_ulasan == 0)

@@ -4,7 +4,7 @@
     $pinjam = $pinjam ?? null;
     $info = $info ?? null;
     $tautan = $pinjam ? route('peminjaman.detail', $pinjam->loan_id) : route('buku.detail', $b->book_id);
-    $penulis = $b->author ? $b->author->author_name : 'Penulis belum diisi';
+    $penulis = $b->nama_penulis ?? 'Penulis belum diisi';
 
     // keterangan di bawah rak + progress masa pinjam (hanya untuk buku yang sedang dipinjam)
     $progres = null;

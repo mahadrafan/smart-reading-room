@@ -12,8 +12,9 @@ class Author extends Model
 
     protected $fillable = ['author_name', 'biography'];
 
+    // satu penulis bisa menulis banyak buku, satu buku bisa punya banyak penulis (tabel book_authors)
     public function books()
     {
-        return $this->hasMany(Book::class, 'author_id', 'author_id');
+        return $this->belongsToMany(Book::class, 'book_authors', 'author_id', 'book_id');
     }
 }

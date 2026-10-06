@@ -10,7 +10,21 @@
 @php
     // nilai terpilih (input lama saat validasi gagal, atau data buku saat edit)
     $idKategori = (string) old('category_id', $buku->category_id ?? '');
-    $idPenulis  = (string) old('author_id', $buku->author_id ?? '');
+
+    // penulis terpilih berurutan: id penulis yang sudah ada atau "baru:Nama" untuk penulis baru
+    $namaPenulis = $penulis->pluck('author_name', 'author_id');
+    $nilaiPenulis = (array) old('penulis', $buku ? $buku->authors->pluck('author_id')->all() : []);
+    $penulisAwal = collect($nilaiPenulis)->map(function ($nilai) use ($namaPenulis) {
+        $nilai = trim((string) $nilai);
+        if (ctype_digit($nilai) && isset($namaPenulis[$nilai])) {
+            return ['nilai' => $nilai, 'teks' => $namaPenulis[$nilai]];
+        }
+        if (str_starts_with($nilai, 'baru:') && trim(substr($nilai, 5)) !== '') {
+            return ['nilai' => $nilai, 'teks' => trim(substr($nilai, 5)), 'baru' => true];
+        }
+        return null;
+    })->filter()->values();
+    $idPenulisAwal = $penulisAwal->pluck('nilai')->all();
 @endphp
 <div class="dua-kolom">
     <div class="isian">
@@ -46,36 +60,36 @@
         </div>
     </div>
     <div class="isian">
-        <label for="author_id" id="label_author_id">Penulis</label>
+        <label for="penulis_cadangan" id="label_penulis">Penulis</label>
 
-        {{-- pencarian penulis: aktif lewat JavaScript, nilainya disalin ke <select> di bawah --}}
-        <div class="pilih-cari" data-pilih-cari data-select="author_id" data-jenis="penulis"
-             data-baru-box="kotak_penulis_baru" data-baru-input="new_author_name" hidden>
-            <input type="text" class="@error('author_id') salah @enderror" placeholder="Cari penulis..."
-                   autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false">
-            <ul class="pilih-cari-daftar" role="listbox" aria-labelledby="label_author_id" hidden></ul>
+        {{-- pilihan penulis (aktif lewat JavaScript): penulis terpilih tampil berurutan, kolom di bawahnya untuk menambah --}}
+        <div class="pilih-penulis" data-pilih-penulis data-maks="{{ \App\Http\Controllers\Admin\BukuController::MAKS_PENULIS }}"
+             data-awal="{{ $penulisAwal->toJson() }}" hidden>
+            <ul class="penulis-terpilih" aria-label="Penulis terpilih"></ul>
+            <div class="pilih-cari">
+                <input type="text" class="@error('penulis') salah @enderror" placeholder="Cari atau tambah penulis..."
+                       autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false"
+                       aria-labelledby="label_penulis" aria-describedby="info_penulis">
+                <ul class="pilih-cari-daftar" id="daftar_penulis" role="listbox" aria-labelledby="label_penulis" hidden></ul>
+            </div>
         </div>
 
-        {{-- setiap buku wajib punya penulis: placeholder tidak bisa dipilih --}}
-        <select id="author_id" name="author_id" class="@error('author_id') salah @enderror" required onchange="togglePenulisBaru(this.value)">
-            <option value="" disabled {{ $idPenulis === '' ? 'selected' : '' }}>- Pilih penulis -</option>
-            <option value="new" {{ $idPenulis === 'new' ? 'selected' : '' }}>+ Tambah Penulis Baru...</option>
-            @foreach ($penulis as $p)
-                <option value="{{ $p->author_id }}" {{ $idPenulis === (string) $p->author_id ? 'selected' : '' }}>
-                    {{ $p->author_name }}
-                </option>
-            @endforeach
-        </select>
-        @error('author_id')<p class="pesan-salah">{{ $message }}</p>@enderror
-        <p class="pesan-salah" data-pesan-wajib hidden>Penulis wajib dipilih.</p>
-
-        <div id="kotak_penulis_baru" style="margin-top: 10px; display: {{ $idPenulis === 'new' ? 'block' : 'none' }};">
-            <input type="text" id="new_author_name" name="new_author_name"
-                   value="{{ old('new_author_name') }}"
-                   placeholder="Tuliskan nama penulis baru..."
-                   class="@error('new_author_name') salah @enderror">
-            @error('new_author_name')<p class="pesan-salah">{{ $message }}</p>@enderror
+        {{-- tanpa JavaScript: pilih beberapa penulis di daftar + satu nama penulis baru --}}
+        <div data-penulis-cadangan>
+            <select id="penulis_cadangan" name="penulis[]" multiple size="6" class="@error('penulis') salah @enderror">
+                @foreach ($penulis as $p)
+                    <option value="{{ $p->author_id }}" {{ in_array((string) $p->author_id, $idPenulisAwal, true) ? 'selected' : '' }}>
+                        {{ $p->author_name }}
+                    </option>
+                @endforeach
+            </select>
+            <input type="text" name="penulis_baru" value="{{ old('penulis_baru') }}" maxlength="100"
+                   placeholder="Atau tulis nama penulis baru..." style="margin-top: 8px;">
         </div>
+
+        <p class="pesan-info" id="info_penulis">Bisa lebih dari satu penulis; urutan tampil sesuai urutan dipilih.</p>
+        @error('penulis')<p class="pesan-salah">{{ $message }}</p>@enderror
+        <p class="pesan-salah" data-pesan-penulis hidden>Penulis wajib dipilih.</p>
     </div>
 </div>
 
@@ -87,13 +101,7 @@ function toggleKategoriBaru(val) {
     if (val === 'new') { document.getElementById('new_category_name').focus(); }
 }
 
-function togglePenulisBaru(val) {
-    const box = document.getElementById('kotak_penulis_baru');
-    box.style.display = val === 'new' ? 'block' : 'none';
-    if (val === 'new') { document.getElementById('new_author_name').focus(); }
-}
-
-// pencarian kategori & penulis: daftar dibuat dari <select>, termasuk opsi "+ Tambah ... baru"
+// pencarian kategori: daftar dibuat dari <select>, termasuk opsi "+ Tambah ... baru"
 document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
     var select = document.getElementById(wadah.dataset.select);
     var input = wadah.querySelector('input');
@@ -261,6 +269,189 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
         }
     });
 });
+
+// pilihan penulis (bisa lebih dari satu): penulis terpilih berurutan + kolom cari / tambah penulis baru.
+// setiap penulis terpilih membawa <input hidden name="penulis[]"> berisi id penulis atau "baru:Nama"
+(function () {
+    var wadah = document.querySelector('[data-pilih-penulis]');
+    if (!wadah) { return; }
+    var cadangan = document.querySelector('[data-penulis-cadangan]');
+    var selectCadangan = cadangan.querySelector('select');
+    var terpilih = wadah.querySelector('.penulis-terpilih');
+    var input = wadah.querySelector('input[role="combobox"]');
+    var daftar = wadah.querySelector('[role="listbox"]');
+    var pesan = document.querySelector('[data-pesan-penulis]');
+    var maks = parseInt(wadah.dataset.maks, 10);
+    var placeholder = input.placeholder;
+    var aktif = -1;
+
+    // semua penulis yang sudah ada, diambil dari daftar cadangan
+    var semuaPenulis = Array.prototype.map.call(selectCadangan.options, function (o) {
+        return { nilai: o.value, teks: o.textContent.trim() };
+    });
+    var dipilih = JSON.parse(wadah.dataset.awal || '[]');
+
+    // aktifkan tampilan JavaScript; daftar cadangan dimatikan agar tidak ikut terkirim
+    wadah.hidden = false;
+    cadangan.hidden = true;
+    cadangan.querySelectorAll('select, input').forEach(function (el) { el.disabled = true; });
+    document.getElementById('label_penulis').removeAttribute('for');
+    input.setAttribute('aria-controls', daftar.id);
+
+    function sama(a, b) { return a.toLowerCase() === b.toLowerCase(); }
+    function sudahDipilih(p) {
+        return dipilih.some(function (d) { return d.nilai === p.nilai || sama(d.teks, p.teks); });
+    }
+
+    function gambarTerpilih() {
+        terpilih.innerHTML = '';
+        dipilih.forEach(function (p, i) {
+            var li = document.createElement('li');
+            li.className = 'penulis-chip' + (p.baru ? ' baru' : '');
+
+            var nama = document.createElement('span');
+            nama.textContent = (dipilih.length > 1 ? (i + 1) + '. ' : '') + p.teks + (p.baru ? ' (baru)' : '');
+            li.appendChild(nama);
+
+            var nilai = document.createElement('input');
+            nilai.type = 'hidden';
+            nilai.name = 'penulis[]';
+            nilai.value = p.nilai;
+            li.appendChild(nilai);
+
+            var hapus = document.createElement('button');
+            hapus.type = 'button';
+            hapus.className = 'penulis-chip-hapus';
+            hapus.setAttribute('aria-label', 'Hapus penulis ' + p.teks);
+            hapus.textContent = '×';
+            hapus.addEventListener('click', function () {
+                dipilih.splice(i, 1);
+                gambarTerpilih();
+                input.focus();
+            });
+            li.appendChild(hapus);
+
+            terpilih.appendChild(li);
+        });
+        terpilih.hidden = dipilih.length === 0;
+
+        var penuh = dipilih.length >= maks;
+        input.disabled = penuh;
+        input.placeholder = penuh ? 'Maksimal ' + maks + ' penulis' : (dipilih.length ? 'Tambah penulis lain...' : placeholder);
+    }
+
+    // opsi daftar: penulis yang cocok & belum dipilih, lalu opsi tambah penulis baru dari teks yang diketik
+    function opsiDaftar() {
+        var teks = input.value.trim();
+        var kata = teks.toLowerCase().split(/\s+/).filter(Boolean);
+        var opsi = semuaPenulis.filter(function (p) {
+            var nama = p.teks.toLowerCase();
+            return !sudahDipilih(p) && kata.every(function (k) { return nama.indexOf(k) !== -1; });
+        });
+        var adaPersis = semuaPenulis.some(function (p) { return sama(p.teks, teks); })
+            || dipilih.some(function (p) { return sama(p.teks, teks); });
+        if (teks && !adaPersis) {
+            opsi.push({ nilai: 'baru:' + teks, teks: teks, baru: true });
+        }
+        return opsi;
+    }
+
+    function gambarDaftar() {
+        var opsi = opsiDaftar();
+        daftar.innerHTML = '';
+        opsi.forEach(function (p, i) {
+            var li = document.createElement('li');
+            li.id = 'opsi_penulis_' + i;
+            li.setAttribute('role', 'option');
+            li.textContent = p.baru ? '+ Tambah "' + p.teks + '" sebagai penulis baru' : p.teks;
+            if (p.baru) { li.className = 'opsi-baru'; }
+            li.addEventListener('mousedown', function (e) {
+                e.preventDefault();   // terpilih sebelum kolom kehilangan fokus
+                pilih(p);
+            });
+            daftar.appendChild(li);
+        });
+        if (opsi.length === 0) {
+            var kosong = document.createElement('li');
+            kosong.className = 'pilih-cari-kosong';
+            kosong.textContent = input.value.trim() ? 'Penulis ini sudah dipilih.' : 'Semua penulis sudah dipilih. Ketik nama untuk menambah penulis baru.';
+            daftar.appendChild(kosong);
+        }
+        tandaiAktif(0);
+        return opsi;
+    }
+
+    function tandaiAktif(i) {
+        var opsi = daftar.querySelectorAll('[role="option"]');
+        Array.prototype.forEach.call(opsi, function (o) { o.classList.remove('aktif'); });
+        aktif = opsi.length ? Math.max(0, Math.min(i, opsi.length - 1)) : -1;
+        if (aktif >= 0) {
+            opsi[aktif].classList.add('aktif');
+            opsi[aktif].scrollIntoView({ block: 'nearest' });
+            input.setAttribute('aria-activedescendant', opsi[aktif].id);
+        } else {
+            input.removeAttribute('aria-activedescendant');
+        }
+    }
+
+    function buka() { gambarDaftar(); daftar.hidden = false; input.setAttribute('aria-expanded', 'true'); }
+    function tutup() {
+        daftar.hidden = true;
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+    }
+
+    function pilih(p) {
+        if (dipilih.length >= maks || sudahDipilih(p)) { return; }
+        dipilih.push(p);
+        input.value = '';
+        input.classList.remove('salah');
+        pesan.hidden = true;
+        gambarTerpilih();
+        if (input.disabled) { tutup(); } else { buka(); }
+    }
+
+    input.addEventListener('focus', buka);
+    input.addEventListener('click', buka);
+    input.addEventListener('input', buka);
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (daftar.hidden) { buka(); } else { tandaiAktif(aktif + 1); } }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); tandaiAktif(aktif - 1); }
+        else if (e.key === 'Enter') {
+            // Enter tidak mengirim form: memilih opsi yang sedang disorot
+            e.preventDefault();
+            var opsi = opsiDaftar();
+            if (!daftar.hidden && opsi[aktif]) { pilih(opsi[aktif]); }
+        } else if (e.key === 'Escape') { tutup(); }
+        else if (e.key === 'Backspace' && input.value === '' && dipilih.length) {
+            // hapus penulis terakhir
+            dipilih.pop();
+            gambarTerpilih();
+            buka();
+        }
+    });
+    input.addEventListener('blur', tutup);
+
+    input.form.addEventListener('submit', function (e) {
+        // nama yang sudah diketik tapi belum dipilih tetap ikut tersimpan (penulis lama bila namanya sama persis)
+        var teks = input.value.trim();
+        if (teks && !input.disabled) {
+            var ada = semuaPenulis.filter(function (p) { return sama(p.teks, teks); })[0];
+            pilih(ada || { nilai: 'baru:' + teks, teks: teks, baru: true });
+            tutup();
+        }
+
+        // buku wajib punya minimal satu penulis
+        if (dipilih.length === 0) {
+            e.preventDefault();
+            input.classList.add('salah');
+            pesan.hidden = false;
+            input.focus();
+        }
+    });
+
+    gambarTerpilih();
+})();
 </script>
 
 <div class="dua-kolom">

@@ -11,11 +11,11 @@ class Book extends Model
     protected $primaryKey = 'book_id';
     public $timestamps = false;
 
-   protected $fillable = [
-    'category_id', 'author_id', 'title', 'publisher', 'publication_year',
-    'description', 'location', 'stock', 'available_stock', 'is_active',
-    'cover_image', 'created_by', 'updated_by', 'updated_at',
-];
+    protected $fillable = [
+        'category_id', 'title', 'publisher', 'publication_year',
+        'description', 'location', 'stock', 'available_stock', 'is_active',
+        'cover_image', 'created_by', 'updated_by', 'updated_at',
+    ];
 
     // url sampul yang bisa diakses browser, null kalau path kosong atau filenya tidak ada di disk public
     public function getCoverUrlAttribute()
@@ -38,9 +38,26 @@ class Book extends Model
         return $this->belongsTo(Category::class, 'category_id', 'category_id');
     }
 
-    public function author()
+    // penulis buku (bisa lebih dari satu), urut sesuai urutan yang dipilih admin
+    public function authors()
     {
-        return $this->belongsTo(Author::class, 'author_id', 'author_id');
+        return $this->belongsToMany(Author::class, 'book_authors', 'book_id', 'author_id')
+            ->withPivot('urutan')
+            ->orderBy('book_authors.urutan');
+    }
+
+    // nama semua penulis dalam satu teks, misalnya "Jim Kurose, Keith Ross"; null bila belum ada penulis.
+    // nama bergelar sudah memakai koma ("Sugeng Winardi, S.Kom., M.T."), jadi pemisahnya diganti titik koma
+    public function getNamaPenulisAttribute(): ?string
+    {
+        $nama = $this->authors->pluck('author_name');
+        if ($nama->isEmpty()) {
+            return null;
+        }
+
+        $adaKoma = $nama->contains(fn ($n) => str_contains($n, ','));
+
+        return $nama->join($adaKoma ? '; ' : ', ');
     }
 
     public function loans()

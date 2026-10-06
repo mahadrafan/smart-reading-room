@@ -55,9 +55,8 @@ class DatabaseSeeder extends Seeder
             ['biography' => 'Penulis dan praktisi rekayasa perangkat lunak.']
         );
 
-        Book::firstOrCreate(['title' => 'Laskar Pelangi'], [
+        $laskar = Book::firstOrCreate(['title' => 'Laskar Pelangi'], [
             'category_id' => $fiksi->category_id,
-            'author_id' => $andrea->author_id,
             'publisher' => 'Bentang Pustaka',
             'publication_year' => 2005,
             'description' => 'Kisah perjuangan anak-anak Belitung untuk memperoleh pendidikan.',
@@ -68,9 +67,8 @@ class DatabaseSeeder extends Seeder
             'created_by' => $admin->user_id,
         ]);
 
-        Book::firstOrCreate(['title' => 'Clean Code'], [
+        $cleanCode = Book::firstOrCreate(['title' => 'Clean Code'], [
             'category_id' => $teknologi->category_id,
-            'author_id' => $martin->author_id,
             'publisher' => 'Prentice Hall',
             'publication_year' => 2008,
             'description' => 'Panduan menulis kode yang bersih, mudah dibaca, dan mudah dirawat.',
@@ -80,5 +78,9 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
             'created_by' => $admin->user_id,
         ]);
+
+        // penulis buku disimpan di tabel book_authors (satu buku bisa punya beberapa penulis)
+        $laskar->authors()->syncWithoutDetaching([$andrea->author_id => ['urutan' => 1]]);
+        $cleanCode->authors()->syncWithoutDetaching([$martin->author_id => ['urutan' => 1]]);
     }
 }

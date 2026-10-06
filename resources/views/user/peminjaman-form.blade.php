@@ -57,9 +57,9 @@
                                 @endphp
                                 <li id="opsi-buku-{{ $b->book_id }}" role="option" aria-selected="false"
                                     data-id="{{ $b->book_id }}" data-judul="{{ $b->title }}"
-                                    data-cari="{{ Str::lower($b->title . ' ' . ($b->author->author_name ?? '')) }}"
+                                    data-cari="{{ Str::lower($b->title . ' ' . ($b->nama_penulis ?? '')) }}"
                                     data-sampul="{{ $b->cover_url }}" data-warna="{{ $polos['warna'] }}" data-inisial="{{ $polos['inisial'] }}"
-                                    data-penulis="{{ $b->author->author_name ?? 'Penulis belum diisi' }}"
+                                    data-penulis="{{ $b->nama_penulis ?? 'Penulis belum diisi' }}"
                                     data-kategori="{{ $b->category->category_name ?? '' }}"
                                     data-tersedia="{{ $b->available_stock }}" data-stok="{{ $b->stock }}"
                                     data-lokasi="{{ $b->location }}"
@@ -68,7 +68,7 @@
                                     @if ($bolehMulai)
                                         <span class="opsi-meta">Baru kamu kembalikan · bisa dipinjam lagi mulai {{ $bolehMulai->format('d M Y') }}</span>
                                     @else
-                                        <span class="opsi-meta">{{ $b->author->author_name ?? 'Penulis belum diisi' }} · tersedia {{ $b->available_stock }}</span>
+                                        <span class="opsi-meta">{{ $b->nama_penulis ?? 'Penulis belum diisi' }} · tersedia {{ $b->available_stock }}</span>
                                     @endif
                                 </li>
                             @endforeach
@@ -177,7 +177,7 @@
                 </div>
                 <span class="label-kat" id="panel-kategori" @unless ($bukuAwal?->category) hidden @endunless>{{ $bukuAwal?->category?->category_name }}</span>
                 <h2 id="panel-judul">{{ $bukuAwal?->title }}</h2>
-                <p class="panel-sampul-penulis" id="panel-penulis">{{ $bukuAwal ? ($bukuAwal->author->author_name ?? 'Penulis belum diisi') : '' }}</p>
+                <p class="panel-sampul-penulis" id="panel-penulis">{{ $bukuAwal ? ($bukuAwal->nama_penulis ?? 'Penulis belum diisi') : '' }}</p>
                 <dl class="panel-sampul-data">
                     <div><dt>Tersedia</dt><dd id="panel-tersedia">{{ $bukuAwal ? $bukuAwal->available_stock . ' dari ' . $bukuAwal->stock : '' }}</dd></div>
                     <div><dt>Lokasi rak</dt><dd id="panel-lokasi">{{ $bukuAwal?->location ?: '-' }}</dd></div>

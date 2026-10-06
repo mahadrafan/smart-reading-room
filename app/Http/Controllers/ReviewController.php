@@ -30,7 +30,7 @@ class ReviewController extends Controller
 
         $bukuDipilih = $request->filled('buku')
             ? Book::aktif()
-                ->with('author')
+                ->with('authors')
                 ->withAvg('reviews as rata_rating', 'rating')
                 ->withCount('reviews as jumlah_rating')
                 ->find($request->buku)
@@ -52,7 +52,7 @@ class ReviewController extends Controller
         $jumlahSemua = (clone $dasar)->count();
         $jumlahSaya = (clone $dasar)->where('user_id', Auth::id())->count();
 
-        $query = (clone $dasar)->with(['user', 'book.author']);
+        $query = (clone $dasar)->with(['user', 'book.authors']);
 
         if ($hanyaSaya) {
             $query->where('user_id', Auth::id());

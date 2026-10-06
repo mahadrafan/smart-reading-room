@@ -15,7 +15,7 @@
                 <span class="label-kat">{{ $buku->category->category_name }}</span>
             @endif
             <h1>{{ $buku->title }}</h1>
-            <p class="penulis">{{ $buku->author ? $buku->author->author_name : 'Penulis belum diisi' }}</p>
+            <p class="penulis">{{ $buku->nama_penulis ?? 'Penulis belum diisi' }}</p>
 
             <table class="tabel-info">
                 <tr><th>ID buku</th><td>{{ $buku->book_id }}</td></tr>

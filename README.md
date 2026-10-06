@@ -132,9 +132,10 @@ File `basdat_final.sql` berisi salinan database pengembangan terbaru, termasuk k
 akun, peminjaman, denda, ulasan, dan notifikasi. Gunakan cara ini jika
 ingin memperoleh data yang sama seperti laptop pengembangan.
 
-Dump ini hanya berisi 8 tabel aplikasi (`users`, `categories`, `authors`, `books`,
-`loans`, `reviews`, `notifications`, `admin_logs`) dan **tidak memuat tabel
-`migrations`**. Karena itu, **jangan menjalankan `php artisan migrate`** pada
+Dump ini hanya berisi 9 tabel aplikasi (`users`, `categories`, `authors`, `books`,
+`book_authors`, `loans`, `reviews`, `notifications`, `admin_logs`) dan **tidak memuat
+tabel `migrations`**. Tabel `book_authors` menghubungkan buku dengan penulisnya,
+karena satu buku bisa ditulis lebih dari satu penulis. Karena itu, **jangan menjalankan `php artisan migrate`** pada
 database hasil impor: Laravel akan mencoba membuat ulang semua tabel dan berhenti
 dengan error *table already exists*. Perubahan struktur database dibagikan dengan
 memperbarui `basdat_final.sql`, lalu setiap anggota mengimpor ulang file tersebut.

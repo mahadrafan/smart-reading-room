@@ -27,7 +27,7 @@ class PeminjamanController extends Controller
 
         // semua peminjaman user: dipakai kartu ringkasan & angka di tab filter, jadi tidak ikut terfilter
         $semua = Loan::where('user_id', Auth::id())
-            ->with(['book.author', 'book.category', 'approver'])
+            ->with(['book.authors', 'book.category', 'approver'])
             ->orderBy('loan_id', 'desc')
             ->get();
 
@@ -68,7 +68,7 @@ class PeminjamanController extends Controller
 
         // hanya buku aktif yang stoknya masih ada (penulis & kategori ikut dimuat untuk pencarian dan panel sampul)
         $daftarBuku = Book::aktif()
-            ->with(['author', 'category'])
+            ->with(['authors', 'category'])
             ->where('available_stock', '>', 0)
             ->orderBy('title')
             ->get();
@@ -189,7 +189,7 @@ class PeminjamanController extends Controller
         Loan::prosesTenggatPengambilan();
 
         $pinjam = Loan::where('user_id', Auth::id())
-            ->with(['book.author', 'book.category', 'approver'])
+            ->with(['book.authors', 'book.category', 'approver'])
             ->findOrFail($id);
 
         return view('user.peminjaman-detail', ['pinjam' => $pinjam]);

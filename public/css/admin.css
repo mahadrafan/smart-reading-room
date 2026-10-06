@@ -244,6 +244,23 @@ table.tabel td.aksi .bahaya { color: var(--merah); }
 .pilih-cari-daftar [role="option"][aria-selected="true"] { color: var(--kayu); font-weight: 700; }
 .pilih-cari-daftar .opsi-baru { margin-top: 4px; border-top: 1px solid var(--garis); border-radius: 0 0 6px 6px; color: var(--kayu); font-weight: 600; }
 .pilih-cari-kosong { padding: 8px 12px; font-size: 13px; color: var(--abu); }
+
+/* penulis terpilih di form buku (bisa lebih dari satu) */
+.penulis-terpilih { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; padding: 0; list-style: none; }
+.penulis-terpilih[hidden], [data-penulis-cadangan][hidden], .pilih-penulis[hidden] { display: none !important; }
+.penulis-chip {
+    display: inline-flex; align-items: center; gap: 4px; max-width: 100%;
+    padding: 5px 6px 5px 12px; font-size: 13px; font-weight: 600; color: var(--coklat-tua);
+    background: var(--kayu-muda); border: 1px solid #e6d3bc; border-radius: 999px;
+}
+.penulis-chip span { overflow-wrap: anywhere; }
+.penulis-chip.baru { background: #fff; border-style: dashed; border-color: var(--kayu); }
+.penulis-chip-hapus {
+    width: 22px; height: 22px; flex-shrink: 0; padding: 0; font: inherit; font-size: 16px; line-height: 1;
+    color: var(--abu); background: transparent; border: 0; border-radius: 50%; cursor: pointer;
+}
+.penulis-chip-hapus:hover, .penulis-chip-hapus:focus-visible { color: var(--merah); background: #fff; }
+#penulis_cadangan { width: 100%; padding: 6px; border: 1.5px solid var(--garis); border-radius: 10px; font: inherit; font-size: 14px; }
 /* opsi hasil saringan disembunyikan dengan atribut hidden */
 .pilih-cari[hidden], .pilih-cari [hidden] { display: none !important; }
 .pesan-salah { margin: 6px 0 0; font-size: 13px; color: var(--merah); }

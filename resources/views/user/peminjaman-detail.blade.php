@@ -21,7 +21,7 @@
             <h2 class="judul-kecil">Buku yang dipinjam</h2>
             <table class="tabel-info">
                 <tr><th>Judul</th><td>{{ $pinjam->book ? $pinjam->book->title : '-' }}</td></tr>
-                <tr><th>Penulis</th><td>{{ ($pinjam->book && $pinjam->book->author) ? $pinjam->book->author->author_name : '-' }}</td></tr>
+                <tr><th>Penulis</th><td>{{ $pinjam->book?->nama_penulis ?? '-' }}</td></tr>
                 <tr><th>Kategori</th><td>{{ ($pinjam->book && $pinjam->book->category) ? $pinjam->book->category->category_name : '-' }}</td></tr>
                 <tr><th>Lokasi rak</th><td>{{ $pinjam->book ? ($pinjam->book->location ?: '-') : '-' }}</td></tr>
             </table>

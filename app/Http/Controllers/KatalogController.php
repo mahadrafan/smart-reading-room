@@ -45,7 +45,7 @@ class KatalogController extends Controller
 
         // semua buku aktif + hitung berapa kali sudah dipinjam, rata-rata rating & jumlah ulasan
         $query = Book::aktif()
-            ->with(['category', 'author'])
+            ->with(['category', 'authors'])
             ->withCount(['loans as jumlah_dipinjam' => function ($q) {
                 $q->whereIn('status', ['Dikonfirmasi', 'Dipinjam', 'Dikembalikan']);
             }])
@@ -56,7 +56,7 @@ class KatalogController extends Controller
         if ($kataKunci) {
             $query->where(function ($w) use ($kataKunci) {
                 $w->where('title', 'like', '%' . $kataKunci . '%')
-                  ->orWhereHas('author', function ($a) use ($kataKunci) {
+                  ->orWhereHas('authors', function ($a) use ($kataKunci) {
                       $a->where('author_name', 'like', '%' . $kataKunci . '%');
                   });
             });
@@ -106,7 +106,7 @@ class KatalogController extends Controller
             // 1. buku yang sedang dipinjam user ini
             $pinjamanAktif = Loan::where('user_id', Auth::id())
                 ->where('status', 'Dipinjam')
-                ->with(['book.category', 'book.author'])
+                ->with(['book.category', 'book.authors'])
                 ->orderBy('due_date')
                 ->get()
                 ->filter(function ($p) {
@@ -115,7 +115,7 @@ class KatalogController extends Controller
 
             // 2. buku yang paling sering dipinjam oleh semua user
             $populer = Book::aktif()
-                ->with(['category', 'author'])
+                ->with(['category', 'authors'])
                 ->withCount(['loans as jumlah_dipinjam' => function ($q) {
                     $q->whereIn('status', ['Dikonfirmasi', 'Dipinjam', 'Dikembalikan']);
                 }])
@@ -129,7 +129,7 @@ class KatalogController extends Controller
 
             // 3. top review: rating rata-rata tertinggi (seri -> ulasan terbanyak), hanya buku yang sudah diulas
             $topReview = Book::aktif()
-                ->with(['category', 'author'])
+                ->with(['category', 'authors'])
                 ->whereHas('reviews')
                 ->withAvg('reviews as rata_rating', 'rating')
                 ->withCount('reviews as jumlah_rating')
@@ -165,7 +165,7 @@ class KatalogController extends Controller
         Loan::prosesTenggatPengambilan();
 
         $buku = Book::aktif()
-            ->with(['category', 'author', 'reviews.user'])
+            ->with(['category', 'authors', 'reviews.user'])
             ->withCount(['loans as jumlah_dipinjam' => function ($q) {
                 $q->whereIn('status', ['Dikonfirmasi', 'Dipinjam', 'Dikembalikan']);
             }])
@@ -189,7 +189,7 @@ class KatalogController extends Controller
 
         // buku lain di kategori yang sama
         $lainnya = Book::aktif()
-            ->with(['category', 'author'])
+            ->with(['category', 'authors'])
             ->where('category_id', $buku->category_id)
             ->where('book_id', '!=', $buku->book_id)
             ->limit(4)

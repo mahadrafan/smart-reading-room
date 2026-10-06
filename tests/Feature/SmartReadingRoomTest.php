@@ -11,7 +11,9 @@ use App\Models\User;
 use App\Models\UserNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -164,8 +166,7 @@ class SmartReadingRoomTest extends TestCase
         $this->post('/admin/buku', [
             'category_id' => 'new',
             'new_category_name' => 'Sains',
-            'author_id' => 'new',
-            'new_author_name' => 'Penulis Uji',
+            'penulis' => ['baru:Penulis Uji'],
             'title' => 'Buku Uji Fitur',
             'publisher' => 'Penerbit Uji',
             'publication_year' => 2026,
@@ -179,13 +180,13 @@ class SmartReadingRoomTest extends TestCase
         $author = Author::where('author_name', 'Penulis Uji')->firstOrFail();
         $book = Book::where('title', 'Buku Uji Fitur')->firstOrFail();
         $this->assertSame($category->category_id, $book->category_id);
-        $this->assertSame($author->author_id, $book->author_id);
+        $this->assertSame([$author->author_id], $book->authors->pluck('author_id')->all());
         $this->assertSame(4, $book->available_stock);
         Storage::disk('public')->assertExists($book->cover_image);
 
         $this->put('/admin/buku/' . $book->book_id, [
             'category_id' => $category->category_id,
-            'author_id' => $author->author_id,
+            'penulis' => [$author->author_id],
             'title' => 'Buku Uji Diperbarui',
             'publisher' => 'Penerbit Uji',
             'publication_year' => 2026,
@@ -204,6 +205,7 @@ class SmartReadingRoomTest extends TestCase
         $admin = $this->makeUser('Admin', 'ADM-TEST');
         $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
         $book = $this->makeBook($admin);   // memakai "Kategori Uji" & "Penulis Uji"
+        $idPenulis = $book->authors->first()->author_id;
         $kategoriKosong = Category::create(['category_name' => 'Pendidikan']);
         $penulisKosong = Author::create(['author_name' => 'Tim Lama']);
         $kategoriNonaktif = Category::create(['category_name' => 'Arsip']);
@@ -230,14 +232,14 @@ class SmartReadingRoomTest extends TestCase
         $this->put('/admin/buku/kategori/' . $kategoriKosong->category_id, ['category_name' => 'Pendidikan & Sekolah', 'description' => 'Buku pelajaran.'])
             ->assertRedirect(route('admin.buku.kategori.index'));
         $this->assertDatabaseHas('categories', ['category_id' => $kategoriKosong->category_id, 'category_name' => 'Pendidikan & Sekolah', 'description' => 'Buku pelajaran.']);
-        $this->put('/admin/buku/penulis/' . $book->author_id, ['author_name' => 'Penulis Uji Diperbarui', 'biography' => 'Bio baru.'])
+        $this->put('/admin/buku/penulis/' . $idPenulis, ['author_name' => 'Penulis Uji Diperbarui', 'biography' => 'Bio baru.'])
             ->assertRedirect(route('admin.buku.penulis.index'));
-        $this->assertSame('Penulis Uji Diperbarui', $book->fresh()->author->author_name);
+        $this->assertSame('Penulis Uji Diperbarui', $book->fresh()->nama_penulis);
 
         // yang masih dipakai buku (termasuk buku nonaktif) tidak bisa dihapus
         $this->delete('/admin/buku/kategori/' . $book->category_id)->assertSessionHas('error');
         $this->delete('/admin/buku/kategori/' . $kategoriNonaktif->category_id)->assertSessionHas('error');
-        $this->delete('/admin/buku/penulis/' . $book->author_id)->assertSessionHas('error');
+        $this->delete('/admin/buku/penulis/' . $idPenulis)->assertSessionHas('error');
         $this->assertDatabaseHas('categories', ['category_id' => $kategoriNonaktif->category_id]);
 
         // yang tidak dipakai bisa dihapus
@@ -339,7 +341,7 @@ class SmartReadingRoomTest extends TestCase
         $dipinjam = $this->makeLoan($siswaA, $book, ['status' => 'Dipinjam']);
         $this->makeLoan($siswaB, $book, ['status' => 'Dikonfirmasi', 'approved_by' => $admin->user_id, 'approved_at' => now()]);
         $book->update(['available_stock' => 1]);
-        $dataBuku = ['title' => $book->title, 'category_id' => $book->category_id, 'author_id' => $book->author_id];
+        $dataBuku = ['title' => $book->title, 'category_id' => $book->category_id, 'penulis' => $book->authors->pluck('author_id')->all()];
 
         // form edit memberi tahu batas minimalnya
         $this->actingAs($admin)->get('/admin/buku/' . $book->book_id . '/edit')->assertOk()
@@ -369,39 +371,145 @@ class SmartReadingRoomTest extends TestCase
         $admin = $this->makeUser('Admin', 'ADM-TEST');
         $book = $this->makeBook($admin);
         $kategoriAwal = $book->category_id;
-        $penulisAwal = $book->author_id;
+        $penulisAwal = $book->authors->first()->author_id;
         $dataBuku = ['title' => $book->title, 'stock' => 3];
+        $penulisBuku = fn () => $book->fresh()->authors->pluck('author_id')->all();
 
         // tanpa kategori & penulis: ditolak, data buku tidak berubah
-        $this->actingAs($admin)->put('/admin/buku/' . $book->book_id, $dataBuku + ['category_id' => '', 'author_id' => ''])
-            ->assertSessionHasErrors(['category_id' => 'Kategori wajib dipilih.', 'author_id' => 'Penulis wajib dipilih.']);
+        $this->actingAs($admin)->put('/admin/buku/' . $book->book_id, $dataBuku + ['category_id' => '', 'penulis' => []])
+            ->assertSessionHasErrors(['category_id' => 'Kategori wajib dipilih.', 'penulis' => 'Penulis wajib dipilih.']);
         $this->assertSame($kategoriAwal, $book->fresh()->category_id);
-        $this->assertSame($penulisAwal, $book->fresh()->author_id);
+        $this->assertSame([$penulisAwal], $penulisBuku());
 
         $this->post('/admin/buku', ['title' => 'Buku Tanpa Kategori', 'stock' => 1])
-            ->assertSessionHasErrors(['category_id', 'author_id']);
+            ->assertSessionHasErrors(['category_id', 'penulis']);
         $this->assertDatabaseMissing('books', ['title' => 'Buku Tanpa Kategori']);
 
         // "+ Tambah baru" membuat kategori & penulis baru
         $this->put('/admin/buku/' . $book->book_id, $dataBuku + [
             'category_id' => 'new', 'new_category_name' => 'Sejarah',
-            'author_id' => 'new', 'new_author_name' => 'Penulis Baru',
+            'penulis' => ['baru:Penulis Baru'],
         ])->assertRedirect(route('admin.buku.index'));
         $this->assertSame('Sejarah', $book->fresh()->category->category_name);
-        $this->assertSame('Penulis Baru', $book->fresh()->author->author_name);
+        $this->assertSame('Penulis Baru', $book->fresh()->nama_penulis);
 
         // nama baru yang tertinggal tidak membuat kategori baru bila yang dipilih kategori lama
         $this->put('/admin/buku/' . $book->book_id, $dataBuku + [
             'category_id' => $kategoriAwal, 'new_category_name' => 'Tidak Boleh Dibuat',
-            'author_id' => $penulisAwal,
+            'penulis' => [$penulisAwal],
         ])->assertRedirect(route('admin.buku.index'));
         $this->assertSame($kategoriAwal, $book->fresh()->category_id);
+        $this->assertSame([$penulisAwal], $penulisBuku());
         $this->assertDatabaseMissing('categories', ['category_name' => 'Tidak Boleh Dibuat']);
 
-        // di form edit, pilihan kosong tidak bisa dipilih lagi
+        // di form edit, pilihan kategori kosong tidak bisa dipilih lagi; penulis buku sudah terpilih
         $this->get('/admin/buku/' . $book->book_id . '/edit')->assertOk()
             ->assertSee('<option value="" disabled >- Pilih kategori -</option>', false)
-            ->assertSee('<option value="" disabled >- Pilih penulis -</option>', false);
+            ->assertSee('<option value="' . $penulisAwal . '" selected>', false)
+            ->assertSee('data-pilih-penulis', false);
+    }
+
+    public function test_book_can_have_several_authors_in_chosen_order(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $kategori = Category::create(['category_name' => 'Jaringan']);
+        $kurose = Author::create(['author_name' => 'Jim Kurose']);
+        $tanenbaum = Author::create(['author_name' => 'Andrew Tanenbaum']);
+        $dataBuku = ['category_id' => $kategori->category_id, 'title' => 'Computer Networking', 'stock' => 2];
+        $penulisBuku = fn (Book $b) => $b->fresh()->authors->map(fn ($a) => [$a->author_name, $a->pivot->urutan])->all();
+
+        // penulis lama + penulis baru, urutan sesuai urutan dipilih; nama baru yang sama persis memakai penulis lama
+        $this->actingAs($admin)->post('/admin/buku', $dataBuku + [
+            'penulis' => [$kurose->author_id, 'baru:Keith Ross', 'baru:Andrew Tanenbaum', (string) $kurose->author_id],
+        ])->assertRedirect(route('admin.buku.index'));
+        $book = Book::where('title', 'Computer Networking')->firstOrFail();
+        $this->assertSame([['Jim Kurose', 1], ['Keith Ross', 2], ['Andrew Tanenbaum', 3]], $penulisBuku($book));
+        $this->assertSame(1, Author::where('author_name', 'Andrew Tanenbaum')->count());
+        $this->assertSame('Jim Kurose, Keith Ross, Andrew Tanenbaum', $book->fresh()->nama_penulis);
+        $keith = Author::where('author_name', 'Keith Ross')->firstOrFail();
+
+        // nama penulis tampil di hasil katalog, detail buku, dan daftar Kelola Buku
+        $this->actingAs($borrower)->get(route('dashboard', ['q' => 'networking']))->assertOk()
+            ->assertSee('Jim Kurose, Keith Ross, Andrew Tanenbaum');
+        $this->get('/buku/' . $book->book_id)->assertOk()->assertSee('Jim Kurose, Keith Ross, Andrew Tanenbaum');
+        // pencarian katalog menemukan buku lewat penulis mana pun
+        $this->assertSame(['Computer Networking'],
+            $this->get(route('dashboard', ['q' => 'keith']))->assertOk()->viewData('buku')->pluck('title')->all());
+        $this->actingAs($admin)->get('/admin/buku')->assertOk()->assertSee('Jim Kurose, Keith Ross, Andrew Tanenbaum');
+
+        // form edit memuat penulis berurutan
+        $this->get('/admin/buku/' . $book->book_id . '/edit')->assertOk()
+            ->assertSeeInOrder(['Jim Kurose', 'Keith Ross', 'Andrew Tanenbaum']);
+
+        // edit: urutan diubah dan satu penulis dilepas; penulis yang dilepas tetap ada dan kini bisa dihapus
+        $this->put('/admin/buku/' . $book->book_id, $dataBuku + ['penulis' => [$tanenbaum->author_id, $kurose->author_id]])
+            ->assertRedirect(route('admin.buku.index'));
+        $this->assertSame([['Andrew Tanenbaum', 1], ['Jim Kurose', 2]], $penulisBuku($book));
+        $this->delete('/admin/buku/penulis/' . $kurose->author_id)->assertSessionHas('error');
+        $this->delete('/admin/buku/penulis/' . $keith->author_id)->assertRedirect(route('admin.buku.penulis.index'));
+        $this->assertDatabaseMissing('authors', ['author_id' => $keith->author_id]);
+
+        // tanpa JavaScript: penulis dari daftar + satu nama penulis baru
+        $this->put('/admin/buku/' . $book->book_id, $dataBuku + ['penulis' => [$kurose->author_id], 'penulis_baru' => 'Penulis Cadangan'])
+            ->assertRedirect(route('admin.buku.index'));
+        $this->assertSame([['Jim Kurose', 1], ['Penulis Cadangan', 2]], $penulisBuku($book));
+
+        // isian tidak valid ditolak, penulis buku tidak berubah
+        $salah = [
+            [['999999'], 'Penulis tidak ditemukan.'],
+            [['abc'], 'Penulis tidak valid.'],
+            [['baru:' . str_repeat('a', 101)], 'Nama penulis baru maksimal 100 karakter.'],
+            [array_map(fn ($i) => 'baru:Penulis ' . $i, range(1, 11)), 'Penulis maksimal 10 orang.'],
+        ];
+        foreach ($salah as [$penulis, $pesan]) {
+            $this->put('/admin/buku/' . $book->book_id, $dataBuku + ['penulis' => $penulis])
+                ->assertSessionHasErrors(['penulis' => $pesan]);
+        }
+        $this->assertSame([['Jim Kurose', 1], ['Penulis Cadangan', 2]], $penulisBuku($book));
+        $this->assertDatabaseMissing('authors', ['author_name' => 'Penulis 1']);
+
+        // validasi kolom lain gagal: penulis yang sudah dipilih (termasuk penulis baru) tetap ada di form
+        $this->from('/admin/buku/create')->post('/admin/buku', ['category_id' => $kategori->category_id, 'title' => '', 'stock' => 1,
+            'penulis' => [$kurose->author_id, 'baru:Penulis Kembali']])
+            ->assertRedirect('/admin/buku/create')->assertSessionHasErrors('title');
+        $this->assertDatabaseMissing('authors', ['author_name' => 'Penulis Kembali']);
+        $this->get('/admin/buku/create')->assertOk()
+            ->assertSee('baru:Penulis Kembali', false)
+            ->assertSee('<option value="' . $kurose->author_id . '" selected>', false);
+
+        // nama bergelar sudah memakai koma, jadi pemisah antar penulis memakai titik koma
+        $bergelar = Book::create(['category_id' => $kategori->category_id, 'title' => 'Buku Bergelar', 'stock' => 1,
+            'available_stock' => 1, 'is_active' => true, 'created_by' => $admin->user_id]);
+        $bergelar->authors()->attach([
+            Author::create(['author_name' => 'Sugeng Winardi, S.Kom., M.T.'])->author_id => ['urutan' => 1],
+            Author::create(['author_name' => 'Aris Defiana, S.Kom'])->author_id => ['urutan' => 2],
+        ]);
+        $this->assertSame('Sugeng Winardi, S.Kom., M.T.; Aris Defiana, S.Kom', $bergelar->fresh()->nama_penulis);
+
+        // hapus permanen buku: daftar penulisnya ikut terhapus, penulisnya tetap ada
+        $this->delete('/admin/buku/' . $bergelar->book_id);
+        $this->delete('/admin/buku/' . $bergelar->book_id . '/permanen')->assertRedirect(route('admin.buku.nonaktif'));
+        $this->assertDatabaseMissing('book_authors', ['book_id' => $bergelar->book_id]);
+        $this->assertDatabaseHas('authors', ['author_name' => 'Aris Defiana, S.Kom']);
+    }
+
+    public function test_book_authors_migration_moves_existing_author_and_can_be_rolled_back(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $book = $this->makeBook($admin);
+        $penulis = $book->authors->first()->author_id;
+        $migration = require database_path('migrations/2026_10_07_100000_create_book_authors_table.php');
+
+        // rollback: penulis pertama kembali ke books.author_id, tabel book_authors hilang
+        $migration->down();
+        $this->assertFalse(Schema::hasTable('book_authors'));
+        $this->assertSame($penulis, (int) DB::table('books')->where('book_id', $book->book_id)->value('author_id'));
+
+        // migrate lagi: author_id dipindah ke book_authors (urutan 1) lalu kolomnya dihapus
+        $migration->up();
+        $this->assertFalse(Schema::hasColumn('books', 'author_id'));
+        $this->assertDatabaseHas('book_authors', ['book_id' => $book->book_id, 'author_id' => $penulis, 'urutan' => 1]);
     }
 
     public function test_custom_loan_duration_is_limited_to_14_days(): void
@@ -547,10 +655,9 @@ class SmartReadingRoomTest extends TestCase
         $fiksi = Category::create(['category_name' => 'Fiksi']);
         $sains = Category::create(['category_name' => 'Sains']);
         $sejarah = Category::create(['category_name' => 'Sejarah']);
-        $author = Author::create(['author_name' => 'Penulis Filter']);
 
         $buatBuku = fn (string $judul, Category $kat, int $stok = 3) => Book::create([
-            'category_id' => $kat->category_id, 'author_id' => $author->author_id, 'title' => $judul,
+            'category_id' => $kat->category_id, 'title' => $judul,
             'stock' => 3, 'available_stock' => $stok, 'is_active' => true, 'created_by' => $admin->user_id,
         ]);
         $fiksiA = $buatBuku('A Fiksi Jarang', $fiksi);
@@ -585,9 +692,8 @@ class SmartReadingRoomTest extends TestCase
         $admin = $this->makeUser('Admin', 'ADM-TEST');
         $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
         $category = Category::create(['category_name' => 'Kategori Review']);
-        $author = Author::create(['author_name' => 'Penulis Review']);
         $buatBuku = fn (string $judul) => Book::create([
-            'category_id' => $category->category_id, 'author_id' => $author->author_id, 'title' => $judul,
+            'category_id' => $category->category_id, 'title' => $judul,
             'stock' => 2, 'available_stock' => 2, 'is_active' => true, 'created_by' => $admin->user_id,
         ]);
         $pembaca = collect(range(1, 3))->map(fn ($i) => $this->makeUser('Peminjam', 'PEMBACA-' . $i));
@@ -1356,9 +1462,8 @@ class SmartReadingRoomTest extends TestCase
         $category = Category::create(['category_name' => 'Kategori Uji']);
         $author = Author::create(['author_name' => 'Penulis Uji']);
 
-        return Book::create([
+        $book = Book::create([
             'category_id' => $category->category_id,
-            'author_id' => $author->author_id,
             'title' => 'Buku Uji',
             'publisher' => 'Penerbit Uji',
             'publication_year' => 2026,
@@ -1368,6 +1473,9 @@ class SmartReadingRoomTest extends TestCase
             'is_active' => true,
             'created_by' => $admin->user_id,
         ]);
+        $book->authors()->attach($author->author_id, ['urutan' => 1]);
+
+        return $book;
     }
 
     private function makeLoan(User $borrower, Book $book, array $overrides = []): Loan

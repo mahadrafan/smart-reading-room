@@ -162,7 +162,7 @@
                                 <div class="tabel-buku-info">
                                     <div class="judul">{{ $p->book ? $p->book->title : '-' }}</div>
                                     <div class="meta">
-                                        {{ $p->book?->author?->author_name ?? '-' }}
+                                        {{ $p->book?->nama_penulis ?? '-' }}
                                         @if($p->book?->category)
                                             · {{ $p->book->category->category_name }}
                                         @endif

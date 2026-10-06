@@ -11,14 +11,19 @@ use App\Models\Loan;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class BukuController extends Controller
 {
+    // batas jumlah penulis dalam satu buku
+    const MAKS_PENULIS = 10;
+
     // READ: daftar semua buku aktif (yang dihapus/nonaktif ada di tab Nonaktif)
     public function index(Request $request)
     {
-        $query = Book::with(['category', 'author', 'creator'])
+        $query = Book::with(['category', 'authors', 'creator'])
             ->withCount(['loans as pinjaman_aktif' => fn ($q) => $q->whereIn('status', Loan::STATUS_AKTIF)])
             ->aktif();
 
@@ -37,7 +42,7 @@ class BukuController extends Controller
     // READ: tab Nonaktif, buku yang sudah dihapus dari katalog (masih tersimpan untuk riwayat)
     public function nonaktif(Request $request)
     {
-        $query = Book::with(['category', 'author', 'updater'])
+        $query = Book::with(['category', 'authors', 'updater'])
             ->withCount([
                 'loans as jumlah_pinjaman',
                 'loans as pinjaman_aktif' => fn ($q) => $q->whereIn('status', Loan::STATUS_AKTIF),
@@ -130,8 +135,9 @@ class BukuController extends Controller
     // CREATE
     public function store(Request $request)
     {
-        $this->prosesKategoriPenulisBaru($request);
+        $this->prosesKategoriBaru($request);
         $data = $this->validasi($request);
+        $penulis = $this->penulisDipilih($request)['penulis'];
 
         if ($request->hasFile('cover_image')) {
             $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
@@ -140,7 +146,12 @@ class BukuController extends Controller
         $data['available_stock'] = $data['stock'];
         $data['created_by']      = Auth::id();
 
-        $buku = Book::create($data);
+        $buku = DB::transaction(function () use ($data, $penulis) {
+            $buku = Book::create($data);
+            $this->simpanPenulis($buku, $penulis);
+
+            return $buku;
+        });
 
         AdminLog::catat('Tambah', 'books', $buku->book_id, 'Menambahkan buku "' . $buku->title . '"');
 
@@ -149,7 +160,7 @@ class BukuController extends Controller
 
     public function edit($id)
     {
-        $buku = Book::aktif()->findOrFail($id);
+        $buku = Book::aktif()->with('authors')->findOrFail($id);
 
         return view('admin.buku.edit', [
             'buku'     => $buku,
@@ -162,8 +173,9 @@ class BukuController extends Controller
     public function update(Request $request, $id)
     {
         $buku = Book::aktif()->findOrFail($id);
-        $this->prosesKategoriPenulisBaru($request);
+        $this->prosesKategoriBaru($request);
         $data = $this->validasi($request, $id);
+        $penulis = $this->penulisDipilih($request)['penulis'];
 
         // eksemplar yang sedang di luar (sudah dikonfirmasi / sedang dipinjam) tidak boleh "hilang" dari stok
         $sedangDipinjam = max(0, $buku->stock - $buku->available_stock);
@@ -186,7 +198,10 @@ class BukuController extends Controller
         $data['updated_by'] = Auth::id();
         $data['updated_at'] = now();
 
-        $buku->update($data);
+        DB::transaction(function () use ($buku, $data, $penulis) {
+            $buku->update($data);
+            $this->simpanPenulis($buku, $penulis);
+        });
 
         AdminLog::catat('Edit', 'books', $buku->book_id, 'Mengubah buku "' . $buku->title . '"');
 
@@ -216,8 +231,8 @@ class BukuController extends Controller
             ->with('status', 'Buku "' . $buku->title . '" dihapus dari katalog dan dipindah ke tab Nonaktif.');
     }
 
-    // kategori/penulis baru hanya dibuat bila admin memilih opsi "+ Tambah ... baru" (nilai "new")
-    private function prosesKategoriPenulisBaru(Request $request)
+    // kategori baru hanya dibuat bila admin memilih opsi "+ Tambah kategori baru" (nilai "new")
+    private function prosesKategoriBaru(Request $request)
     {
         if ($request->category_id === 'new') {
             $request->validate([
@@ -230,26 +245,68 @@ class BukuController extends Controller
             $kat = Category::firstOrCreate(['category_name' => trim($request->new_category_name)]);
             $request->merge(['category_id' => $kat->category_id]);
         }
+    }
 
-        if ($request->author_id === 'new') {
-            $request->validate([
-                'new_author_name' => 'required|string|max:100',
-            ], [
-                'new_author_name.required' => 'Nama penulis baru wajib diisi.',
-                'new_author_name.max'      => 'Nama penulis baru maksimal 100 karakter.',
-            ]);
-
-            $pen = Author::firstOrCreate(['author_name' => trim($request->new_author_name)]);
-            $request->merge(['author_id' => $pen->author_id]);
+    // penulis dari form, berurutan: penulis[] berisi id penulis yang sudah ada atau "baru:Nama" untuk penulis baru,
+    // ditambah kolom penulis_baru (dipakai bila JavaScript mati). Hasil: daftar penulis + pesan salah (bila ada)
+    private function penulisDipilih(Request $request): array
+    {
+        $pilihan = collect((array) $request->input('penulis', []))
+            ->map(fn ($nilai) => trim((string) $nilai))
+            ->filter(fn ($nilai) => $nilai !== '');
+        if (trim((string) $request->input('penulis_baru')) !== '') {
+            $pilihan->push('baru:' . trim($request->input('penulis_baru')));
         }
+
+        $penulis = [];
+        foreach ($pilihan as $nilai) {
+            if (ctype_digit($nilai)) {
+                $penulis[] = ['id' => (int) $nilai];
+            } elseif (str_starts_with($nilai, 'baru:') && ($nama = trim(substr($nilai, 5))) !== '') {
+                if (mb_strlen($nama) > 100) {
+                    return ['penulis' => [], 'salah' => 'Nama penulis baru maksimal 100 karakter.'];
+                }
+                $penulis[] = ['nama' => $nama];
+            } else {
+                return ['penulis' => [], 'salah' => 'Penulis tidak valid.'];
+            }
+        }
+
+        if (! $penulis) {
+            return ['penulis' => [], 'salah' => 'Penulis wajib dipilih.'];
+        }
+        if (count($penulis) > self::MAKS_PENULIS) {
+            return ['penulis' => [], 'salah' => 'Penulis maksimal ' . self::MAKS_PENULIS . ' orang.'];
+        }
+
+        $ids = collect($penulis)->pluck('id')->filter()->unique();
+        if ($ids->isNotEmpty() && Author::whereIn('author_id', $ids)->count() !== $ids->count()) {
+            return ['penulis' => [], 'salah' => 'Penulis tidak ditemukan.'];
+        }
+
+        return ['penulis' => $penulis, 'salah' => null];
+    }
+
+    // simpan penulis buku sesuai urutan; penulis baru dibuat (atau dipakai bila namanya sudah ada)
+    private function simpanPenulis(Book $buku, array $penulis): void
+    {
+        $urutan = [];
+        foreach ($penulis as $p) {
+            $id = $p['id'] ?? Author::firstOrCreate(['author_name' => $p['nama']])->author_id;
+            // penulis yang sama dipilih dua kali cukup dicatat sekali
+            if (! isset($urutan[$id])) {
+                $urutan[$id] = ['urutan' => count($urutan) + 1];
+            }
+        }
+
+        $buku->authors()->sync($urutan);
     }
 
     private function validasi(Request $request, $idBukuSaatIni = null)
     {
-        return $request->validate([
-            // setiap buku wajib punya kategori dan penulis
+        return Validator::make($request->all(), [
+            // setiap buku wajib punya kategori dan minimal satu penulis
             'category_id'      => 'required|exists:categories,category_id',
-            'author_id'        => 'required|exists:authors,author_id',
             'title'            => 'required|max:200',
             'publisher'        => 'nullable|max:100',
             'publication_year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
@@ -264,10 +321,8 @@ class BukuController extends Controller
             'min'      => ':attribute minimal :min.',
             'exists'   => ':attribute tidak ditemukan.',
             'category_id.required' => 'Kategori wajib dipilih.',
-            'author_id.required'   => 'Penulis wajib dipilih.',
         ], [
             'category_id'      => 'Kategori',
-            'author_id'        => 'Penulis',
             'title'            => 'Judul buku',
             'publisher'        => 'Penerbit',
             'publication_year' => 'Tahun terbit',
@@ -275,6 +330,12 @@ class BukuController extends Controller
             'location'         => 'Lokasi rak',
             'stock'            => 'Jumlah stok',
             'cover_image'      => 'Cover buku',
-        ]);
+        ])->after(function ($validator) use ($request) {
+            // pesan penulis ikut tampil bersama pesan kolom lain
+            $salah = $this->penulisDipilih($request)['salah'];
+            if ($salah) {
+                $validator->errors()->add('penulis', $salah);
+            }
+        })->validate();
     }
 }
