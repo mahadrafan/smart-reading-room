@@ -114,8 +114,8 @@
                     </div>
 
                     <div id="kotak-custom" class="isian-custom">
-                        <label for="durasi_custom">Jumlah hari (1 sampai 30)</label>
-                        <input type="number" id="durasi_custom" name="durasi_custom" min="1" max="30"
+                        <label for="durasi_custom">Jumlah hari (1 sampai {{ $maksDurasi }})</label>
+                        <input type="number" id="durasi_custom" name="durasi_custom" min="1" max="{{ $maksDurasi }}"
                                value="{{ old('durasi_custom') }}" placeholder="Contoh: 10"
                                class="@error('durasi_custom') salah @enderror">
                     </div>
@@ -205,7 +205,7 @@
                 lama = parseInt(pilih.value);
             }
 
-            if (!tanggal || isNaN(lama) || lama < 1 || lama > 30) {
+            if (!tanggal || isNaN(lama) || lama < 1 || lama > {{ $maksDurasi }}) {
                 isian.value = '-';
                 return;
             }

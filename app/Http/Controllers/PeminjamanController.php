@@ -13,6 +13,9 @@ class PeminjamanController extends Controller
     // batas jumlah pengajuan + peminjaman aktif per user (boleh diubah)
     const BATAS_AKTIF = 3;
 
+    // durasi custom maksimal (hari)
+    const MAKS_DURASI = 14;
+
     // ---------------------------------------------------------
     // READ: daftar peminjaman milik user yang login
     // ---------------------------------------------------------
@@ -79,6 +82,7 @@ class PeminjamanController extends Controller
             'urlBatal'    => $bukuAsal ? route('buku.detail', $bukuAsal->book_id) : route('dashboard'),
             // buku yang baru dikembalikan user ini: tampil di daftar tapi belum bisa dipilih
             'jedaPinjam'  => Loan::jedaPinjamUlang(Auth::id()),
+            'maksDurasi'  => self::MAKS_DURASI,
         ]);
     }
 
@@ -92,7 +96,7 @@ class PeminjamanController extends Controller
         $request->validate([
             'book_id'       => 'required|exists:books,book_id',
             'durasi'        => 'required|in:1,3,5,7,custom',
-            'durasi_custom' => 'required_if:durasi,custom|nullable|integer|min:1|max:30',
+            'durasi_custom' => 'required_if:durasi,custom|nullable|integer|min:1|max:' . self::MAKS_DURASI,
         ], [
             'required'             => ':attribute wajib diisi.',
             'exists'               => ':attribute tidak ditemukan.',

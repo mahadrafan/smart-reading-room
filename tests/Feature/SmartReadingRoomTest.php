@@ -404,6 +404,32 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('<option value="" disabled >- Pilih penulis -</option>', false);
     }
 
+    public function test_custom_loan_duration_is_limited_to_14_days(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin, 3);
+
+        $this->actingAs($borrower)->get('/peminjaman/buat')->assertOk()
+            ->assertSee('Jumlah hari (1 sampai 14)')
+            ->assertSee('max="14"', false);
+
+        // lebih dari 14 hari ditolak
+        foreach ([15, 30] as $hari) {
+            $this->from('/peminjaman/buat')
+                ->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => 'custom', 'durasi_custom' => $hari])
+                ->assertRedirect('/peminjaman/buat')
+                ->assertSessionHasErrors(['durasi_custom' => 'Durasi custom maksimal 14 hari.']);
+        }
+        $this->assertDatabaseCount('loans', 0);
+
+        // tepat 14 hari diterima
+        $this->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => 'custom', 'durasi_custom' => 14])
+            ->assertRedirect(route('peminjaman.index'));
+        $this->assertSame(today()->addDays(14)->format('Y-m-d'),
+            Loan::where('user_id', $borrower->user_id)->firstOrFail()->due_date->format('Y-m-d'));
+    }
+
     public function test_loan_form_shows_selected_book_cover_panel(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');
