@@ -52,7 +52,7 @@
         <p class="pesan-salah" data-pesan-wajib hidden>Kategori wajib dipilih.</p>
 
         <div id="kotak_kategori_baru" style="margin-top: 10px; display: {{ $idKategori === 'new' ? 'block' : 'none' }};">
-            <input type="text" id="new_category_name" name="new_category_name"
+            <input type="text" id="new_category_name" name="new_category_name" maxlength="100"
                    value="{{ old('new_category_name') }}"
                    placeholder="Tuliskan nama kategori baru..."
                    class="@error('new_category_name') salah @enderror">
@@ -523,7 +523,7 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
     </div>
     <div class="isian">
         <label for="publication_year">Tahun terbit</label>
-        <input type="number" id="publication_year" name="publication_year"
+        <input type="number" id="publication_year" name="publication_year" min="1901" max="{{ date('Y') + 1 }}"
                value="{{ old('publication_year', $buku->publication_year ?? '') }}"
                class="@error('publication_year') salah @enderror">
         @error('publication_year')<p class="pesan-salah">{{ $message }}</p>@enderror
@@ -541,7 +541,7 @@ document.querySelectorAll('[data-pilih-cari]').forEach(function (wadah) {
         <label for="stock">Jumlah stok</label>
         {{-- saat edit, stok tidak boleh kurang dari eksemplar yang sedang dipinjam / menunggu diambil --}}
         @php $sedangDipinjam = $buku ? max(0, $buku->stock - $buku->available_stock) : 0; @endphp
-        <input type="number" id="stock" name="stock" min="{{ $sedangDipinjam }}"
+        <input type="number" id="stock" name="stock" min="{{ $sedangDipinjam }}" max="{{ \App\Http\Controllers\Admin\BukuController::MAKS_STOK }}"
                value="{{ old('stock', $buku->stock ?? 1) }}"
                class="@error('stock') salah @enderror" required>
         @error('stock')<p class="pesan-salah">{{ $message }}</p>@enderror

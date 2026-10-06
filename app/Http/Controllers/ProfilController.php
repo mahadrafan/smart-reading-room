@@ -32,10 +32,17 @@ class ProfilController extends Controller
         $data = $request->validate([
             'name'  => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:100', Rule::unique('users', 'email')->ignore($user->user_id, 'user_id')],
-        ] + User::aturanTelepon($kodeTelepon) + $keterangan, User::pesanTelepon(), [
-            'job_title' => 'jabatan / mapel',
-            'class'     => 'kelas',
-            'phone'     => 'no. telepon',
+        ] + User::aturanTelepon($kodeTelepon) + $keterangan, User::pesanTelepon() + [
+            'required' => ':attribute wajib diisi.',
+            'email'    => 'Format email belum benar.',
+            'max'      => ':attribute maksimal :max karakter.',
+            'unique'   => ':attribute sudah dipakai akun lain.',
+        ], [
+            'name'      => 'Nama lengkap',
+            'email'     => 'Email',
+            'job_title' => 'Jabatan / mapel',
+            'class'     => 'Kelas',
+            'phone'     => 'No. telepon',
         ]);
 
         unset($data['phone_code']);
@@ -50,9 +57,15 @@ class ProfilController extends Controller
     {
         $user = Auth::user();
 
-        $request->validate([
+        // pesan salah disimpan di kantong "password" agar tampil di form Ganti password, bukan di form Data diri
+        $request->validateWithBag('password', [
             'password_lama' => ['required'],
             'password_baru' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'password_lama.required' => 'Password lama wajib diisi.',
+            'password_baru.required' => 'Password baru wajib diisi.',
+            'password_baru.min'      => 'Password baru minimal 8 karakter.',
+            'password_baru.confirmed' => 'Password baru dan ulangi password baru harus sama.',
         ]);
 
         if (! Hash::check($request->password_lama, $user->password)) {

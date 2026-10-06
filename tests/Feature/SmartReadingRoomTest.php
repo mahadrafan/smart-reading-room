@@ -1902,6 +1902,60 @@ class SmartReadingRoomTest extends TestCase
         $this->get('/dashboard')->assertOk()->assertDontSee('data-popup-notif', false);
     }
 
+    public function test_profile_errors_are_shown_in_indonesian_on_the_right_form(): void
+    {
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+
+        // password baru terlalu pendek / tidak sama: pesan tampil di form Ganti password
+        $this->actingAs($borrower)->from('/profil')->followingRedirects()->put('/profil/password', [
+            'password_lama' => 'password123',
+            'password_baru' => 'abc',
+            'password_baru_confirmation' => 'abc',
+        ])->assertOk()->assertSee('Password baru minimal 8 karakter.');
+
+        $this->from('/profil')->followingRedirects()->put('/profil/password', [
+            'password_lama' => 'password123',
+            'password_baru' => 'password456',
+            'password_baru_confirmation' => 'password789',
+        ])->assertOk()->assertSee('Password baru dan ulangi password baru harus sama.');
+        $this->assertTrue(Hash::check('password123', $borrower->fresh()->password));
+
+        // data diri: pesan berbahasa Indonesia
+        $this->from('/profil')->followingRedirects()->put('/profil', [
+            'name' => '', 'email' => $admin->email, 'class' => '', 'phone_code' => '62', 'phone' => '81234567890',
+        ])->assertOk()
+            ->assertSee('Nama lengkap wajib diisi.')
+            ->assertSee('Email sudah dipakai akun lain.')
+            ->assertSee('Kelas wajib diisi.')
+            ->assertDontSee('field is required');
+    }
+
+    public function test_book_year_and_stock_stay_within_database_limits_and_long_log_is_trimmed(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $book = $this->makeBook($admin);
+        $data = [
+            'category_id' => $book->category_id,
+            'penulis' => [$book->authors->first()->author_id],
+        ];
+
+        // kolom YEAR MySQL hanya 1901-2155 dan stok berupa int: nilai di luar batas ditolak validasi, bukan error database
+        $this->actingAs($admin)->post('/admin/buku', $data + ['title' => 'Buku Lama', 'publication_year' => 1900, 'stock' => 3000000000])
+            ->assertSessionHasErrors(['publication_year' => 'Tahun terbit minimal 1901.', 'stock' => 'Jumlah stok maksimal 9999.']);
+        $this->post('/admin/buku', $data + ['title' => 'Buku Lama', 'publication_year' => date('Y') + 5, 'stock' => 1])
+            ->assertSessionHasErrors(['publication_year' => 'Tahun terbit maksimal ' . (date('Y') + 1) . '.']);
+
+        $this->post('/admin/buku', $data + ['title' => 'Buku Batas', 'publication_year' => 1901, 'stock' => 9999])
+            ->assertRedirect(route('admin.buku.index'));
+
+        // judul 200 karakter + nama peminjam bisa melebihi kolom description (255): dipotong, bukan ditolak MySQL
+        $log = \App\Models\AdminLog::catat('Hapus', 'loans', 1,
+            'Menghapus riwayat peminjaman "' . str_repeat('J', 200) . '" oleh ' . str_repeat('N', 100));
+        $this->assertSame(255, mb_strlen($log->description));
+        $this->assertStringStartsWith('Menghapus riwayat peminjaman "JJJ', $log->description);
+    }
+
     private function makeUser(string $role, string $nim): User
     {
         return User::create([

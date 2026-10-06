@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class AdminLog extends Model
 {
@@ -22,7 +23,8 @@ class AdminLog extends Model
             'action'      => $action,
             'table_name'  => $tableName,
             'record_id'   => $recordId,
-            'description' => $description,
+            // kolom description maks. 255 karakter; judul buku / nama yang panjang dipotong agar tidak ditolak MySQL
+            'description' => Str::limit((string) $description, 252),
         ]);
     }
 

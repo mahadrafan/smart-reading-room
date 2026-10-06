@@ -20,6 +20,9 @@ class BukuController extends Controller
     // batas jumlah penulis dalam satu buku
     const MAKS_PENULIS = 10;
 
+    // batas jumlah eksemplar satu buku
+    const MAKS_STOK = 9999;
+
     // READ: daftar semua buku aktif (yang dihapus/nonaktif ada di tab Nonaktif)
     public function index(Request $request)
     {
@@ -236,10 +239,10 @@ class BukuController extends Controller
     {
         if ($request->category_id === 'new') {
             $request->validate([
-                'new_category_name' => 'required|string|max:50',
+                'new_category_name' => 'required|string|max:100',
             ], [
                 'new_category_name.required' => 'Nama kategori baru wajib diisi.',
-                'new_category_name.max'      => 'Nama kategori baru maksimal 50 karakter.',
+                'new_category_name.max'      => 'Nama kategori baru maksimal 100 karakter.',
             ]);
 
             $kat = Category::firstOrCreate(['category_name' => trim($request->new_category_name)]);
@@ -309,10 +312,11 @@ class BukuController extends Controller
             'category_id'      => 'required|exists:categories,category_id',
             'title'            => 'required|max:200',
             'publisher'        => 'nullable|max:100',
-            'publication_year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
+            // kolom YEAR di MySQL hanya menerima 1901-2155; stok dibatasi agar tidak melebihi kolom int
+            'publication_year' => 'nullable|integer|min:1901|max:' . (date('Y') + 1),
             'description'      => 'nullable|max:2000',
             'location'         => 'nullable|max:100',
-            'stock'            => 'required|integer|min:0',
+            'stock'            => 'required|integer|min:0|max:' . self::MAKS_STOK,
             'cover_image'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ], [
             'required' => ':attribute wajib diisi.',
@@ -321,6 +325,8 @@ class BukuController extends Controller
             'min'      => ':attribute minimal :min.',
             'exists'   => ':attribute tidak ditemukan.',
             'category_id.required' => 'Kategori wajib dipilih.',
+            'publication_year.max' => 'Tahun terbit maksimal :max.',
+            'stock.max'            => 'Jumlah stok maksimal :max.',
         ], [
             'category_id'      => 'Kategori',
             'title'            => 'Judul buku',
