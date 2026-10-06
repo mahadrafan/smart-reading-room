@@ -9,6 +9,7 @@ use App\Models\Loan;
 use App\Models\Review;
 use App\Models\User;
 use App\Models\UserNotification;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -842,6 +843,12 @@ class SmartReadingRoomTest extends TestCase
         $this->assertSame(3000, $loan->jumlah_denda);
         $this->assertSame(3, $book->fresh()->available_stock);
         $this->assertDatabaseHas('notifications', ['loan_id' => $loan->loan_id, 'type' => 'Dikembalikan']);
+
+        // fine_paid_by adalah foreign key ke users: id user yang tidak ada ditolak,
+        // dan admin yang tercatat mengonfirmasi pembayaran tidak bisa dihapus
+        $this->assertThrows(fn () => DB::table('loans')->where('loan_id', $loan->loan_id)->update(['fine_paid_by' => 999999]), QueryException::class);
+        $this->assertThrows(fn () => DB::table('users')->where('user_id', $admin->user_id)->delete(), QueryException::class);
+        $this->assertSame($admin->user_id, $loan->fresh()->fine_paid_by);
 
         // yang sudah lunas hilang dari tabel peminjaman terlambat di dashboard
         $this->get('/admin/dashboard')->assertOk()

@@ -186,12 +186,14 @@ CREATE TABLE `loans` (
   `approved_by` int DEFAULT NULL,
   `approved_at` datetime DEFAULT NULL,
   `fine_paid_at` timestamp NULL DEFAULT NULL,
-  `fine_paid_by` bigint unsigned DEFAULT NULL,
+  `fine_paid_by` int DEFAULT NULL,
   PRIMARY KEY (`loan_id`),
   KEY `user_id` (`user_id`),
   KEY `book_id` (`book_id`),
   KEY `fk_loans_approved_by` (`approved_by`),
+  KEY `fk_loans_fine_paid_by` (`fine_paid_by`),
   CONSTRAINT `fk_loans_approved_by` FOREIGN KEY (`approved_by`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `fk_loans_fine_paid_by` FOREIGN KEY (`fine_paid_by`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT,
   CONSTRAINT `loans_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `loans_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -315,4 +317,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-06 17:00:48
+-- Dump completed on 2026-10-06 17:00:50
