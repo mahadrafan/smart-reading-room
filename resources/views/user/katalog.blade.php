@@ -9,7 +9,10 @@
     </div>
 
     @php
-        // parameter filter yang sedang aktif, dipakai ulang di semua tautan agar pilihan tidak hilang
+        // parameter filter yang sedang aktif, dipakai ulang di semua tautan agar pilihan tidak hilang.
+        // tab "Semua Buku" hanya untuk koleksi tanpa filter: mencari/memfilter dari sana pindah ke tab Rak Buku
+        // (tombol kategori langsung ke Rak Buku; form tetap membawa tampilan=semua agar kiriman kosong
+        // tidak pindah tab, dan controller mengalihkan ke Rak Buku bila ada filter).
         $paramTampilan = $tampilan == 'semua' ? 'semua' : null;
         $paramFilter = array_filter([
             'q'        => request('q'),
@@ -45,7 +48,7 @@
         <a href="{{ route('dashboard', array_filter(array_merge(Arr::except($paramFilter, 'kategori'), ['tampilan' => $paramTampilan]))) }}"
            class="chip {{ $kategoriDipilih ? '' : 'aktif' }}">Semua</a>
         @foreach ($kategoriCepat as $k)
-            <a href="{{ route('dashboard', array_filter(array_merge($paramFilter, ['kategori' => [$k->category_id], 'tampilan' => $paramTampilan]))) }}"
+            <a href="{{ route('dashboard', array_merge($paramFilter, ['kategori' => [$k->category_id]])) }}"
                class="chip {{ in_array($k->category_id, $kategoriDipilih) ? 'aktif' : '' }}">{{ $k->category_name }}</a>
         @endforeach
 
@@ -109,7 +112,7 @@
         <nav class="tab-tampilan" aria-label="Pilihan tampilan katalog">
             <a href="{{ route('dashboard', $paramFilter) }}"
                class="{{ $tampilan == 'rak' ? 'aktif' : '' }}">Rak Buku</a>
-            <a href="{{ route('dashboard', array_merge($paramFilter, ['tampilan' => 'semua'])) }}"
+            <a href="{{ route('dashboard', ['tampilan' => 'semua']) }}"
                class="{{ $tampilan == 'semua' ? 'aktif' : '' }}">Semua Buku</a>
         </nav>
 
@@ -171,8 +174,8 @@
                     @endif
                 </h2>
                 @if ($sedangMencari)
-                    <a href="{{ route('dashboard', $tampilan == 'semua' ? ['tampilan' => 'semua'] : []) }}" class="rak-tautan">
-                        <span aria-hidden="true">&larr;</span> {{ $tampilan == 'semua' ? 'Hapus filter' : 'Semua rak' }}
+                    <a href="{{ route('dashboard') }}" class="rak-tautan">
+                        <span aria-hidden="true">&larr;</span> Semua rak
                     </a>
                 @endif
             </div>

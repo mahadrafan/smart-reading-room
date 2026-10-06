@@ -43,6 +43,11 @@ class KatalogController extends Controller
         $tampilan = $request->tampilan === 'semua' ? 'semua' : 'rak';
         $sedangMencari = $kataKunci || $kategoriDipilih || $urut !== 'judul' || $hanyaTersedia;
 
+        // "Semua Buku" hanya untuk koleksi tanpa filter; hasil pencarian/filter selalu tampil di Rak Buku
+        if ($tampilan == 'semua' && $sedangMencari) {
+            return redirect()->route('dashboard', $request->except(['tampilan', 'page']));
+        }
+
         // semua buku aktif + hitung berapa kali sudah dipinjam, rata-rata rating & jumlah ulasan
         $query = Book::aktif()
             ->with(['category', 'authors'])

@@ -796,6 +796,38 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('Gagal <strong>1</strong>', false);
     }
 
+    public function test_all_books_tab_is_unfiltered_and_filtering_switches_to_shelf_tab(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+        $idKategori = $book->category_id;
+        $alamatFilter = route('dashboard', ['kategori' => [$idKategori]]);
+
+        // tab Semua Buku: semua koleksi dalam kartu; tombol kategori langsung menuju tab Rak Buku
+        $this->actingAs($borrower)->get('/dashboard?tampilan=semua')->assertOk()
+            ->assertSee('Semua Koleksi')
+            ->assertSee('class="kartu-buku"', false)
+            ->assertSee('href="' . e($alamatFilter) . '"', false)
+            ->assertDontSee('Hapus filter');
+
+        // filter, pencarian, atau urutan yang dikirim dari tab Semua Buku dialihkan ke tab Rak Buku
+        $this->get('/dashboard?tampilan=semua&kategori[]=' . $idKategori)->assertRedirect($alamatFilter);
+        $this->get('/dashboard?tampilan=semua&q=Uji&page=2')->assertRedirect(route('dashboard', ['q' => 'Uji']));
+        $this->get('/dashboard?tampilan=semua&urut=populer')->assertRedirect(route('dashboard', ['urut' => 'populer']));
+
+        // form kosong dari tab Semua Buku tetap di tab Semua Buku
+        $this->get('/dashboard?tampilan=semua&q=')->assertOk()->assertSee('Semua Koleksi');
+
+        // hasil filter tampil di rak, dengan tab Rak Buku aktif dan tautan kembali ke semua rak
+        $this->get($alamatFilter)->assertOk()
+            ->assertSee('class="rak-bagian"', false)
+            ->assertDontSee('class="kartu-buku"', false)
+            ->assertSee('class="aktif">Rak Buku</a>', false)
+            ->assertSee('Semua rak')
+            ->assertSee('href="' . route('dashboard', ['tampilan' => 'semua']) . '"', false);
+    }
+
     public function test_catalog_filter_supports_multiple_categories_sorting_and_availability(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');
