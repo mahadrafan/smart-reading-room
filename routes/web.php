@@ -51,6 +51,7 @@ Route::middleware(CekRole::class . ':Peminjam')->group(function () {
     Route::delete('/ulasan/{id}', [ReviewController::class, 'destroy'])->name('ulasan.hapus');
 
     Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
+    Route::post('/notifikasi/dibaca', [NotificationController::class, 'tandaiDibaca'])->name('notifikasi.dibaca');
 
     // peminjaman (urutan penting: /peminjaman/buat harus di atas /peminjaman/{id})
     Route::get('/peminjaman', [PeminjamanController::class, 'index'])->name('peminjaman.index');

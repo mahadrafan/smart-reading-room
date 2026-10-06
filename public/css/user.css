@@ -63,10 +63,17 @@ a { color: var(--kayu); }
 .sisi .brand small { display: block; margin-top: 4px; font-weight: 500; font-size: 11px; color: rgba(255,255,255,0.5); }
 .menu { flex: 1; padding: 14px 0; display: flex; flex-direction: column; }
 .menu a {
+    display: flex; align-items: center; gap: 8px;
     padding: 11px 20px; font-size: 13.5px; font-weight: 500;
     color: rgba(255,255,255,0.65); text-decoration: none;
     border-left: 3px solid transparent;
     transition: background 0.15s, color 0.15s;
+}
+/* angka notifikasi belum dibaca di menu */
+.menu-angka {
+    margin-left: auto; min-width: 20px; padding: 2px 7px; border-radius: 999px;
+    background: var(--kayu-terang); color: var(--coklat-tua);
+    font-size: 11px; font-weight: 800; line-height: 1.3; text-align: center;
 }
 .menu a.aktif {
     color: #fff; background: rgba(255,255,255,0.09);
@@ -681,21 +688,44 @@ td.aksi .bahaya { color: var(--merah); }
 }
 .notif-aksi-link:hover { color: var(--kayu); }
 
-/* info salinan notifikasi ke email */
-.notif-pengaturan {
+/* notifikasi yang baru dibaca di halaman Notifikasi */
+.notif-badge.baru { background: var(--kayu); color: #fff; }
+.notif-grup.notif-baru { border-color: var(--kayu-terang); box-shadow: 0 0 0 1px var(--kayu-terang); }
+
+/* ---------- pop up notifikasi baru ---------- */
+body.ada-popup { overflow: hidden; }
+.popup-notif-latar {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; background: rgba(43,33,25,0.55);
+}
+.popup-notif {
+    width: 100%; max-width: 480px; max-height: calc(100vh - 32px); overflow-y: auto;
+    padding: 22px; background: var(--putih);
+    border-top: 5px solid var(--kayu); border-radius: 18px;
+    box-shadow: 0 24px 60px -20px rgba(43,33,25,0.55);
+}
+.popup-notif-kepala { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.popup-notif-lonceng {
+    width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--kayu-muda); font-size: 20px;
+}
+.popup-notif-kepala h2 { margin: 0 0 3px; font-size: 18px; font-weight: 800; color: var(--coklat-tua); }
+.popup-notif-kepala p { margin: 0; font-size: 13px; color: var(--abu); }
+.popup-notif-daftar { margin: 0; padding: 0; list-style: none; }
+.popup-notif-daftar li { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--garis); }
+.popup-notif-daftar .notif-pesan { margin: 0; }
+.popup-notif-lainnya { margin: 0; padding-top: 10px; border-top: 1px solid var(--garis); font-size: 13px; color: var(--abu); }
+.popup-notif-aksi {
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
-    padding: 18px 20px;
-    background: var(--putih); border: 1px solid var(--garis);
-    border-radius: 16px; gap: 16px;
+    gap: 12px; margin-top: 18px;
 }
-.notif-pengaturan-kiri { display: flex; align-items: center; gap: 14px; }
-.notif-pengaturan-ikon {
-    width: 42px; height: 42px; border-radius: 12px;
-    background: #f7f0e6; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; color: var(--abu); flex-shrink: 0;
+.popup-notif-lihat { font-size: 13px; font-weight: 600; }
+@media (max-width: 480px) {
+    .popup-notif { padding: 18px; }
+    .popup-notif-aksi form, .popup-notif-aksi .tombol-pil-utama { width: 100%; }
 }
-.notif-pengaturan-teks .judul { font-size: 14px; font-weight: 700; color: var(--coklat-tua); }
-.notif-pengaturan-teks .sub { font-size: 12px; color: var(--abu); margin-top: 2px; overflow-wrap: anywhere; }
 
 /* ---------- rak buku ala perpustakaan ---------- */
 .panel-rak {

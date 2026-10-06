@@ -157,10 +157,9 @@ class Loan extends Model
                         $freshLoan->approved_by
                     );
 
-                    app(\App\Services\LoanNotificationService::class)->send(
-                        $freshLoan->load(['user', 'book']),
+                    UserNotification::kirim(
+                        $freshLoan,
                         'Gagal',
-                        'Peminjaman gagal karena tenggat pengambilan lewat',
                         'Peminjaman buku "' . ($freshLoan->book->title ?? '-') . '" dibatalkan otomatis karena melewati tenggat pengambilan.'
                     );
                 }

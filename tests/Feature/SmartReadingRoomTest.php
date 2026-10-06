@@ -641,7 +641,24 @@ class SmartReadingRoomTest extends TestCase
         $this->assertSame(2, $book->fresh()->available_stock);
     }
 
-    public function test_overdue_fine_contact_information_and_daily_email_reminder(): void
+    public function test_notifications_page_shows_auto_failed_loan_right_away(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin, 2);
+        $loan = $this->makeLoan($borrower, $book, [
+            'status' => 'Dikonfirmasi',
+            'approved_by' => $admin->user_id,
+            'approved_at' => now()->subDays(3),
+        ]);
+
+        // halaman pertama yang dibuka peminjam adalah Notifikasi: pembatalan otomatis langsung tampil
+        $this->actingAs($borrower)->get('/notifikasi')->assertOk()
+            ->assertSee('dibatalkan otomatis karena melewati tenggat pengambilan');
+        $this->assertSame('Gagal', $loan->fresh()->status);
+    }
+
+    public function test_overdue_fine_and_contact_information_for_manual_reminder(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');
         $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
@@ -678,14 +695,8 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('Denda dibayar langsung saat mengembalikan buku ke perpustakaan');
         $this->actingAs($admin);
 
-        $this->artisan('loans:send-overdue-reminders')->assertExitCode(0);
-        $this->assertDatabaseHas('notifications', [
-            'loan_id' => $loan->loan_id,
-            'type' => 'Terlambat',
-            'status' => 'Terkirim',
-        ]);
-        $this->artisan('loans:send-overdue-reminders')->assertExitCode(0);
-        $this->assertDatabaseCount('notifications', 1);
+        // pengingat keterlambatan dilakukan manual oleh admin lewat nomor telepon, tidak ada pengingat otomatis
+        $this->assertDatabaseCount('notifications', 0);
 
         // bayar denda = sekaligus mengembalikan buku
         $this->put('/admin/riwayat/' . $loan->loan_id . '/denda')
@@ -1126,7 +1137,7 @@ class SmartReadingRoomTest extends TestCase
         $this->get('/buku/' . $book->book_id)->assertOk()->assertSee('Pinjam Buku');
     }
 
-    public function test_notifications_page_shows_all_types_and_filters_by_tab(): void
+    public function test_notifications_page_shows_all_types_and_filters_by_type(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');
         $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
@@ -1159,20 +1170,36 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('Perpustakaan tutup hari Minggu.')
             ->assertDontSee('E-book');
 
-        $this->get('/notifikasi?tab=pengumuman')->assertOk()
+        // filter per jenis: hanya notifikasi jenis itu yang tampil
+        $this->get('/notifikasi?jenis=pengajuan')->assertOk()
+            ->assertSee('Pengajuan peminjaman terkirim.')
+            ->assertDontSee('Peminjaman sudah dikonfirmasi.')
+            ->assertDontSee('Perpustakaan tutup hari Minggu.');
+
+        $this->get('/notifikasi?jenis=dikonfirmasi')->assertOk()
+            ->assertSee('Peminjaman sudah dikonfirmasi.')
+            ->assertDontSee('Pengajuan peminjaman terkirim.');
+
+        $this->get('/notifikasi?jenis=pengumuman')->assertOk()
             ->assertSee('Perpustakaan tutup hari Minggu.')
             ->assertDontSee('Pengajuan peminjaman terkirim.');
 
-        // notifikasi Dikonfirmasi ikut tampil di tab Peminjaman
-        $this->get('/notifikasi?tab=peminjaman')->assertOk()
-            ->assertSee('Pengajuan peminjaman terkirim.')
-            ->assertSee('Peminjaman sudah dikonfirmasi.')
-            ->assertDontSee('Perpustakaan tutup hari Minggu.');
+        // jenis yang belum punya notifikasi: pesan kosong khusus jenis itu
+        $this->get('/notifikasi?jenis=gagal')->assertOk()
+            ->assertSee('Belum ada notifikasi Gagal.')
+            ->assertDontSee('Pengajuan peminjaman terkirim.');
 
-        // angka tiap tab sama di tab mana pun yang sedang dibuka
-        foreach (['', '?tab=peminjaman', '?tab=pengumuman', '?tab=ngawur'] as $tab) {
-            $this->get('/notifikasi' . $tab)->assertOk()
-                ->assertSeeInOrder(['Semua (3)', 'Peminjaman (2)', 'Pengumuman (1)']);
+        // filter yang tidak dikenal dianggap Semua
+        $this->get('/notifikasi?jenis=ngawur')->assertOk()
+            ->assertSee('Pengajuan peminjaman terkirim.')
+            ->assertSee('Perpustakaan tutup hari Minggu.');
+
+        // lima filter utama selalu ada; jenis lain hanya bila ada isinya; angka sama di filter mana pun
+        foreach (['', '?jenis=pengajuan', '?jenis=gagal', '?jenis=ngawur'] as $filter) {
+            $this->get('/notifikasi' . $filter)->assertOk()
+                ->assertSeeInOrder(['Semua (3)', 'Pengajuan (1)', 'Dikonfirmasi (1)', 'Dipinjam (0)',
+                    'Dikembalikan (0)', 'Gagal (0)', 'Pengumuman (1)'])
+                ->assertDontSee('Terlambat (');
         }
     }
 
@@ -1188,17 +1215,101 @@ class SmartReadingRoomTest extends TestCase
         ]);
 
         // tidak ada tombol perpanjang (fiturnya tidak ada), cukup tautan ke detail peminjaman
-        // tanpa pengumuman: tab tidak ditampilkan, tab apa pun di alamat tetap menampilkan semua notifikasi
-        foreach (['', '?tab=pengumuman'] as $tab) {
-            $this->actingAs($borrower)->get('/notifikasi' . $tab)->assertOk()
+        // notifikasi Terlambat dari data lama tetap punya filter sendiri
+        foreach (['', '?jenis=terlambat'] as $filter) {
+            $this->actingAs($borrower)->get('/notifikasi' . $filter)->assertOk()
                 ->assertSee('Buku sudah melewati batas pengembalian.')
                 ->assertSee('Lihat Peminjaman')
+                ->assertSee('Terlambat (1)')
                 ->assertDontSee('Perpanjang')
-                ->assertDontSee('notif-tabs')
                 ->assertDontSee('type="checkbox"', false)
-                ->assertSee('Setiap notifikasi juga dikirim ke siswa-test@example.test.')
-                ->assertSee(route('profil'));
+                // notifikasi hanya di dalam web: tidak ada lagi info salinan ke email
+                ->assertDontSee('Salinan ke email')
+                ->assertDontSee('siswa-test@example.test');
         }
+    }
+
+    public function test_new_notification_popup_appears_until_marked_as_read(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $other = $this->makeUser('Peminjam', 'SISWA-LAIN');
+        $book = $this->makeBook($admin, 3);
+
+        // pengajuan dikirim peminjam sendiri: tersimpan sebagai sudah dibaca, tidak ada pop up
+        $this->actingAs($borrower)->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => 3]);
+        $loan = Loan::where('user_id', $borrower->user_id)->firstOrFail();
+        $this->assertDatabaseHas('notifications', ['loan_id' => $loan->loan_id, 'type' => 'Pengajuan', 'status' => 'Dibaca']);
+        $this->get('/dashboard')->assertOk()->assertDontSee('data-popup-notif', false)->assertDontSee('menu-angka');
+
+        // admin mengonfirmasi saat peminjam tidak membuka web
+        $this->actingAs($admin)->put('/admin/peminjaman/' . $loan->loan_id . '/setujui');
+        $baru = UserNotification::where('loan_id', $loan->loan_id)->where('type', 'Dikonfirmasi')->firstOrFail();
+        $this->assertSame('Belum Dibaca', $baru->status);
+
+        // saat peminjam kembali, pop up muncul di halaman mana pun + angka di menu Notifikasi
+        foreach (['/dashboard', '/profil', '/peminjaman'] as $halaman) {
+            $this->actingAs($borrower)->get($halaman)->assertOk()
+                ->assertSee('data-popup-notif', false)
+                ->assertSee('Ada 1 notifikasi baru')
+                ->assertSee($baru->message)
+                ->assertSee('<span class="menu-angka"', false)
+                ->assertSee('name="sampai" value="' . $baru->notification_id . '"', false);
+        }
+
+        // notifikasi peminjam lain tidak ikut tampil
+        $this->actingAs($other)->get('/dashboard')->assertOk()->assertDontSee('data-popup-notif', false);
+
+        // notifikasi yang masuk setelah pop up tampil tidak ikut ditandai dibaca
+        $loan->update(['status' => 'Dikonfirmasi']);
+        $this->actingAs($admin)->put('/admin/riwayat/' . $loan->loan_id . '/dipinjam');
+        $lebihBaru = UserNotification::where('loan_id', $loan->loan_id)->where('type', 'Dipinjam')->firstOrFail();
+
+        // tombol Mengerti (tanpa JavaScript): kembali ke halaman sebelumnya
+        $this->actingAs($borrower)->from('/profil')
+            ->post('/notifikasi/dibaca', ['sampai' => $baru->notification_id])
+            ->assertRedirect('/profil');
+        $this->assertSame('Dibaca', $baru->fresh()->status);
+        $this->assertSame('Belum Dibaca', $lebihBaru->fresh()->status);
+        $this->get('/profil')->assertOk()->assertSee('Ada 1 notifikasi baru')->assertSee($lebihBaru->message);
+
+        // ditutup lewat JavaScript: jawaban tanpa isi, lalu pop up tidak muncul lagi
+        $this->postJson('/notifikasi/dibaca', ['sampai' => $lebihBaru->notification_id])->assertNoContent();
+        $this->get('/dashboard')->assertOk()->assertDontSee('data-popup-notif', false)->assertDontSee('menu-angka');
+    }
+
+    public function test_notification_popup_limits_list_and_notifications_page_marks_shown_as_read(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin, 3);
+        $loan = $this->makeLoan($borrower, $book);
+
+        foreach (range(1, 6) as $i) {
+            UserNotification::kirim($loan, 'Dikonfirmasi', 'Konfirmasi ke-' . $i);
+        }
+        UserNotification::kirim($loan, 'Gagal', 'Peminjaman gagal.');
+
+        // pop up hanya memuat 5 terbaru, sisanya disebut jumlahnya
+        $this->actingAs($borrower)->get('/dashboard')->assertOk()
+            ->assertSee('Ada 7 notifikasi baru')
+            ->assertSee('Peminjaman gagal.')
+            ->assertSee('Konfirmasi ke-3')
+            ->assertDontSee('Konfirmasi ke-2')
+            ->assertDontSee('Konfirmasi ke-1')
+            ->assertSee('dan 2 notifikasi lainnya');
+
+        // filter Gagal: hanya yang tampil ditandai "Baru" lalu dibaca; tidak ada pop up di halaman Notifikasi
+        $this->get('/notifikasi?jenis=gagal')->assertOk()
+            ->assertSee('notif-badge baru', false)
+            ->assertDontSee('data-popup-notif', false);
+        $this->assertSame(6, UserNotification::where('user_id', $borrower->user_id)->belumDibaca()->count());
+
+        // halaman Notifikasi tanpa filter: semua yang tampil dibaca
+        $this->get('/notifikasi')->assertOk()->assertSee('notif-badge baru', false);
+        $this->assertSame(0, UserNotification::where('user_id', $borrower->user_id)->belumDibaca()->count());
+        $this->get('/notifikasi')->assertOk()->assertDontSee('notif-badge baru', false);
+        $this->get('/dashboard')->assertOk()->assertDontSee('data-popup-notif', false);
     }
 
     private function makeUser(string $role, string $nim): User

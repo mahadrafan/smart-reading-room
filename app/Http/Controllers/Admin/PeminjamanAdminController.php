@@ -7,7 +7,6 @@ use App\Models\AdminLog;
 use App\Models\Loan;
 use App\Models\UserNotification;
 use App\Models\Book;
-use App\Services\LoanNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -100,10 +99,9 @@ class PeminjamanAdminController extends Controller
             return back()->with('error', 'Stok buku sedang habis, peminjaman tidak bisa dikonfirmasi.');
         }
 
-        app(LoanNotificationService::class)->send(
+        UserNotification::kirim(
             $pinjam,
             'Dikonfirmasi',
-            'Peminjaman sudah dikonfirmasi',
             'Peminjaman buku "' . $pinjam->book->title . '" sudah dikonfirmasi. Ambil buku paling lambat ' . $pinjam->tenggat_pengambilan->format('d/m/Y H:i') . '.'
         );
 
@@ -122,10 +120,9 @@ class PeminjamanAdminController extends Controller
         $pinjam->approved_at = now();
         $pinjam->save();
 
-        app(LoanNotificationService::class)->send(
-            $pinjam->load(['user', 'book']),
+        UserNotification::kirim(
+            $pinjam->load('book'),
             'Gagal',
-            'Pengajuan peminjaman ditolak',
             'Pengajuan peminjaman buku "' . $pinjam->book->title . '" tidak dapat disetujui.'
         );
 
@@ -185,10 +182,9 @@ class PeminjamanAdminController extends Controller
                 'Menandai buku "' . $pinjam->book->title . '" telah diambil manual oleh ' . $pinjam->user->name);
         });
 
-        app(LoanNotificationService::class)->send(
-            $pinjam->fresh()->load(['user', 'book']),
+        UserNotification::kirim(
+            $pinjam,
             'Dipinjam',
-            'Buku sudah dipinjam',
             'Buku "' . $pinjam->book->title . '" tercatat sudah diambil. Batas pengembalian: ' . $pinjam->due_date->format('d/m/Y') . '.'
         );
 
@@ -232,10 +228,9 @@ class PeminjamanAdminController extends Controller
             return $this->keRiwayat($request)->with('error', 'Peminjaman ini sudah diproses sebelumnya.');
         }
 
-        app(LoanNotificationService::class)->send(
-            $pinjam->fresh()->load(['user', 'book']),
+        UserNotification::kirim(
+            $pinjam,
             'Dikembalikan',
-            'Buku sudah dikembalikan',
             'Pengembalian buku "' . $pinjam->book->title . '" sudah tercatat. Terima kasih.'
         );
 
@@ -283,10 +278,9 @@ class PeminjamanAdminController extends Controller
         }
 
         if ($sekalianKembali) {
-            app(LoanNotificationService::class)->send(
-                $pinjam->fresh()->load(['user', 'book']),
+            UserNotification::kirim(
+                $pinjam,
                 'Dikembalikan',
-                'Buku sudah dikembalikan',
                 'Denda Rp' . number_format($pinjam->jumlah_denda, 0, ',', '.') . ' untuk buku "' . $pinjam->book->title .
                     '" sudah lunas dan pengembalian buku sudah tercatat. Terima kasih.'
             );

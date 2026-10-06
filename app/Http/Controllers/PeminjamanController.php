@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\Loan;
 use App\Models\UserNotification;
-use App\Services\LoanNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -168,10 +167,9 @@ class PeminjamanController extends Controller
             'status'    => 'Menunggu',
         ]);
 
-        app(LoanNotificationService::class)->send(
-            $loan->load(['user', 'book']),
+        UserNotification::kirim(
+            $loan,
             'Pengajuan',
-            'Pengajuan peminjaman diterima',
             'Pengajuan peminjaman buku "' . $buku->title . '" sudah diterima dan sedang menunggu konfirmasi admin.'
         );
 

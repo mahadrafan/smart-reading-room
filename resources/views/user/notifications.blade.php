@@ -7,69 +7,49 @@
     <div class="notif-kepala">
         <div>
             <h1 style="margin:0 0 5px;font-size:26px;font-weight:800;color:var(--coklat-tua)">Notifikasi</h1>
-            <p style="margin:0;color:var(--abu);font-size:14px">Riwayat informasi peminjaman yang juga dikirim ke emailmu.</p>
+            <p style="margin:0;color:var(--abu);font-size:14px">Riwayat informasi peminjaman bukumu.</p>
         </div>
     </div>
 
-    {{-- tab filter (angka tiap tab dihitung di controller dari semua notifikasi).
-         Hanya tampil bila ada pengumuman; tanpa pengumuman, semua notifikasi adalah notifikasi peminjaman
-         sehingga tab Semua dan Peminjaman isinya sama persis. --}}
-    @if ($jumlahTab['pengumuman'] > 0)
-        <div class="notif-tabs">
+    {{-- filter jenis notifikasi (angka dihitung di controller dari semua notifikasi) --}}
+    @if ($jumlahSemua > 0)
+        <nav class="notif-tabs" aria-label="Filter jenis notifikasi">
             <a href="{{ route('notifikasi.index') }}"
-               class="notif-tab {{ $tabAktif == 'semua' ? 'aktif' : '' }}">
-                Semua ({{ $jumlahTab['semua'] }})
+               class="notif-tab {{ $jenisAktif ? '' : 'aktif' }}"
+               @unless ($jenisAktif) aria-current="page" @endunless>
+                Semua ({{ $jumlahSemua }})
             </a>
-            <a href="{{ route('notifikasi.index', ['tab' => 'peminjaman']) }}"
-               class="notif-tab {{ $tabAktif == 'peminjaman' ? 'aktif' : '' }}">
-                Peminjaman ({{ $jumlahTab['peminjaman'] }})
-            </a>
-            <a href="{{ route('notifikasi.index', ['tab' => 'pengumuman']) }}"
-               class="notif-tab {{ $tabAktif == 'pengumuman' ? 'aktif' : '' }}">
-                Pengumuman ({{ $jumlahTab['pengumuman'] }})
-            </a>
-        </div>
+            @foreach ($jumlahJenis as $jenis => $jumlah)
+                <a href="{{ route('notifikasi.index', ['jenis' => strtolower($jenis)]) }}"
+                   class="notif-tab {{ $jenisAktif == $jenis ? 'aktif' : '' }}"
+                   @if ($jenisAktif == $jenis) aria-current="page" @endif>
+                    {{ $jenis }} ({{ $jumlah }})
+                </a>
+            @endforeach
+        </nav>
     @endif
 
     {{-- daftar notifikasi --}}
     @forelse ($notifications as $notif)
         @php
-            // tentukan ikon dan warna berdasarkan type
+            // ikon dan badge tiap jenis notifikasi, lihat UserNotification::tampilan
             $tipe = $notif->type ?? 'Info';
-            if (in_array($tipe, ['Terlambat', 'Gagal'])) {
-                $ikonClass = 'notif-ikon-peringatan';
-                $ikon = '📅';
-                $badgeClass = 'penting';
-                $badgeLabel = $tipe == 'Terlambat' ? 'Penting' : 'Gagal';
-            } elseif (in_array($tipe, ['Dikembalikan', 'Dipinjam'])) {
-                $ikonClass = 'notif-ikon-sukses';
-                $ikon = '✅';
-                $badgeClass = 'selesai';
-                $badgeLabel = 'Selesai';
-            } elseif ($tipe == 'Pengumuman') {
-                $ikonClass = 'notif-ikon-info';
-                $ikon = '📚';
-                $badgeClass = 'pengumuman';
-                $badgeLabel = 'Pengumuman';
-            } else {
-                $ikonClass = 'notif-ikon-info';
-                $ikon = '📋';
-                $badgeClass = 'pengumuman';
-                $badgeLabel = $tipe;
-            }
-
-            // waktu relatif (detik -> menit+detik -> jam+menit -> hari), lihat UserNotification::waktu_relatif
-            $waktuLabel = $notif->waktu_relatif;
+            $tampil = $notif->tampilan;
+            $baru = in_array($notif->notification_id, $idBaru);
         @endphp
 
-        <div class="notif-grup">
+        <div class="notif-grup {{ $baru ? 'notif-baru' : '' }}">
             <div class="notifikasi-item">
-                <div class="notif-ikon-wrap {{ $ikonClass }}">{{ $ikon }}</div>
+                <div class="notif-ikon-wrap {{ $tampil['ikonClass'] }}">{{ $tampil['ikon'] }}</div>
                 <div class="notif-isi">
                     <div class="notif-judul-baris">
-                        <span class="notif-judul">{{ $notif->subject ?? ucfirst($tipe) }}</span>
-                        <span class="notif-badge {{ $badgeClass }}">{{ $badgeLabel }}</span>
-                        <span class="notif-waktu">{{ $waktuLabel }}</span>
+                        <span class="notif-judul">{{ ucfirst($tipe) }}</span>
+                        <span class="notif-badge {{ $tampil['badgeClass'] }}">{{ $tampil['badgeLabel'] }}</span>
+                        @if ($baru)
+                            <span class="notif-badge baru">Baru</span>
+                        @endif
+                        {{-- waktu relatif, lihat UserNotification::waktu_relatif --}}
+                        <span class="notif-waktu">{{ $notif->waktu_relatif }}</span>
                     </div>
                     <p class="notif-pesan">{{ $notif->message }}</p>
                     @if ($notif->loan?->book && $tipe != 'Pengumuman')
@@ -83,20 +63,13 @@
     @empty
         <div class="notif-grup">
             <div style="padding:40px 20px;text-align:center;color:var(--abu)">
-                Belum ada notifikasi.
+                @if ($jenisAktif)
+                    Belum ada notifikasi {{ $jenisAktif }}.
+                    <a href="{{ route('notifikasi.index') }}">Lihat semua notifikasi</a>
+                @else
+                    Belum ada notifikasi.
+                @endif
             </div>
         </div>
     @endforelse
-
-    {{-- info email: setiap notifikasi selalu dikirim juga ke email akun (tidak bisa dimatikan) --}}
-    <div class="notif-pengaturan">
-        <div class="notif-pengaturan-kiri">
-            <div class="notif-pengaturan-ikon">✉️</div>
-            <div class="notif-pengaturan-teks">
-                <div class="judul">Salinan ke email</div>
-                <div class="sub">Setiap notifikasi juga dikirim ke {{ Auth::user()->email }}.</div>
-            </div>
-        </div>
-        <a href="{{ route('profil') }}" class="notif-aksi-link">Ubah email di Profil →</a>
-    </div>
 @endsection

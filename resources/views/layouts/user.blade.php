@@ -31,7 +31,12 @@
                 <a href="{{ route('ulasan.index') }}"
                    class="{{ request()->routeIs('ulasan.index') ? 'aktif' : '' }}">Review &amp; Ulasan</a>
                 <a href="{{ route('notifikasi.index') }}"
-                   class="{{ request()->routeIs('notifikasi.*') ? 'aktif' : '' }}">Notifikasi</a>
+                   class="{{ request()->routeIs('notifikasi.*') ? 'aktif' : '' }}">
+                    Notifikasi
+                    @if ($jumlahNotifBaru > 0)
+                        <span class="menu-angka" data-angka-notif aria-label="{{ $jumlahNotifBaru }} notifikasi belum dibaca">{{ $jumlahNotifBaru }}</span>
+                    @endif
+                </a>
                 <a href="{{ route('profil') }}"
                    class="{{ request()->routeIs('profil*') ? 'aktif' : '' }}">Profil</a>
             </nav>
@@ -55,6 +60,11 @@
             @yield('content')
         </main>
     </div>
+
+    @if ($popupNotif->isNotEmpty())
+        @include('user._popup-notifikasi')
+    @endif
+
     @yield('scripts')
 </body>
 </html>

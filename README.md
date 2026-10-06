@@ -15,8 +15,7 @@ Repository: <https://github.com/mahadrafan/smart-reading-room>
 - Denda keterlambatan beserta status Belum Lunas/Lunas
 - Data kontak peminjam untuk tindak lanjut admin
 - Ulasan dan rating buku
-- Notifikasi dalam aplikasi dan email
-- Pengingat keterlambatan terjadwal
+- Notifikasi peminjaman di dalam aplikasi, dengan pop up untuk notifikasi baru
 
 ## Kebutuhan sistem
 
@@ -240,46 +239,23 @@ Kemudian jalankan:
 php artisan storage:link
 ```
 
-## Konfigurasi email
+## Notifikasi dan pengingat keterlambatan
 
-Secara bawaan, email ditulis ke `storage/logs/laravel.log` sehingga fitur dapat
-diuji tanpa akun email eksternal.
+Semua notifikasi peminjaman hanya tampil di halaman **Notifikasi** peminjam di
+dalam web; tidak ada email yang dikirim, jadi tidak perlu pengaturan SMTP maupun
+scheduler.
 
-Untuk SMTP sungguhan, ubah `.env`, misalnya:
+Setiap perubahan status dari admin atau sistem (dikonfirmasi, dipinjam,
+dikembalikan, ditolak, gagal otomatis) tersimpan sebagai **Belum Dibaca** di kolom
+`status` tabel `notifications`. Selama masih ada yang belum dibaca, peminjam melihat
+pop up notifikasi baru di halaman mana pun dan angka di menu Notifikasi. Notifikasi
+menjadi **Dibaca** setelah tombol **Mengerti** ditekan (atau Esc / klik di luar
+pop up) atau setelah halaman Notifikasi dibuka. Notifikasi pengajuan dibuat oleh
+peminjam sendiri sehingga langsung dianggap dibaca.
 
-```dotenv
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.example.com
-MAIL_PORT=587
-MAIL_USERNAME=alamat-email
-MAIL_PASSWORD=password-aplikasi
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS="perpustakaan@example.com"
-MAIL_FROM_NAME="${APP_NAME}"
-```
-
-Setelah mengubah `.env`, jalankan `php artisan config:clear`. Jangan commit `.env`
-atau password SMTP ke Git.
-
-## Scheduler pengingat keterlambatan
-
-Saat pengembangan, buka terminal kedua:
-
-```powershell
-php artisan schedule:work
-```
-
-Perintah pengingat juga dapat diuji manual:
-
-```powershell
-php artisan loans:send-overdue-reminders
-```
-
-Pada server Linux, tambahkan cron berikut agar scheduler berjalan setiap menit:
-
-```cron
-* * * * * cd /lokasi/smart-reading-room && php artisan schedule:run >> /dev/null 2>&1
-```
+Untuk mengingatkan peminjam yang terlambat (misalnya sudah berapa hari dan berapa
+dendanya), admin menghubungi peminjam secara manual lewat nomor telepon yang
+tampil di Dashboard admin, Riwayat, dan Data Peminjam.
 
 ## Aset frontend
 
@@ -356,8 +332,8 @@ Lalu buka <http://127.0.0.1:8001>.
 | `database/seeders` | Data awal dan akun demo |
 | `resources/views` | Tampilan Blade |
 | `public/css` | CSS aplikasi |
+| `public/js` | JavaScript filter daftar (ulasan & request masuk) |
 | `routes/web.php` | Daftar route web |
-| `routes/console.php` | Command dan scheduler |
 | `tests/Feature` | Pengujian fitur |
 
 ## Catatan keamanan repository
