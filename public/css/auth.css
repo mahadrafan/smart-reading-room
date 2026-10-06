@@ -199,6 +199,18 @@ body {
     border-color: var(--merah);
 }
 
+/* di bawah NIS/NIP yang terisi dari "Ingat saya" */
+.info-diingat {
+    margin: 6px 0 0 22px;
+    font-size: 13px;
+    color: var(--abu);
+}
+
+.info-diingat a {
+    font-weight: 600;
+    color: var(--kayu-teks);
+}
+
 /* no. telepon: kode negara (+62) dan nomor dalam satu kotak */
 .telepon {
     display: flex;

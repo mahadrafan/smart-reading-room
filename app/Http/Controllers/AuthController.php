@@ -5,18 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    // cookie berisi NIS/NIP terakhir yang login dengan "Ingat saya", agar form login terisi lagi setelah keluar.
+    // password TIDAK disimpan aplikasi; pengisian password diserahkan ke password manager browser.
+    const COOKIE_NIS = 'nis_diingat';
+    const MENIT_NIS_DIINGAT = 60 * 24 * 400;
+
     // ---------------------------------------------------------
     // TAMPILAN
     // ---------------------------------------------------------
 
-    // satu halaman logihgfghfadmin dan peminjam
-    public function formLogin()
+    // satu halaman login untuk admin dan peminjam
+    public function formLogin(Request $request)
     {
-        return view('auth.login');
+        // "Ganti akun": lupakan NIS/NIP yang diingat (mis. di komputer bersama)
+        if ($request->boolean('ganti')) {
+            return redirect()->route('login')->withoutCookie(self::COOKIE_NIS);
+        }
+
+        return view('auth.login', ['nisDiingat' => $request->cookie(self::COOKIE_NIS)]);
     }
 
     // dua versi form daftar: siswa (bawaan) dan tenaga pendidik (?sebagai=pendidik)
@@ -96,15 +107,19 @@ class AuthController extends Controller
         if (Auth::attempt($data, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
+            // ingat NIS/NIP untuk form login berikutnya hanya bila "Ingat saya" dicentang
+            $cookieNis = $request->boolean('remember')
+                ? Cookie::make(self::COOKIE_NIS, Auth::user()->nim_nip, self::MENIT_NIS_DIINGAT)
+                : Cookie::forget(self::COOKIE_NIS);
+
             // arahkan sesuai role yang ada di database
-            if (Auth::user()->role == 'Admin') {
-                return redirect()->route('admin.dashboard');
-            }
-            return redirect()->route('dashboard');
+            $tujuan = Auth::user()->role == 'Admin' ? 'admin.dashboard' : 'dashboard';
+
+            return redirect()->route($tujuan)->withCookie($cookieNis);
         }
 
         return back()
-            ->withInput($request->only('nim_nip'))
+            ->withInput($request->only('nim_nip', 'remember'))
             ->with('error', 'NIS/NIP atau password salah. Periksa lagi, lalu coba masuk kembali.');
     }
 

@@ -10,7 +10,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // halaman tamu (login, daftar, lupa password) untuk pengguna yang masih login, termasuk lewat "Ingat saya":
+        // langsung ke landing page sesuai rolenya
+        $middleware->redirectUsersTo(
+            fn () => auth()->user()->role == 'Admin' ? route('admin.dashboard') : route('dashboard')
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

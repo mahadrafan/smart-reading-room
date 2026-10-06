@@ -82,6 +82,103 @@ class SmartReadingRoomTest extends TestCase
         $this->assertTrue(Hash::check('password456', $user->fresh()->password));
     }
 
+    public function test_remember_me_keeps_user_logged_in_after_session_ends(): void
+    {
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $cookieIngat = fn ($respons) => collect($respons->headers->getCookies())
+            ->first(fn ($c) => str_starts_with($c->getName(), 'remember_web_'));
+        $sesiBerakhir = function () {
+            // seperti session kedaluwarsa / browser ditutup: session & status login di memori hilang
+            $this->app['auth']->forgetGuards();
+            $this->flushSession();
+        };
+
+        // password salah: centang "Ingat saya" tetap terpasang di form
+        $this->post('/login', ['nim_nip' => 'SISWA-TEST', 'password' => 'salah-sekali', 'remember' => 'on'])
+            ->assertRedirect();
+        $this->get('/login')->assertSee('name="remember" checked', false);
+
+        // tanpa centang: tidak ada cookie "Ingat saya", setelah session berakhir harus login lagi
+        $respons = $this->post('/login', ['nim_nip' => 'SISWA-TEST', 'password' => 'password123']);
+        $this->assertNull($cookieIngat($respons));
+        $sesiBerakhir();
+        $this->get('/dashboard')->assertRedirect(route('login'));
+
+        // dengan centang: cookie berlaku lama, dan tetap masuk walau session sudah berakhir
+        $respons = $this->post('/login', ['nim_nip' => 'SISWA-TEST', 'password' => 'password123', 'remember' => 'on'])
+            ->assertRedirect(route('dashboard'));
+        $cookie = $cookieIngat($respons);
+        $this->assertNotNull($cookie);
+        $this->assertGreaterThan(now()->addYear()->timestamp, $cookie->getExpiresTime());
+        $this->assertNotNull($borrower->fresh()->remember_token);
+
+        $sesiBerakhir();
+        $this->withUnencryptedCookie($cookie->getName(), $cookie->getValue());
+        $this->get('/dashboard')->assertOk()->assertSee('Peminjam Uji');
+
+        // membuka situs / halaman login / daftar langsung ke landing page, tidak menampilkan form login lagi
+        $this->get('/')->assertRedirect(route('login'));
+        $this->get('/login')->assertRedirect(route('dashboard'));
+        $this->get('/register')->assertRedirect(route('dashboard'));
+        $this->get('/forgot-password')->assertRedirect(route('dashboard'));
+
+        // keluar: cookie "Ingat saya" tidak bisa dipakai lagi
+        $this->post('/logout')->assertRedirect(route('login'));
+        $sesiBerakhir();
+        $this->get('/dashboard')->assertRedirect(route('login'));
+        $this->get('/login')->assertOk();
+
+        // admin yang diingat diarahkan ke dashboard admin
+        $this->unencryptedCookies = [];
+        $respons = $this->post('/login', ['nim_nip' => 'ADM-TEST', 'password' => 'password123', 'remember' => 'on']);
+        $sesiBerakhir();
+        $this->withUnencryptedCookie($cookieIngat($respons)->getName(), $cookieIngat($respons)->getValue());
+        $this->get('/login')->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_login_form_remembers_nis_after_logout_but_never_the_password(): void
+    {
+        $this->makeUser('Peminjam', 'SISWA-TEST');
+        $cookieNis = fn ($respons) => collect($respons->headers->getCookies())
+            ->first(fn ($c) => $c->getName() === 'nis_diingat');
+
+        // login dengan "Ingat saya": NIS/NIP disimpan di cookie, password tidak
+        $respons = $this->post('/login', ['nim_nip' => 'SISWA-TEST', 'password' => 'password123', 'remember' => 'on']);
+        $cookie = $cookieNis($respons);
+        $this->assertNotNull($cookie);
+        $this->assertGreaterThan(now()->addYear()->timestamp, $cookie->getExpiresTime());
+        foreach ($respons->headers->getCookies() as $c) {
+            $this->assertStringNotContainsString('password123', (string) $c->getValue());
+        }
+
+        // setelah keluar, form login sudah berisi NIS/NIP, "Ingat saya" tercentang, fokus ke password
+        $this->post('/logout');
+        $this->withUnencryptedCookie('nis_diingat', $cookie->getValue());
+        $halaman = $this->get('/login')->assertOk()
+            ->assertSee('value="SISWA-TEST"', false)
+            ->assertSee('name="remember" checked', false)
+            ->assertSee('Ganti akun')
+            ->assertDontSee('password123')
+            ->getContent();
+        $this->assertMatchesRegularExpression('/autocomplete="current-password" required\s+autofocus/', $halaman);
+        $this->assertDoesNotMatchRegularExpression('/autocomplete="username" required\s+autofocus/', $halaman);
+
+        // "Ganti akun" melupakan NIS/NIP
+        $ganti = $this->get('/login?ganti=1')->assertRedirect(route('login'));
+        $this->assertLessThan(time(), $cookieNis($ganti)->getExpiresTime());   // cookie dihapus
+        $this->unencryptedCookies = [];
+        $halaman = $this->get('/login')->assertOk()
+            ->assertDontSee('value="SISWA-TEST"', false)
+            ->assertDontSee('Ganti akun')
+            ->getContent();
+        $this->assertMatchesRegularExpression('/autocomplete="username" required\s+autofocus/', $halaman);
+
+        // login tanpa "Ingat saya" juga menghapus NIS/NIP yang diingat
+        $respons = $this->post('/login', ['nim_nip' => 'SISWA-TEST', 'password' => 'password123']);
+        $this->assertLessThan(time(), $cookieNis($respons)->getExpiresTime());
+    }
+
     public function test_registration_has_student_and_educator_versions(): void
     {
         $this->get('/register')->assertOk()

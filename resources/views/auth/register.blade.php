@@ -57,7 +57,7 @@
                        placeholder="{{ $pendidik ? 'NIP' : 'NIS' }}"
                        value="{{ old('nim_nip') }}"
                        class="@error('nim_nip') is-invalid @enderror"
-                       required>
+                       autocomplete="username" required>
                 @error('nim_nip')
                     <p class="field-error">{{ $message }}</p>
                 @enderror

@@ -20,17 +20,21 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// ---------- login: satu halaman untuk admin dan peminjam ----------
-Route::get('/login', [AuthController::class, 'formLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.proses');
+// halaman tamu: pengguna yang masih login (termasuk lewat "Ingat saya") langsung diarahkan
+// ke landing page sesuai rolenya (lihat redirectUsersTo di bootstrap/app.php)
+Route::middleware('guest')->group(function () {
+    // ---------- login: satu halaman untuk admin dan peminjam ----------
+    Route::get('/login', [AuthController::class, 'formLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.proses');
 
-// ---------- forgot password / reset password ----------
-Route::get('/forgot-password', [AuthController::class, 'formLupaPassword'])->name('password.forgot');
-Route::post('/forgot-password', [AuthController::class, 'prosesLupaPassword'])->name('password.proses');
+    // ---------- forgot password / reset password ----------
+    Route::get('/forgot-password', [AuthController::class, 'formLupaPassword'])->name('password.forgot');
+    Route::post('/forgot-password', [AuthController::class, 'prosesLupaPassword'])->name('password.proses');
 
-// ---------- daftar akun (selalu jadi Peminjam) ----------
-Route::get('/register', [AuthController::class, 'formRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register'])->name('register.proses');
+    // ---------- daftar akun (selalu jadi Peminjam) ----------
+    Route::get('/register', [AuthController::class, 'formRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.proses');
+});
 
 // ---------- logout ----------
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
