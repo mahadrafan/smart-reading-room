@@ -132,13 +132,19 @@ File `basdat_final.sql` berisi salinan database pengembangan terbaru, termasuk k
 akun, peminjaman, denda, ulasan, dan notifikasi. Gunakan cara ini jika
 ingin memperoleh data yang sama seperti laptop pengembangan.
 
+Dump ini hanya berisi 8 tabel aplikasi (`users`, `categories`, `authors`, `books`,
+`loans`, `reviews`, `notifications`, `admin_logs`) dan **tidak memuat tabel
+`migrations`**. Karena itu, **jangan menjalankan `php artisan migrate`** pada
+database hasil impor: Laravel akan mencoba membuat ulang semua tabel dan berhenti
+dengan error *table already exists*. Perubahan struktur database dibagikan dengan
+memperbarui `basdat_final.sql`, lalu setiap anggota mengimpor ulang file tersebut.
+
 Pastikan konfigurasi `.env` memakai MySQL seperti pada bagian sebelumnya, lalu
 jalankan dari folder proyek:
 
 ```powershell
 mysql -u root -p -e "DROP DATABASE IF EXISTS basdat; CREATE DATABASE basdat CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 mysql -u root -p -e "USE basdat; SOURCE basdat_final.sql;"
-php artisan migrate --force
 php artisan storage:link
 php artisan optimize:clear
 php artisan serve
@@ -221,11 +227,11 @@ Buat database `basdat`, lalu jalankan:
 
 ```powershell
 mysql -u root -p basdat < basdat_backup.sql
-php artisan migrate --force
 ```
 
-Perintah migrasi terakhir memasang perubahan skema yang mungkin belum terdapat
-pada backup lama.
+Jika backup lama belum memuat perubahan struktur terbaru, impor
+`basdat_final.sql` (lihat bagian sebelumnya) alih-alih menjalankan
+`php artisan migrate`.
 
 ### 3. Salin file unggahan
 
@@ -273,9 +279,12 @@ php artisan test
 ```powershell
 git pull origin main
 composer install
-php artisan migrate --force
 php artisan optimize:clear
 ```
+
+Jika `basdat_final.sql` ikut berubah, impor ulang file tersebut seperti pada bagian
+**Menggunakan database terbaru dari repository** (isi database lokal akan
+diganti). Jangan menjalankan `php artisan migrate` pada database hasil impor.
 
 ## Perintah pemecahan masalah
 
@@ -298,9 +307,10 @@ php artisan key:generate
 
 ### Tabel database belum tersedia
 
-```powershell
-php artisan migrate --seed
-```
+Impor `basdat_final.sql` seperti pada bagian **Menggunakan database terbaru dari
+repository**. Perintah `php artisan migrate --seed` hanya boleh dipakai pada
+database yang benar-benar kosong (instalasi baru dengan data demo), tidak pada
+database hasil impor.
 
 ### Sampul tidak tampil
 
