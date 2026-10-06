@@ -804,12 +804,29 @@ class SmartReadingRoomTest extends TestCase
         $idKategori = $book->category_id;
         $alamatFilter = route('dashboard', ['kategori' => [$idKategori]]);
 
-        // tab Semua Buku: semua koleksi dalam kartu; tombol kategori langsung menuju tab Rak Buku
+        // tab Semua Buku: semua koleksi berjajar di rak; tombol kategori langsung menuju tab Rak Buku
         $this->actingAs($borrower)->get('/dashboard?tampilan=semua')->assertOk()
             ->assertSee('Semua Koleksi')
-            ->assertSee('class="kartu-buku"', false)
+            ->assertSee('class="rak-bagian"', false)
+            ->assertDontSee('class="kartu-buku"', false)
             ->assertSee('href="' . e($alamatFilter) . '"', false)
             ->assertDontSee('Hapus filter');
+
+        // 20 buku: halaman 1 berisi 3 rak x 6 buku, sisanya di halaman 2
+        foreach (range(2, 20) as $no) {
+            $book->replicate()->fill(['title' => sprintf('Buku Uji %02d', $no)])->save();
+        }
+        $halaman1 = $this->get('/dashboard?tampilan=semua')->assertOk()
+            ->assertSee('Halaman 1 dari 2')
+            ->assertSee('href="' . e(route('dashboard', ['tampilan' => 'semua', 'page' => 2])) . '"', false)
+            ->getContent();
+        $this->assertSame(3, substr_count($halaman1, 'class="rak-bagian"'));
+        $this->assertSame(18, substr_count($halaman1, 'class="buku-rak"'));
+        $halaman2 = $this->get('/dashboard?tampilan=semua&page=2')->assertOk()
+            ->assertSee('Semua Koleksi')->assertSee('Halaman 2 dari 2')
+            ->getContent();
+        $this->assertSame(1, substr_count($halaman2, 'class="rak-bagian"'));
+        $this->assertSame(2, substr_count($halaman2, 'class="buku-rak"'));
 
         // filter, pencarian, atau urutan yang dikirim dari tab Semua Buku dialihkan ke tab Rak Buku
         $this->get('/dashboard?tampilan=semua&kategori[]=' . $idKategori)->assertRedirect($alamatFilter);

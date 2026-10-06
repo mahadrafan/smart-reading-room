@@ -10,8 +10,11 @@ use Illuminate\Support\Facades\Auth;
 
 class KatalogController extends Controller
 {
-    // jumlah buku maksimal di rak utama; selebihnya lewat tautan "Lihat semua"
+    // jumlah buku maksimal di satu rak; selebihnya lewat tautan "Lihat semua" atau halaman berikutnya
     const ISI_RAK = 6;
+
+    // daftar buku (Semua Buku maupun hasil pencarian/filter) tampil 3 rak per halaman
+    const RAK_PER_HALAMAN = 3;
 
     // ---------------------------------------------------------
     // LANDING PAGE peminjam setelah login: katalog buku
@@ -85,7 +88,7 @@ class KatalogController extends Controller
         } elseif ($urut === 'terbaru') {
             $query->orderByDesc('created_at')->orderByDesc('book_id');
         }
-        $buku = $query->orderBy('title')->paginate(12)->withQueryString();
+        $buku = $query->orderBy('title')->paginate(self::ISI_RAK * self::RAK_PER_HALAMAN)->withQueryString();
 
         // semua kategori (untuk panel filter) + jumlah buku aktifnya
         $kategori = Category::withCount(['books as jumlah_buku' => function ($q) {
@@ -155,6 +158,7 @@ class KatalogController extends Controller
             'hanyaTersedia'   => $hanyaTersedia,
             'sedangMencari'   => $sedangMencari,
             'tampilan'        => $tampilan,
+            'isiRak'          => self::ISI_RAK,
             'pinjamanAktif' => $pinjamanAktif,
             'populer'       => $populer,
             'topReview'       => $topReview,

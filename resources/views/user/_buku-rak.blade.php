@@ -29,9 +29,13 @@
         $keterangan = $b->jumlah_rating
             ? number_format((float) $b->rata_rating, 1) . ' · ' . $b->jumlah_rating . ' ulasan'
             : 'Belum ada rating';
+    } elseif (isset($jedaPinjam[$b->book_id])) {
+        // baru dikembalikan user ini: jeda sebelum boleh dipinjam lagi
+        $keterangan = 'Bisa dipinjam ' . $jedaPinjam[$b->book_id]->format('d M');
     } else {
         $keterangan = $b->available_stock > 0 ? 'Tersedia ' . $b->available_stock : 'Stok habis';
     }
+    $jeda = !$pinjam && !$info && isset($jedaPinjam[$b->book_id]);
 
     $daftarWarna = ['#8b5e34', '#3b2a1e', '#2f6f73', '#b5574b', '#5b7b3a', '#a07a2c'];
     $warnaSampul = $daftarWarna[($b->category_id ?? 0) % count($daftarWarna)];
@@ -65,7 +69,7 @@
     </span>
 
     <span class="buku-rak-judul">{{ $b->title }}</span>
-    <span class="buku-rak-ket {{ $info ? 'netral' : '' }} {{ $terlambat || (!$pinjam && !$info && $b->available_stock <= 0) ? 'merah' : '' }}">
+    <span class="buku-rak-ket {{ $info || $jeda ? 'netral' : '' }} {{ $terlambat || (!$pinjam && !$info && !$jeda && $b->available_stock <= 0) ? 'merah' : '' }}">
         @if ($info == 'rating' && $b->jumlah_rating)
             <span class="bintang-rak" aria-hidden="true">★</span>
             <span class="sr-only">Rating rata-rata</span>

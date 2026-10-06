@@ -154,7 +154,7 @@
                 </div>
             @endif
         @else
-            {{-- hasil pencarian / filter kategori, atau tampilan "semua buku" --}}
+            {{-- hasil pencarian / filter kategori, atau tab "Semua Buku" --}}
             <div class="rak-kepala">
                 <h2>
                     @if ($sedangMencari)
@@ -181,19 +181,12 @@
             </div>
 
             @if ($buku->count() > 0)
-                @if ($tampilan == 'rak')
-                    {{-- keterangan di bawah buku mengikuti urutan: jumlah dipinjam / rata-rata rating / stok --}}
-                    @php $infoRak = ['populer' => 'dipinjam', 'rating' => 'rating'][$urut] ?? null; @endphp
-                    @foreach ($buku->chunk(6) as $barisBuku)
-                        @include('user._rak', ['buku' => $barisBuku, 'info' => $infoRak])
-                    @endforeach
-                @else
-                    <div class="rak">
-                        @foreach ($buku as $b)
-                            @include('user._kartu', ['b' => $b])
-                        @endforeach
-                    </div>
-                @endif
+                {{-- Semua Buku dan hasil filter sama-sama berjajar di rak: maksimal 3 rak x 6 buku per halaman.
+                     keterangan di bawah buku mengikuti urutan: jumlah dipinjam / rata-rata rating / stok --}}
+                @php $infoRak = ['populer' => 'dipinjam', 'rating' => 'rating'][$urut] ?? null; @endphp
+                @foreach ($buku->chunk($isiRak) as $barisBuku)
+                    @include('user._rak', ['buku' => $barisBuku, 'info' => $infoRak])
+                @endforeach
 
                 @if ($buku->lastPage() > 1)
                     <div class="halaman">
