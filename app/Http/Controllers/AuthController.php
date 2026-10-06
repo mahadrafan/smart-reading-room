@@ -19,9 +19,13 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    public function formRegister()
+    // dua versi form daftar: siswa (bawaan) dan tenaga pendidik (?sebagai=pendidik)
+    public function formRegister(Request $request)
     {
-        return view('auth.register');
+        $jenis = old('borrower_type')
+            ?? ($request->query('sebagai') === 'pendidik' ? User::TENAGA_PENDIDIK : User::SISWA);
+
+        return view('auth.register', ['jenis' => $jenis === User::TENAGA_PENDIDIK ? User::TENAGA_PENDIDIK : User::SISWA]);
     }
 
     public function formLupaPassword()
@@ -110,38 +114,48 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        $pendidik = $request->borrower_type === User::TENAGA_PENDIDIK;
+
+        // siswa wajib mengisi kelas, tenaga pendidik wajib mengisi jabatan/mapel
         $request->validate([
-            'name'     => 'required|max:100',
-            'email'    => 'required|email|max:100|unique:users,email',
-            'nim_nip'  => 'required|max:20|unique:users,nim_nip',
-            'class'    => 'required|max:20',
-            'phone'    => 'required|max:20',
-            'password' => 'required|min:8|confirmed',
+            'borrower_type' => 'required|in:' . User::SISWA . ',' . User::TENAGA_PENDIDIK,
+            'name'          => 'required|max:100',
+            'email'         => 'required|email|max:100|unique:users,email',
+            'nim_nip'       => 'required|max:20|unique:users,nim_nip',
+            'class'         => 'required_if:borrower_type,' . User::SISWA . '|nullable|max:20',
+            'job_title'     => 'required_if:borrower_type,' . User::TENAGA_PENDIDIK . '|nullable|max:50',
+            'phone'         => 'required|max:20',
+            'password'      => 'required|min:8|confirmed',
         ], [
-            'required'  => ':attribute wajib diisi.',
-            'email'     => 'Format email belum benar.',
-            'max'       => ':attribute maksimal :max karakter.',
-            'unique'    => ':attribute sudah terdaftar.',
-            'min'       => ':attribute minimal :min karakter.',
-            'confirmed' => 'Password dan ulangi password harus sama.',
+            'required'      => ':attribute wajib diisi.',
+            'required_if'   => ':attribute wajib diisi.',
+            'borrower_type.*' => 'Pilih daftar sebagai siswa atau tenaga pendidik.',
+            'email'         => 'Format email belum benar.',
+            'max'           => ':attribute maksimal :max karakter.',
+            'unique'        => ':attribute sudah terdaftar.',
+            'min'           => ':attribute minimal :min karakter.',
+            'confirmed'     => 'Password dan ulangi password harus sama.',
         ], [
-            'name'     => 'Nama lengkap',
-            'email'    => 'Email',
-            'nim_nip'  => 'NIS/NIP',
-            'class'    => 'Kelas',
-            'phone'    => 'No. telepon',
-            'password' => 'Password',
+            'name'      => 'Nama lengkap',
+            'email'     => 'Email',
+            'nim_nip'   => $pendidik ? 'NIP' : 'NIS',
+            'class'     => 'Kelas',
+            'job_title' => 'Jabatan / mapel',
+            'phone'     => 'No. telepon',
+            'password'  => 'Password',
         ]);
 
-        // role selalu Peminjam, tidak diambil dari form
+        // role selalu Peminjam, tidak diambil dari form; hanya isian milik jenis yang dipilih yang disimpan
         User::create([
-            'role'     => 'Peminjam',
-            'nim_nip'  => $request->nim_nip,
-            'name'     => $request->name,
-            'class'    => $request->class,
-            'email'    => $request->email,
-            'phone'    => $request->phone,
-            'password' => Hash::make($request->password),
+            'role'          => 'Peminjam',
+            'borrower_type' => $request->borrower_type,
+            'nim_nip'       => $request->nim_nip,
+            'name'          => $request->name,
+            'class'         => $pendidik ? null : $request->class,
+            'job_title'     => $pendidik ? $request->job_title : null,
+            'email'         => $request->email,
+            'phone'         => $request->phone,
+            'password'      => Hash::make($request->password),
         ]);
 
         return redirect()->route('login')

@@ -16,9 +16,15 @@
                 @csrf
                 @method('PUT')
 
-                <div class="isian">
-                    <label>NIS/NIP</label>
-                    <input type="text" value="{{ Auth::user()->nim_nip }}" readonly>
+                <div class="dua-kolom">
+                    <div class="isian">
+                        <label>{{ Auth::user()->label_nomor_induk }}</label>
+                        <input type="text" value="{{ Auth::user()->nim_nip }}" readonly>
+                    </div>
+                    <div class="isian">
+                        <label>Terdaftar sebagai</label>
+                        <input type="text" value="{{ Auth::user()->borrower_type }}" readonly>
+                    </div>
                 </div>
 
                 <div class="isian">
@@ -40,14 +46,28 @@
                 </div>
 
                 <div class="dua-kolom">
-                    <div class="isian">
-                        <label for="class">Kelas</label>
-                        <input type="text" id="class" name="class" value="{{ old('class', Auth::user()->class) }}"
-                               class="@error('class') salah @enderror" required>
-                        @error('class')
-                            <p class="pesan-salah">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    {{-- siswa mengubah kelas, tenaga pendidik mengubah jabatan/mapel --}}
+                    @if (Auth::user()->isTenagaPendidik())
+                        <div class="isian">
+                            <label for="job_title">Jabatan / mapel</label>
+                            <input type="text" id="job_title" name="job_title" maxlength="50"
+                                   value="{{ old('job_title', Auth::user()->job_title) }}"
+                                   class="@error('job_title') salah @enderror" required>
+                            @error('job_title')
+                                <p class="pesan-salah">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @else
+                        <div class="isian">
+                            <label for="class">Kelas</label>
+                            <input type="text" id="class" name="class" maxlength="20"
+                                   value="{{ old('class', Auth::user()->class) }}"
+                                   class="@error('class') salah @enderror" required>
+                            @error('class')
+                                <p class="pesan-salah">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
                     <div class="isian">
                         <label for="phone">No. telepon</label>
                         <input type="text" id="phone" name="phone" value="{{ old('phone', Auth::user()->phone) }}"

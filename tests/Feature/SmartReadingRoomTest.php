@@ -28,14 +28,18 @@ class SmartReadingRoomTest extends TestCase
 
         $admin = User::where('nim_nip', 'ADM001')->firstOrFail();
         $borrower = User::where('nim_nip', '2024001')->firstOrFail();
+        $guru = User::where('nim_nip', '198501012010011001')->firstOrFail();
 
         $this->assertTrue(Hash::check('admin12345', $admin->password));
         $this->assertTrue(Hash::check('peminjam123', $borrower->password));
+        $this->assertTrue(Hash::check('pendidik123', $guru->password));
+        $this->assertSame(User::SISWA, $borrower->borrower_type);
+        $this->assertSame(User::TENAGA_PENDIDIK, $guru->borrower_type);
 
         $admin->update(['password' => Hash::make('password-baru')]);
         $this->seed();
 
-        $this->assertDatabaseCount('users', 2);
+        $this->assertDatabaseCount('users', 3);
         $this->assertTrue(Hash::check('password-baru', $admin->fresh()->password));
     }
 
@@ -47,6 +51,7 @@ class SmartReadingRoomTest extends TestCase
         $this->get('/forgot-password')->assertOk();
 
         $this->post('/register', [
+            'borrower_type' => 'Siswa',
             'name' => 'Siswa Uji',
             'email' => 'siswa@example.test',
             'nim_nip' => '2026999',
@@ -58,6 +63,7 @@ class SmartReadingRoomTest extends TestCase
 
         $user = User::where('nim_nip', '2026999')->firstOrFail();
         $this->assertSame('Peminjam', $user->role);
+        $this->assertSame(User::SISWA, $user->borrower_type);
 
         $this->post('/login', [
             'nim_nip' => '2026999',
@@ -74,6 +80,85 @@ class SmartReadingRoomTest extends TestCase
         ])->assertRedirect(route('login'));
 
         $this->assertTrue(Hash::check('password456', $user->fresh()->password));
+    }
+
+    public function test_registration_has_student_and_educator_versions(): void
+    {
+        $this->get('/register')->assertOk()
+            ->assertSee('Daftar sebagai')
+            ->assertSee('value="Siswa"', false)
+            ->assertSee('placeholder="NIS"', false);
+        $this->get('/register?sebagai=pendidik')->assertOk()
+            ->assertSee('value="Tenaga Pendidik"', false)
+            ->assertSee('placeholder="NIP"', false)
+            ->assertSee('placeholder="Jabatan / mapel"', false);
+
+        $data = [
+            'name' => 'Guru Uji',
+            'email' => 'guru@example.test',
+            'nim_nip' => '197001012000011001',
+            'phone' => '081234567890',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ];
+
+        // jenis wajib dipilih, dan tenaga pendidik wajib mengisi jabatan/mapel (bukan kelas)
+        $this->post('/register', $data)->assertSessionHasErrors('borrower_type');
+        $this->post('/register', $data + ['borrower_type' => 'Tenaga Pendidik', 'class' => 'XII IPA 1'])
+            ->assertSessionHasErrors(['job_title' => 'Jabatan / mapel wajib diisi.']);
+        $this->post('/register', $data + ['borrower_type' => 'Siswa'])
+            ->assertSessionHasErrors(['class' => 'Kelas wajib diisi.']);
+        $this->post('/register', $data + ['borrower_type' => 'Admin', 'class' => 'X'])
+            ->assertSessionHasErrors('borrower_type');
+        $this->assertDatabaseMissing('users', ['nim_nip' => '197001012000011001']);
+
+        // isian kelas yang ikut terkirim tidak disimpan untuk tenaga pendidik
+        $this->post('/register', $data + [
+            'borrower_type' => 'Tenaga Pendidik',
+            'job_title' => 'Guru Biologi',
+            'class' => 'XII IPA 1',
+        ])->assertRedirect(route('login'));
+
+        $guru = User::where('nim_nip', '197001012000011001')->firstOrFail();
+        $this->assertSame('Peminjam', $guru->role);
+        $this->assertSame(User::TENAGA_PENDIDIK, $guru->borrower_type);
+        $this->assertSame('Guru Biologi', $guru->job_title);
+        $this->assertNull($guru->class);
+
+        // profil & form peminjaman memakai NIP dan jabatan, bukan NIS dan kelas
+        $this->actingAs($guru)->get('/profil')->assertOk()
+            ->assertSee('<label>NIP</label>', false)
+            ->assertSee('Jabatan / mapel')
+            ->assertSee('value="Guru Biologi"', false)
+            ->assertDontSee('id="class"', false);
+
+        $this->put('/profil', [
+            'name' => 'Guru Uji',
+            'email' => 'guru@example.test',
+            'phone' => '081234567890',
+        ])->assertSessionHasErrors('job_title');
+
+        $this->put('/profil', [
+            'name' => 'Guru Uji',
+            'email' => 'guru@example.test',
+            'phone' => '081234567890',
+            'job_title' => 'Wakil Kepala Sekolah',
+            'class' => 'XII IPA 1',
+        ])->assertRedirect(route('profil'));
+        $this->assertSame('Wakil Kepala Sekolah', $guru->fresh()->job_title);
+        $this->assertNull($guru->fresh()->class);
+
+        // di bawah nama pada sidebar tampil jabatan (siswa menampilkan kelas)
+        $this->get('/dashboard')->assertOk()
+            ->assertSee('<div class="kelas">Wakil Kepala Sekolah</div>', false);
+
+        // admin melihat jenis peminjam dan bisa mencari berdasarkan jabatan
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $this->makeUser('Peminjam', 'SISWA-TEST');
+        $this->actingAs($admin)->get('/admin/peminjam?q=Wakil')->assertOk()
+            ->assertSee('Guru Uji')
+            ->assertSee('Tenaga Pendidik')
+            ->assertDontSee('SISWA-TEST');
     }
 
     public function test_role_guards_and_all_main_pages(): void
@@ -1012,7 +1097,7 @@ class SmartReadingRoomTest extends TestCase
 
         // 10 per halaman, urut nama; halaman 2 berisi sisanya
         $this->actingAs($admin)->get('/admin/peminjam')->assertOk()
-            ->assertSee('Cari NIS/NIP, nama, atau kelas')
+            ->assertSee('Cari NIS/NIP, nama, kelas, atau jabatan')
             ->assertSee('Menampilkan 1–10 dari', false)
             ->assertSee('Siswa 10')->assertDontSee('Siswa 11')
             ->assertSee('Halaman 1 dari 2');
@@ -1021,14 +1106,14 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('Menampilkan 11–12 dari', false);
         $this->get('/admin/peminjam?page=9')->assertRedirect('/admin/peminjam?page=2');
 
-        // pencarian NIS/NIP, nama, atau kelas
+        // pencarian NIS/NIP, nama, kelas, atau jabatan
         $this->get('/admin/peminjam?q=P07')->assertOk()->assertSee('Siswa 07')->assertDontSee('Siswa 08');
         $this->get('/admin/peminjam?q=siswa 12')->assertOk()->assertSee('P12')->assertDontSee('P11');
         $this->get('/admin/peminjam?q=XII-B')->assertOk()
             ->assertSee('Siswa 02')->assertDontSee('Siswa 01')
             ->assertSee('dari <strong>6</strong>', false)->assertSee('peminjam yang cocok (total 12)');
         $this->get('/admin/peminjam?q=tidakada')->assertOk()
-            ->assertSee('Tidak ada peminjam dengan NIS/NIP, nama, atau kelas yang cocok dengan “tidakada”.', false);
+            ->assertSee('Tidak ada peminjam dengan NIS/NIP, nama, kelas, atau jabatan yang cocok dengan “tidakada”.', false);
     }
 
     public function test_incoming_requests_are_searchable_filterable_and_paginated_by_ten(): void
@@ -1525,6 +1610,7 @@ class SmartReadingRoomTest extends TestCase
             'role' => $role,
             'nim_nip' => $nim,
             'name' => $role . ' Uji',
+            'borrower_type' => $role === 'Peminjam' ? User::SISWA : null,
             'class' => $role === 'Peminjam' ? 'XII-A' : null,
             'email' => strtolower($nim) . '@example.test',
             'password' => Hash::make('password123'),

@@ -6,6 +6,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
+    // jenis peminjam: siswa mengisi NIS + kelas, tenaga pendidik mengisi NIP + jabatan/mapel
+    const SISWA = 'Siswa';
+    const TENAGA_PENDIDIK = 'Tenaga Pendidik';
+
     // nama tabel dan primary key mengikuti database basdat
     protected $table = 'users';
     protected $primaryKey = 'user_id';
@@ -16,9 +20,11 @@ class User extends Authenticatable
     // kolom yang boleh diisi lewat User::create()
     protected $fillable = [
         'role',
+        'borrower_type',
         'nim_nip',
         'name',
         'class',
+        'job_title',
         'email',
         'password',
         'phone',
@@ -29,6 +35,28 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function isTenagaPendidik(): bool
+    {
+        return $this->borrower_type === self::TENAGA_PENDIDIK;
+    }
+
+    // label nomor induk: NIS untuk siswa, NIP untuk tenaga pendidik
+    public function getLabelNomorIndukAttribute(): string
+    {
+        return $this->isTenagaPendidik() ? 'NIP' : 'NIS';
+    }
+
+    // label & isi keterangan peminjam: kelas untuk siswa, jabatan/mapel untuk tenaga pendidik
+    public function getLabelKeteranganAttribute(): string
+    {
+        return $this->isTenagaPendidik() ? 'Jabatan / mapel' : 'Kelas';
+    }
+
+    public function getKeteranganAttribute(): ?string
+    {
+        return $this->isTenagaPendidik() ? $this->job_title : $this->class;
+    }
 
     // inisial untuk avatar ulasan: huruf depan dua kata pertama nama, misalnya "Budi Santoso" -> "BS"
     public function getInisialAttribute(): string

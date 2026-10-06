@@ -134,8 +134,8 @@
                     <input type="text" id="nama_peminjam" value="{{ Auth::user()->name }}" readonly>
                 </div>
                 <div class="isian">
-                    <label for="kelas_peminjam">Kelas</label>
-                    <input type="text" id="kelas_peminjam" value="{{ Auth::user()->class }}" readonly>
+                    <label for="kelas_peminjam">{{ Auth::user()->label_keterangan }}</label>
+                    <input type="text" id="kelas_peminjam" value="{{ Auth::user()->keterangan }}" readonly>
                 </div>
                 <div class="isian">
                     <label for="telepon_peminjam">No. telepon</label>

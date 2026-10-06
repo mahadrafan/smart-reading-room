@@ -46,7 +46,7 @@
                         <thead>
                             <tr>
                                 <th>Peminjam</th>
-                                <th>Kelas</th>
+                                <th>Kelas / jabatan</th>
                                 <th>Tenggat Peminjaman</th>
                             </tr>
                         </thead>
@@ -57,7 +57,7 @@
                                         <strong>{{ $pa->user ? $pa->user->name : '-' }}</strong>
                                     </td>
                                     <td>
-                                        {{ ($pa->user && $pa->user->class) ? $pa->user->class : '-' }}
+                                        {{ ($pa->user && $pa->user->keterangan) ? $pa->user->keterangan : '-' }}
                                     </td>
                                     <td>
                                         @if ($pa->status == 'Dipinjam')

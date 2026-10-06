@@ -178,7 +178,11 @@ Akun ini dibuat oleh `php artisan migrate --seed`:
 | Role | NIS/NIP | Password |
 | --- | --- | --- |
 | Admin | `ADM001` | `admin12345` |
-| Peminjam | `2024001` | `peminjam123` |
+| Peminjam (siswa) | `2024001` | `peminjam123` |
+| Peminjam (tenaga pendidik) | `198501012010011001` | `pendidik123` |
+
+Saat mendaftar, peminjam memilih **Siswa** (mengisi NIS dan kelas) atau
+**Tenaga Pendidik** (mengisi NIP dan jabatan/mapel).
 
 Ganti password akun demo sebelum aplikasi digunakan di lingkungan nyata.
 

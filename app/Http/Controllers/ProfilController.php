@@ -15,16 +15,22 @@ class ProfilController extends Controller
         return view('user.profil');
     }
 
-    // ubah data diri (name, email, class, phone)
+    // ubah data diri (name, email, phone, dan kelas untuk siswa atau jabatan/mapel untuk tenaga pendidik)
     public function update(Request $request)
     {
         $user = Auth::user();
 
+        $keterangan = $user->isTenagaPendidik()
+            ? ['job_title' => ['required', 'string', 'max:50']]
+            : ['class' => ['required', 'string', 'max:20']];
+
         $data = $request->validate([
             'name'  => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:100', Rule::unique('users', 'email')->ignore($user->user_id, 'user_id')],
-            'class' => ['required', 'string', 'max:20'],
             'phone' => ['required', 'string', 'max:20'],
+        ] + $keterangan, [], [
+            'job_title' => 'jabatan / mapel',
+            'class'     => 'kelas',
         ]);
 
         $user->update($data);
