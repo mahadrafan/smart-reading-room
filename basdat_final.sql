@@ -56,7 +56,6 @@ DROP TABLE IF EXISTS `authors`;
 CREATE TABLE `authors` (
   `author_id` int NOT NULL AUTO_INCREMENT,
   `author_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `biography` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   PRIMARY KEY (`author_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -67,7 +66,7 @@ CREATE TABLE `authors` (
 
 LOCK TABLES `authors` WRITE;
 /*!40000 ALTER TABLE `authors` DISABLE KEYS */;
-INSERT INTO `authors` VALUES (1,'Leila S. Chudori','Penulis dan jurnalis senior Indonesia, penulis novel peraih penghargaan seperti Laut Bercerita dan Pulang.'),(2,'Brian Khrisna','Penulis novel populer Indonesia yang dikenal luas lewat karya-karya bertema romansa, kehidupan urban, dan komedi.'),(3,'Prof. Dr. Kristoko Dwi Hartomo, dkk.','Pakar dan akademisi senior ilmu komputer serta data science di Indonesia, aktif menulis buku referensi pemrograman dan sains data.'),(4,'Irmah Halimah Bachtiar, S.E., M.Si.','Dosen dan akademisi bidang akuntansi dan keuangan, aktif menulis buku panduan akuntansi dasar untuk mahasiswa dan pemula.'),(6,'vincent',NULL),(8,'Tim QA Smart Reading Room','Penulis data pengujian sistem.'),(9,'Jubilee Enterprise','Tim penulis buku komputer dan teknologi informasi yang produktif, banyak menerbitkan buku panduan pemrograman melalui Elex Media Komputindo.'),(10,'Sugeng Winardi, S.Kom., M.T.','Dosen dan akademisi bidang ilmu komputer, penulis buku ajar pemrograman yang diterbitkan oleh Deepublish.'),(11,'Aris Defiana, S.Kom','Guru berlatar belakang teknik informatika yang berpengalaman menulis buku, termasuk buku pelajaran TIK.'),(12,'Jim Kurose',NULL),(13,'Prof. Drs. Ec. Ir. Riyanarto Sarno, M.Sc., Ph.D.,',NULL),(14,'Keith Ross',NULL);
+INSERT INTO `authors` VALUES (1,'Leila S. Chudori'),(2,'Brian Khrisna'),(3,'Prof. Dr. Kristoko Dwi Hartomo, dkk.'),(4,'Irmah Halimah Bachtiar, S.E., M.Si.'),(6,'vincent'),(8,'Tim QA Smart Reading Room'),(9,'Jubilee Enterprise'),(10,'Sugeng Winardi, S.Kom., M.T.'),(11,'Aris Defiana, S.Kom'),(12,'Jim Kurose'),(13,'Prof. Drs. Ec. Ir. Riyanarto Sarno, M.Sc., Ph.D.,'),(14,'Keith Ross');
 /*!40000 ALTER TABLE `authors` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -152,7 +151,6 @@ DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
   `category_id` int NOT NULL AUTO_INCREMENT,
   `category_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   PRIMARY KEY (`category_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -163,7 +161,7 @@ CREATE TABLE `categories` (
 
 LOCK TABLES `categories` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
-INSERT INTO `categories` VALUES (1,'Fiksi & Sastra','Koleksi novel fiksi, sastra, dan cerita inspiratif'),(2,'Romance & Drama','Koleksi novel percintaan, drama emosional, dan kehidupan'),(3,'Komputer & Teknologi','Buku ilmu komputer, pemrograman, data science, dan teknologi informasi modern'),(4,'Ekonomi & Akuntansi','Buku akuntansi, keuangan, manajemen bisnis, dan ekonomi'),(6,'horror',NULL),(8,'Pengujian Sistem','Data khusus untuk pengujian fitur aplikasi.');
+INSERT INTO `categories` VALUES (1,'Fiksi & Sastra'),(2,'Romance & Drama'),(3,'Komputer & Teknologi'),(4,'Ekonomi & Akuntansi'),(6,'horror'),(8,'Pengujian Sistem');
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 

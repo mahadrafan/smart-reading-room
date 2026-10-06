@@ -82,11 +82,13 @@ Route::middleware(CekRole::class . ':Admin')->prefix('admin')->group(function ()
     Route::put('/buku/{id}/aktifkan', [BukuController::class, 'aktifkan'])->name('admin.buku.aktifkan');
     Route::delete('/buku/{id}/permanen', [BukuController::class, 'hapusPermanen'])->name('admin.buku.hapus-permanen');
 
-    // Kelola Buku: tab Kategori & Penulis (lihat, edit, hapus bila tidak dipakai buku)
+    // Kelola Buku: tab Kategori & Penulis (lihat, tambah, edit, hapus bila tidak dipakai buku)
     Route::get('/buku/kategori', [KategoriPenulisController::class, 'kategori'])->name('admin.buku.kategori.index');
+    Route::post('/buku/kategori', [KategoriPenulisController::class, 'tambahKategori'])->name('admin.buku.kategori.store');
     Route::put('/buku/kategori/{id}', [KategoriPenulisController::class, 'updateKategori'])->name('admin.buku.kategori.update');
     Route::delete('/buku/kategori/{id}', [KategoriPenulisController::class, 'hapusKategori'])->name('admin.buku.kategori.destroy');
     Route::get('/buku/penulis', [KategoriPenulisController::class, 'penulis'])->name('admin.buku.penulis.index');
+    Route::post('/buku/penulis', [KategoriPenulisController::class, 'tambahPenulis'])->name('admin.buku.penulis.store');
     Route::put('/buku/penulis/{id}', [KategoriPenulisController::class, 'updatePenulis'])->name('admin.buku.penulis.update');
     Route::delete('/buku/penulis/{id}', [KategoriPenulisController::class, 'hapusPenulis'])->name('admin.buku.penulis.destroy');
 

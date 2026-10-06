@@ -10,7 +10,7 @@ class Author extends Model
     protected $primaryKey = 'author_id';
     public $timestamps = false;
 
-    protected $fillable = ['author_name', 'biography'];
+    protected $fillable = ['author_name'];
 
     // satu penulis bisa menulis banyak buku, satu buku bisa punya banyak penulis (tabel book_authors)
     public function books()

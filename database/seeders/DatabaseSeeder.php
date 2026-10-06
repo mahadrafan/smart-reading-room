@@ -37,23 +37,11 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('peminjam123'),
         ]);
 
-        $fiksi = Category::firstOrCreate(
-            ['category_name' => 'Fiksi'],
-            ['description' => 'Novel dan karya cerita fiksi.']
-        );
-        $teknologi = Category::firstOrCreate(
-            ['category_name' => 'Teknologi'],
-            ['description' => 'Buku komputer, teknologi, dan pemrograman.']
-        );
+        $fiksi = Category::firstOrCreate(['category_name' => 'Fiksi']);
+        $teknologi = Category::firstOrCreate(['category_name' => 'Teknologi']);
 
-        $andrea = Author::firstOrCreate(
-            ['author_name' => 'Andrea Hirata'],
-            ['biography' => 'Penulis Indonesia yang dikenal melalui novel Laskar Pelangi.']
-        );
-        $martin = Author::firstOrCreate(
-            ['author_name' => 'Robert C. Martin'],
-            ['biography' => 'Penulis dan praktisi rekayasa perangkat lunak.']
-        );
+        $andrea = Author::firstOrCreate(['author_name' => 'Andrea Hirata']);
+        $martin = Author::firstOrCreate(['author_name' => 'Robert C. Martin']);
 
         $laskar = Book::firstOrCreate(['title' => 'Laskar Pelangi'], [
             'category_id' => $fiksi->category_id,

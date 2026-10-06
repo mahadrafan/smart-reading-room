@@ -10,7 +10,7 @@ class Category extends Model
     protected $primaryKey = 'category_id';
     public $timestamps = false;
 
-    protected $fillable = ['category_name', 'description'];
+    protected $fillable = ['category_name'];
 
     public function books()
     {

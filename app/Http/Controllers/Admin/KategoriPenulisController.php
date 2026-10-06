@@ -8,8 +8,8 @@ use App\Models\Author;
 use App\Models\Category;
 use Illuminate\Http\Request;
 
-// tab Kategori & Penulis di halaman Kelola Buku.
-// tambah baru tetap lewat form buku; di sini hanya lihat, edit, dan hapus.
+// tab Kategori & Penulis di halaman Kelola Buku: lihat, tambah, edit, dan hapus.
+// kategori & penulis baru juga bisa dibuat langsung dari form Tambah/Edit Buku.
 // hapus hanya boleh bila tidak dipakai buku apa pun (aktif maupun nonaktif),
 // karena buku nonaktif tetap menyimpan kategori & penulisnya untuk riwayat peminjaman.
 class KategoriPenulisController extends Controller
@@ -31,17 +31,28 @@ class KategoriPenulisController extends Controller
         ]);
     }
 
+    public function tambahKategori(Request $request)
+    {
+        $data = $request->validate([
+            'nama_baru' => 'required|string|max:100|unique:categories,category_name',
+        ], $this->pesan(), ['nama_baru' => 'Nama kategori']);
+
+        $kategori = Category::create(['category_name' => $data['nama_baru']]);
+        AdminLog::catat('Tambah', 'categories', $kategori->category_id, 'Menambahkan kategori "' . $kategori->category_name . '"');
+
+        // pencarian dilepas agar kategori baru pasti terlihat di daftar
+        return redirect()->to(route('admin.buku.kategori.index') . '#data-' . $kategori->category_id)
+            ->with('status', 'Kategori "' . $kategori->category_name . '" berhasil ditambahkan.')
+            ->with('idBaru', $kategori->category_id);
+    }
+
     public function updateKategori(Request $request, $id)
     {
         $kategori = Category::findOrFail($id);
 
         $data = $request->validate([
             'category_name' => 'required|string|max:100|unique:categories,category_name,' . $id . ',category_id',
-            'description'   => 'nullable|string|max:255',
-        ], $this->pesan(), [
-            'category_name' => 'Nama kategori',
-            'description'   => 'Deskripsi',
-        ]);
+        ], $this->pesan(), ['category_name' => 'Nama kategori']);
 
         $namaLama = $kategori->category_name;
         $kategori->update($data);
@@ -85,17 +96,27 @@ class KategoriPenulisController extends Controller
         ]);
     }
 
+    public function tambahPenulis(Request $request)
+    {
+        $data = $request->validate([
+            'nama_baru' => 'required|string|max:100|unique:authors,author_name',
+        ], $this->pesan(), ['nama_baru' => 'Nama penulis']);
+
+        $penulis = Author::create(['author_name' => $data['nama_baru']]);
+        AdminLog::catat('Tambah', 'authors', $penulis->author_id, 'Menambahkan penulis "' . $penulis->author_name . '"');
+
+        return redirect()->to(route('admin.buku.penulis.index') . '#data-' . $penulis->author_id)
+            ->with('status', 'Penulis "' . $penulis->author_name . '" berhasil ditambahkan.')
+            ->with('idBaru', $penulis->author_id);
+    }
+
     public function updatePenulis(Request $request, $id)
     {
         $penulis = Author::findOrFail($id);
 
         $data = $request->validate([
             'author_name' => 'required|string|max:100|unique:authors,author_name,' . $id . ',author_id',
-            'biography'   => 'nullable|string|max:1000',
-        ], $this->pesan(), [
-            'author_name' => 'Nama penulis',
-            'biography'   => 'Biografi',
-        ]);
+        ], $this->pesan(), ['author_name' => 'Nama penulis']);
 
         $namaLama = $penulis->author_name;
         $penulis->update($data);

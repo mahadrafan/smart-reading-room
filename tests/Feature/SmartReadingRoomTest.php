@@ -224,16 +224,16 @@ class SmartReadingRoomTest extends TestCase
         $this->get('/admin/buku/penulis?q=lama')->assertOk()
             ->assertSee('Tim Lama')->assertDontSee('Penulis Uji');
 
-        // edit nama & deskripsi (nama tidak boleh kembar)
+        // edit nama (nama tidak boleh kembar)
         $this->get('/admin/buku/kategori?edit=' . $kategoriKosong->category_id)->assertOk()
             ->assertSee('name="category_name"', false);
         $this->from('/admin/buku/kategori?edit=' . $kategoriKosong->category_id)
             ->put('/admin/buku/kategori/' . $kategoriKosong->category_id, ['id_edit' => $kategoriKosong->category_id, 'category_name' => 'Kategori Uji'])
             ->assertSessionHasErrors('category_name');
-        $this->put('/admin/buku/kategori/' . $kategoriKosong->category_id, ['category_name' => 'Pendidikan & Sekolah', 'description' => 'Buku pelajaran.'])
+        $this->put('/admin/buku/kategori/' . $kategoriKosong->category_id, ['category_name' => 'Pendidikan & Sekolah'])
             ->assertRedirect(route('admin.buku.kategori.index'));
-        $this->assertDatabaseHas('categories', ['category_id' => $kategoriKosong->category_id, 'category_name' => 'Pendidikan & Sekolah', 'description' => 'Buku pelajaran.']);
-        $this->put('/admin/buku/penulis/' . $idPenulis, ['author_name' => 'Penulis Uji Diperbarui', 'biography' => 'Bio baru.'])
+        $this->assertDatabaseHas('categories', ['category_id' => $kategoriKosong->category_id, 'category_name' => 'Pendidikan & Sekolah']);
+        $this->put('/admin/buku/penulis/' . $idPenulis, ['author_name' => 'Penulis Uji Diperbarui'])
             ->assertRedirect(route('admin.buku.penulis.index'));
         $this->assertSame('Penulis Uji Diperbarui', $book->fresh()->nama_penulis);
 
@@ -252,6 +252,59 @@ class SmartReadingRoomTest extends TestCase
         // peminjam tidak bisa membuka halaman admin, dan kategori tanpa buku aktif tidak tampil di filter katalog
         $this->actingAs($borrower)->get('/admin/buku/kategori')->assertRedirect(route('dashboard'));
         $this->get('/dashboard')->assertOk()->assertSee('Kategori Uji')->assertDontSee('Arsip');
+    }
+
+    public function test_admin_can_add_category_and_author_without_adding_a_book(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $book = $this->makeBook($admin);   // memakai "Kategori Uji" & "Penulis Uji"
+        $jumlahBuku = Book::count();
+
+        // form tambah ada di tab masing-masing; deskripsi/biografi sudah tidak ada
+        $this->actingAs($admin)->get('/admin/buku/kategori')->assertOk()
+            ->assertSee('action="' . route('admin.buku.kategori.store') . '"', false)
+            ->assertSee('Tambah kategori baru')
+            ->assertDontSee('Deskripsi');
+        $this->get('/admin/buku/penulis')->assertOk()
+            ->assertSee('action="' . route('admin.buku.penulis.store') . '"', false)
+            ->assertDontSee('Biografi');
+
+        // tambah kategori: tersimpan, dicatat di log, dan langsung tampil (pencarian dilepas)
+        $this->from('/admin/buku/kategori?q=uji')->post('/admin/buku/kategori', ['nama_baru' => '  Sejarah  '])
+            ->assertSessionHas('status', 'Kategori "Sejarah" berhasil ditambahkan.');
+        $sejarah = Category::where('category_name', 'Sejarah')->firstOrFail();
+        $this->assertDatabaseHas('admin_logs', [
+            'admin_id' => $admin->user_id, 'action' => 'Tambah', 'table_name' => 'categories', 'record_id' => $sejarah->category_id,
+        ]);
+        $this->get('/admin/buku/kategori')->assertOk()->assertSee('Sejarah');
+
+        // tambah penulis
+        $this->post('/admin/buku/penulis', ['nama_baru' => 'Pramoedya Ananta Toer'])
+            ->assertRedirect(route('admin.buku.penulis.index') . '#data-' . Author::where('author_name', 'Pramoedya Ananta Toer')->value('author_id'))
+            ->assertSessionHas('status', 'Penulis "Pramoedya Ananta Toer" berhasil ditambahkan.');
+        $this->assertDatabaseHas('admin_logs', ['action' => 'Tambah', 'table_name' => 'authors']);
+
+        // kosong, terlalu panjang, atau kembar ditolak; isian tetap ada setelah ditolak
+        $this->from('/admin/buku/kategori')->post('/admin/buku/kategori', ['nama_baru' => ''])
+            ->assertRedirect('/admin/buku/kategori')->assertSessionHasErrors(['nama_baru' => 'Nama kategori wajib diisi.']);
+        $this->post('/admin/buku/kategori', ['nama_baru' => str_repeat('a', 101)])
+            ->assertSessionHasErrors(['nama_baru' => 'Nama kategori maksimal 100 karakter.']);
+        $this->post('/admin/buku/kategori', ['nama_baru' => 'Kategori Uji'])
+            ->assertSessionHasErrors(['nama_baru' => 'Nama kategori sudah dipakai.']);
+        $this->post('/admin/buku/penulis', ['nama_baru' => 'Penulis Uji'])
+            ->assertSessionHasErrors(['nama_baru' => 'Nama penulis sudah dipakai.']);
+        $this->withSession(['_old_input' => ['nama_baru' => 'Kategori Uji']])
+            ->get('/admin/buku/kategori')->assertSee('value="Kategori Uji"', false);
+        $this->assertSame(1, Category::where('category_name', 'Kategori Uji')->count());
+        $this->assertSame(1, Author::where('author_name', 'Penulis Uji')->count());
+
+        // tidak ada buku yang ikut dibuat, dan kategori/penulis baru langsung bisa dipilih di form buku
+        $this->assertSame($jumlahBuku, Book::count());
+        $this->get('/admin/buku/create')->assertOk()->assertSee('Sejarah')->assertSee('Pramoedya Ananta Toer');
+
+        // kategori/penulis baru belum dipakai buku, jadi bisa langsung dihapus lagi
+        $this->delete('/admin/buku/kategori/' . $sejarah->category_id)->assertRedirect(route('admin.buku.kategori.index'));
+        $this->assertDatabaseMissing('categories', ['category_id' => $sejarah->category_id]);
     }
 
     public function test_deleted_books_move_to_inactive_tab_and_can_be_reactivated(): void

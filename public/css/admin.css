@@ -330,15 +330,26 @@ table.tabel td.aksi .bahaya { color: var(--merah); }
 }
 .cari-admin input:focus { outline: 3px solid rgba(139,94,52,0.25); border-color: var(--kayu); }
 
+/* tab Kategori & Penulis: form tambah di kiri, pencarian di kanan */
+.alat-kp { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 24px; margin-bottom: 20px; }
+.tambah-kp, .cari-kp { flex: 1 1 280px; max-width: 420px; }
+.tambah-kp label, .cari-kp label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--teks); }
+.baris-isian-kp { display: flex; gap: 8px; }
+.baris-isian-kp input {
+    flex: 1; min-width: 0; padding: 9px 14px; font: inherit; font-size: 14px;
+    border: 1.5px solid var(--garis); border-radius: 8px; background: #fff;
+}
+.baris-isian-kp input:focus { outline: 3px solid rgba(139,94,52,0.25); border-color: var(--kayu); }
+.baris-isian-kp input.salah { border-color: var(--merah); }
+.baris-baru td { background: var(--hijau-muda); }
+
 .tabel-kp .nama-kp { font-weight: 600; color: var(--coklat-tua); }
-.tabel-kp .ket-kp { max-width: 360px; color: var(--abu); }
 .tabel-kp .dipakai-kp { white-space: nowrap; }
 .ket-nonaktif { display: block; font-size: 12px; color: var(--abu); }
 table.tabel td.aksi .aksi-mati { font-size: 13px; font-weight: 700; color: #cbbca8; cursor: not-allowed; text-decoration: line-through; }
 .baris-edit td { background: #faf3ea; }
 .form-edit-kp { max-width: 560px; padding: 6px 0; }
 .form-edit-kp .form-aksi { margin-top: 4px; }
-.opsional { font-weight: 500; color: var(--abu); }
 
 /* tab Nonaktif */
 .info-nonaktif { white-space: nowrap; font-size: 13px; }
