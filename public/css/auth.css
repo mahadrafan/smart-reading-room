@@ -52,10 +52,17 @@ body {
 }
 
 .brand {
+    display: inline-block;
     margin-bottom: 8px;
     font-size: 15px;
     font-weight: 700;
     color: var(--coklat-tua);
+    text-decoration: none;
+}
+
+/* kembali ke halaman perkenalan */
+.brand:hover {
+    color: var(--kayu-teks);
 }
 
 .isi {

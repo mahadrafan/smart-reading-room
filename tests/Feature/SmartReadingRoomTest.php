@@ -45,7 +45,7 @@ class SmartReadingRoomTest extends TestCase
 
     public function test_public_authentication_pages_registration_login_and_password_reset(): void
     {
-        $this->get('/')->assertRedirect(route('login'));
+        $this->get('/')->assertOk()->assertSee('Pinjam buku perpustakaan tanpa harus antre');
         $this->get('/login')->assertOk();
         $this->get('/register')->assertOk();
         $this->get('/forgot-password')->assertOk();
@@ -80,6 +80,68 @@ class SmartReadingRoomTest extends TestCase
         ])->assertRedirect(route('login'));
 
         $this->assertTrue(Hash::check('password456', $user->fresh()->password));
+    }
+
+    public function test_landing_page_introduces_library_and_leads_to_login(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+        Book::create([
+            'category_id' => $book->category_id, 'title' => 'Buku Nonaktif Rahasia',
+            'stock' => 1, 'available_stock' => 1, 'is_active' => false, 'created_by' => $admin->user_id,
+        ]);
+
+        // tamu: halaman perkenalan berisi buku aktif, statistik, aturan pinjam, dan tautan masuk/daftar
+        $this->get('/')->assertOk()
+            ->assertSee('Pinjam buku perpustakaan tanpa harus antre')
+            ->assertSee('Paling Sering Dipinjam')
+            ->assertSee($book->title)
+            ->assertDontSee('Buku Nonaktif Rahasia')
+            ->assertSee('Maksimal ' . \App\Http\Controllers\PeminjamanController::BATAS_AKTIF . ' pinjaman aktif')
+            ->assertSee('denda Rp1.000 per hari')
+            ->assertSee('href="' . route('login') . '"', false)
+            ->assertSee('href="' . route('register') . '"', false)
+            ->assertDontSee('name="q"', false)                         // tidak ada kolom pencarian
+            ->assertDontSee('href="' . route('password.forgot') . '"', false)   // footer tanpa tautan akun
+            ->assertDontSee($borrower->nim_nip);
+
+        // 12 buku aktif: "Paling Sering Dipinjam" 5 per halaman (3 halaman), halaman 2 & 3 tersembunyi sampai tombol > ditekan
+        foreach (range(2, 12) as $no) {
+            $book->replicate()->fill(['title' => sprintf('Buku Populer %02d', $no)])->save();
+        }
+        $halaman = $this->get('/')->assertOk()
+            ->assertSee('data-geser="1"', false)
+            ->assertSee('aria-label="5 buku sebelumnya" disabled', false)
+            ->getContent();
+        $this->assertSame(3, substr_count($halaman, 'data-halaman="'));
+        $this->assertSame(2, preg_match_all('/data-halaman="[12]"\s+hidden/', $halaman));
+        $this->assertSame(12, substr_count($halaman, 'class="kartu"'));
+
+        // tumpukan di hero hanya berisi buku bersampul (data uji tanpa file sampul -> tumpukan tidak tampil)
+        $this->assertStringNotContainsString('class="hero-buku" data-tumpukan', $halaman);
+
+        // halaman tujuan yang diminta tamu tetap dibuka setelah masuk (mis. dari "Lihat semua koleksi")
+        $this->get('/dashboard?q=Buku')->assertRedirect(route('login'));
+        $this->post('/login', ['nim_nip' => 'SISWA-TEST', 'password' => 'password123'])
+            ->assertRedirect(route('dashboard', ['q' => 'Buku']));
+
+        // klik buku dari halaman perkenalan: setelah masuk langsung ke detail buku itu
+        $this->post('/logout');
+        $this->get('/buku/' . $book->book_id)->assertRedirect(route('login'));
+        $this->post('/login', ['nim_nip' => 'SISWA-TEST', 'password' => 'password123'])
+            ->assertRedirect(route('buku.detail', $book->book_id));
+
+        // sudah masuk: alamat utama langsung ke landing page sesuai role
+        $this->get('/')->assertRedirect(route('dashboard'));
+        $this->post('/logout');
+        $this->post('/login', ['nim_nip' => 'ADM-TEST', 'password' => 'password123'])
+            ->assertRedirect(route('admin.dashboard'));
+        $this->get('/')->assertRedirect(route('admin.dashboard'));
+
+        // halaman login punya tautan kembali ke halaman perkenalan
+        $this->post('/logout');
+        $this->get('/login')->assertSee('href="' . route('beranda') . '" class="brand"', false);
     }
 
     public function test_remember_me_keeps_user_logged_in_after_session_ends(): void
@@ -118,7 +180,7 @@ class SmartReadingRoomTest extends TestCase
         $this->get('/dashboard')->assertOk()->assertSee('Peminjam Uji');
 
         // membuka situs / halaman login / daftar langsung ke landing page, tidak menampilkan form login lagi
-        $this->get('/')->assertRedirect(route('login'));
+        $this->get('/')->assertRedirect(route('dashboard'));
         $this->get('/login')->assertRedirect(route('dashboard'));
         $this->get('/register')->assertRedirect(route('dashboard'));
         $this->get('/forgot-password')->assertRedirect(route('dashboard'));

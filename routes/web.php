@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KatalogController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\ReviewController;
@@ -15,14 +16,12 @@ use App\Http\Controllers\Admin\KategoriPenulisController;
 use App\Http\Middleware\CekRole;
 use Illuminate\Support\Facades\Route;
 
-// halaman awal -> ke login
-Route::get('/', function () {
-    return redirect()->route('login');
-});
-
 // halaman tamu: pengguna yang masih login (termasuk lewat "Ingat saya") langsung diarahkan
 // ke landing page sesuai rolenya (lihat redirectUsersTo di bootstrap/app.php)
 Route::middleware('guest')->group(function () {
+    // ---------- halaman perkenalan; tombolnya menuju login / daftar ----------
+    Route::get('/', [LandingController::class, 'index'])->name('beranda');
+
     // ---------- login: satu halaman untuk admin dan peminjam ----------
     Route::get('/login', [AuthController::class, 'formLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.proses');

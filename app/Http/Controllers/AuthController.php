@@ -112,10 +112,10 @@ class AuthController extends Controller
                 ? Cookie::make(self::COOKIE_NIS, Auth::user()->nim_nip, self::MENIT_NIS_DIINGAT)
                 : Cookie::forget(self::COOKIE_NIS);
 
-            // arahkan sesuai role yang ada di database
+            // arahkan sesuai role yang ada di database, atau ke halaman yang tadi dituju sebelum diminta login
             $tujuan = Auth::user()->role == 'Admin' ? 'admin.dashboard' : 'dashboard';
 
-            return redirect()->route($tujuan)->withCookie($cookieNis);
+            return redirect()->intended(route($tujuan))->withCookie($cookieNis);
         }
 
         return back()

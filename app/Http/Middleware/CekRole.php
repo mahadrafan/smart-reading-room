@@ -11,9 +11,10 @@ class CekRole
     // dipakai di route: CekRole::class . ':Admin'  atau  ':Peminjam'
     public function handle(Request $request, Closure $next, $role)
     {
-        // belum login -> ke satu halaman login yang sama untuk semua
+        // belum login -> ke satu halaman login yang sama untuk semua.
+        // alamat yang dituju diingat, agar setelah login langsung dibuka (mis. detail buku yang diklik di halaman perkenalan)
         if (!Auth::check()) {
-            return redirect()->route('login');
+            return redirect()->guest(route('login'));
         }
 
         // sudah login tapi rolenya salah -> jangan tolak mentah-mentah,

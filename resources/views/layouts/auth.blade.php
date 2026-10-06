@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="panel">
-        <div class="brand">Smart Reading Room</div>
+        <a href="{{ route('beranda') }}" class="brand">Smart Reading Room</a>
 
         <div class="isi">
             <div class="ilustrasi">
