@@ -199,6 +199,69 @@ body {
     border-color: var(--merah);
 }
 
+/* no. telepon: kode negara (+62) dan nomor dalam satu kotak */
+.telepon {
+    display: flex;
+    height: 50px;
+    background: #ffffff;
+    border: 1.5px solid var(--garis);
+    border-radius: 999px;
+}
+
+.telepon:focus-within {
+    outline: 3px solid rgba(139,94,52, 0.35);
+    border-color: var(--kayu);
+}
+
+.telepon.is-invalid {
+    border-color: var(--merah);
+}
+
+.kode-negara {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px 0 22px;
+    font-weight: 600;
+    color: var(--teks);
+    border-right: 1.5px solid #e4d9cc;
+}
+
+/* panah kecil penanda bisa dipilih */
+.kode-negara::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+    border-right: 2px solid var(--abu);
+    border-bottom: 2px solid var(--abu);
+    transform: rotate(45deg);
+}
+
+.kode-negara select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    font: inherit;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.field .telepon input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0 22px 0 14px;
+    border: 0;
+    border-radius: 0 999px 999px 0;
+    background: transparent;
+}
+
+.field .telepon input:focus-visible {
+    outline: none;
+}
+
 .field-error {
     margin: 6px 0 0 22px;
     font-size: 13px;

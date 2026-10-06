@@ -1134,6 +1134,96 @@ class SmartReadingRoomTest extends TestCase
         ]);
     }
 
+    public function test_phone_number_is_saved_with_country_code(): void
+    {
+        // form daftar: kode negara +62 terpilih di samping kolom nomor
+        $this->get('/register')->assertOk()
+            ->assertSee('name="phone_code"', false)
+            ->assertSee('<option value="62" selected>Indonesia (+62)</option>', false)
+            ->assertSee('Malaysia (+60)');
+
+        $daftar = fn (string $nim, array $telepon) => $this->post('/register', [
+            'borrower_type' => 'Siswa', 'name' => 'Siswa ' . $nim, 'email' => $nim . '@example.test',
+            'nim_nip' => $nim, 'class' => 'XI-A',
+            'password' => 'password123', 'password_confirmation' => 'password123',
+        ] + $telepon);
+
+        // 0 di depan, spasi/tanda hubung, dan kode negara yang ikut diketik dirapikan
+        $daftar('3001', ['phone_code' => '62', 'phone' => '0812-3456-7890'])->assertRedirect(route('login'));
+        $daftar('3002', ['phone_code' => '62', 'phone' => '+62 812 3456 7891'])->assertRedirect(route('login'));
+        $daftar('3003', ['phone_code' => '60', 'phone' => '012-345 6789'])->assertRedirect(route('login'));
+        $daftar('3004', ['phone' => '081234567892'])->assertRedirect(route('login'));   // tanpa kode: +62
+        $this->assertSame('+6281234567890', User::where('nim_nip', '3001')->value('phone'));
+        $this->assertSame('+6281234567891', User::where('nim_nip', '3002')->value('phone'));
+        $this->assertSame('+60123456789', User::where('nim_nip', '3003')->value('phone'));
+        $this->assertSame('+6281234567892', User::where('nim_nip', '3004')->value('phone'));
+
+        // +62 wajib nomor HP; kode negara harus dari daftar
+        $daftar('3005', ['phone_code' => '62', 'phone' => '021555123'])
+            ->assertSessionHasErrors(['phone' => 'No. telepon harus nomor HP, contoh 81234567890.']);
+        $daftar('3005', ['phone_code' => '62', 'phone' => 'abc'])
+            ->assertSessionHasErrors(['phone' => 'No. telepon wajib diisi.']);
+        $daftar('3005', ['phone_code' => '60', 'phone' => '123'])
+            ->assertSessionHasErrors(['phone' => 'No. telepon hanya berisi 6–14 angka.']);
+        $daftar('3005', ['phone_code' => '999', 'phone' => '81234567890'])
+            ->assertSessionHasErrors(['phone_code' => 'Pilih kode negara dari daftar.']);
+        $this->assertDatabaseMissing('users', ['nim_nip' => '3005']);
+        $this->flushSession();   // buang isian lama dari percobaan daftar yang ditolak
+
+        // profil: kode & nomor terisi dari data tersimpan, termasuk nomor lama tanpa kode
+        $siswa = User::where('nim_nip', '3003')->firstOrFail();
+        $this->actingAs($siswa)->get('/profil')->assertOk()
+            ->assertSee('<option value="60" selected>Malaysia (+60)</option>', false)
+            ->assertSee('value="123456789"', false);
+
+        $lama = $this->makeUser('Peminjam', 'SISWA-LAMA');   // no. telepon lama: 081234567890
+        $this->actingAs($lama)->get('/profil')->assertOk()
+            ->assertSee('<option value="62" selected>Indonesia (+62)</option>', false)
+            ->assertSee('value="81234567890"', false);
+
+        $this->put('/profil', [
+            'name' => $lama->name, 'email' => $lama->email, 'class' => 'XII-A',
+            'phone_code' => '65', 'phone' => '8123 4567',
+        ])->assertRedirect(route('profil'));
+        $this->assertSame('+6581234567', $lama->fresh()->phone);
+        $this->assertSame('+65 81234567', $lama->fresh()->telepon_tampil);
+
+        $this->put('/profil', [
+            'name' => $lama->name, 'email' => $lama->email, 'class' => 'XII-A',
+            'phone_code' => '62', 'phone' => '1',
+        ])->assertSessionHasErrors('phone');
+        $this->assertSame('+6581234567', $lama->fresh()->phone);
+    }
+
+    public function test_borrower_phone_number_opens_whatsapp_chat(): void
+    {
+        // nomor Indonesia dalam berbagai penulisan menjadi tautan wa.me; nomor yang tidak wajar tidak
+        $wa = fn (?string $nomor) => (new User(['phone' => $nomor]))->whatsapp_url;
+        $this->assertSame('https://wa.me/6281234567890', $wa('081234567890'));
+        $this->assertSame('https://wa.me/6281234567890', $wa('+62 812-3456-7890'));
+        $this->assertSame('https://wa.me/6281234567890', $wa('6281234567890'));
+        $this->assertSame('https://wa.me/6281234567890', $wa('81234567890'));
+        $this->assertNull($wa('1'));
+        $this->assertNull($wa('1234567890'));
+        $this->assertNull($wa('0211234567'));
+        $this->assertNull($wa('080000000003'));
+        $this->assertNull($wa(null));
+        // nomor dengan kode negara lain
+        $this->assertSame('https://wa.me/60123456789', $wa('+60123456789'));
+        $this->assertSame('https://wa.me/6738123456', $wa('+6738123456'));
+        $this->assertNull($wa('+999123456'));
+
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $this->makeUser('Peminjam', 'SISWA-TEST');   // no. telepon 081234567890
+        $salah = $this->makeUser('Peminjam', 'SISWA-SALAH');
+        $salah->update(['phone' => '1']);
+
+        $this->actingAs($admin)->get('/admin/peminjam')->assertOk()
+            ->assertSee('href="https://wa.me/6281234567890" target="_blank" rel="noopener"', false)
+            ->assertSee('title="Nomor tidak dikenali sebagai nomor WhatsApp">1</span>', false)
+            ->assertDontSee('href="tel:', false);
+    }
+
     public function test_admin_borrower_list_is_searchable_and_paginated_by_ten(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');

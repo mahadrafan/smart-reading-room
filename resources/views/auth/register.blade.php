@@ -91,11 +91,10 @@
 
         <div class="field">
             <label for="phone" class="sr-only">No. telepon</label>
-            <input type="tel" id="phone" name="phone"
-                   placeholder="No. telepon"
-                   value="{{ old('phone') }}"
-                   class="@error('phone') is-invalid @enderror"
-                   autocomplete="tel" required>
+            @include('_isian-telepon', ['kode' => \App\Models\User::KODE_INDONESIA, 'nomor' => '', 'placeholder' => 'No. HP (81234567890)'])
+            @error('phone_code')
+                <p class="field-error">{{ $message }}</p>
+            @enderror
             @error('phone')
                 <p class="field-error">{{ $message }}</p>
             @enderror

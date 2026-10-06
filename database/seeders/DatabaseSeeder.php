@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Administrator',
             'class' => null,
             'email' => 'admin.demo@smartreading.test',
-            'phone' => '081234567890',
+            'phone' => '+6281234567890',
             'password' => Hash::make('admin12345'),
         ]);
 
@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Peminjam Demo',
             'class' => 'XII-A',
             'email' => 'peminjam.demo@smartreading.test',
-            'phone' => '081298765432',
+            'phone' => '+6281298765432',
             'password' => Hash::make('peminjam123'),
         ]);
 
@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Guru Demo',
             'job_title' => 'Guru Biologi',
             'email' => 'guru.demo@smartreading.test',
-            'phone' => '081211112222',
+            'phone' => '+6281211112222',
             'password' => Hash::make('pendidik123'),
         ]);
 

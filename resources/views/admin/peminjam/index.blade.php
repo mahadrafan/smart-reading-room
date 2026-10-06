@@ -32,7 +32,7 @@
                     <tr>
                         <td>{{ $user->nim_nip }}</td><td>{{ $user->name }}</td><td>{{ $user->borrower_type ?: '-' }}</td><td>{{ $user->keterangan ?: '-' }}</td>
                         <td><a href="mailto:{{ $user->email }}">{{ $user->email }}</a></td>
-                        <td><a href="tel:{{ $user->phone }}">{{ $user->phone ?: '-' }}</a></td>
+                        <td>@include('admin._telepon', ['user' => $user])</td>
                         <td>{{ $user->pinjaman_aktif }}</td>
                         <td>@if ($user->pinjaman_terlambat)<span class="badge b-tolak">{{ $user->pinjaman_terlambat }}</span>@else 0 @endif</td>
                     </tr>

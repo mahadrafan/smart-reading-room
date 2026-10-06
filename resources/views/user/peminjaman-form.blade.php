@@ -139,7 +139,7 @@
                 </div>
                 <div class="isian">
                     <label for="telepon_peminjam">No. telepon</label>
-                    <input type="text" id="telepon_peminjam" value="{{ Auth::user()->phone }}" readonly>
+                    <input type="text" id="telepon_peminjam" value="{{ Auth::user()->telepon_tampil }}" readonly>
                 </div>
                 <div class="isian">
                     <label for="email_peminjam">Email</label>

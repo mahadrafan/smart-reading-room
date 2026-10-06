@@ -50,7 +50,7 @@
                 @forelse ($terlambat as $p)
                     <tr>
                         <td><strong>{{ $p->user->name }}</strong><br><span class="pesan-info">{{ $p->user->nim_nip }}</span></td>
-                        <td><a href="mailto:{{ $p->user->email }}">{{ $p->user->email }}</a><br><a href="tel:{{ $p->user->phone }}">{{ $p->user->phone ?: '-' }}</a></td>
+                        <td><a href="mailto:{{ $p->user->email }}">{{ $p->user->email }}</a><br>@include('admin._telepon', ['user' => $p->user])</td>
                         <td>{{ $p->book->title }}</td>
                         <td><span class="badge b-tolak">{{ $p->hari_terlambat }} hari</span><br><span class="pesan-info">Tenggat {{ $p->due_date->format('d/m/Y') }}</span></td>
                         <td><strong>Rp{{ number_format($p->jumlah_denda, 0, ',', '.') }}</strong></td>

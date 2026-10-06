@@ -411,6 +411,25 @@ td.aksi .bahaya { color: var(--merah); }
 }
 .isian input.salah, .isian select.salah { border-color: var(--merah); }
 
+/* no. telepon di profil: kode negara (+62) dan nomor dalam satu kotak */
+.telepon {
+    display: flex; border: 1.5px solid var(--garis); border-radius: 10px; background: var(--putih);
+    transition: border-color 0.15s;
+}
+.telepon:focus-within { outline: 2px solid rgba(139,94,52,0.3); border-color: var(--kayu); }
+.telepon.salah { border-color: var(--merah); }
+.kode-negara {
+    position: relative; display: flex; align-items: center; gap: 7px; padding: 0 10px 0 14px;
+    font-size: 14px; font-weight: 600; border-right: 1.5px solid #e4d9cc;
+}
+.kode-negara::after {
+    content: ""; width: 5px; height: 5px; margin-top: -3px;
+    border-right: 2px solid var(--abu); border-bottom: 2px solid var(--abu); transform: rotate(45deg);
+}
+.kode-negara select { position: absolute; inset: 0; width: 100%; font: inherit; opacity: 0; cursor: pointer; }
+.isian .telepon input { flex: 1; min-width: 0; border: 0; border-radius: 0 10px 10px 0; background: transparent; }
+.isian .telepon input:focus { outline: none; }
+
 /* pencarian buku di form peminjaman (menggantikan dropdown "Pilih buku") */
 .pilih-buku { position: relative; }
 .pilih-buku input {

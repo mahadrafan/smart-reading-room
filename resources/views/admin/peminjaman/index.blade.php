@@ -69,7 +69,7 @@
                     <tr>
                         <td>{{ $p->kode }}</td>
                         <td>{{ $p->user->name }} ({{ $p->user->nim_nip }})</td>
-                        <td><a href="mailto:{{ $p->user->email }}">{{ $p->user->email }}</a><br><a href="tel:{{ $p->user->phone }}">{{ $p->user->phone ?: '-' }}</a></td>
+                        <td><a href="mailto:{{ $p->user->email }}">{{ $p->user->email }}</a><br>@include('admin._telepon', ['user' => $p->user])</td>
                         <td>{{ $p->book->title }}</td>
                         <td>{{ $p->request_date ? $p->request_date->format('d/m/Y') : '-' }}</td>
                         {{-- pengajuan belum punya tanggal pinjam; tampilkan lama pinjam yang diminta --}}

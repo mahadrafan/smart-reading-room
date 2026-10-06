@@ -116,6 +116,10 @@ class AuthController extends Controller
     {
         $pendidik = $request->borrower_type === User::TENAGA_PENDIDIK;
 
+        // no. telepon dirapikan dulu (0 di depan / kode negara yang ikut diketik dibuang); kode negara bawaan +62
+        [$kodeTelepon, $nomorTelepon] = User::rapikanTelepon($request->input('phone_code', User::KODE_INDONESIA), $request->phone);
+        $request->merge(['phone_code' => $kodeTelepon, 'phone' => $nomorTelepon]);
+
         // siswa wajib mengisi kelas, tenaga pendidik wajib mengisi jabatan/mapel
         $request->validate([
             'borrower_type' => 'required|in:' . User::SISWA . ',' . User::TENAGA_PENDIDIK,
@@ -124,9 +128,8 @@ class AuthController extends Controller
             'nim_nip'       => 'required|max:20|unique:users,nim_nip',
             'class'         => 'required_if:borrower_type,' . User::SISWA . '|nullable|max:20',
             'job_title'     => 'required_if:borrower_type,' . User::TENAGA_PENDIDIK . '|nullable|max:50',
-            'phone'         => 'required|max:20',
             'password'      => 'required|min:8|confirmed',
-        ], [
+        ] + User::aturanTelepon($kodeTelepon), User::pesanTelepon() + [
             'required'      => ':attribute wajib diisi.',
             'required_if'   => ':attribute wajib diisi.',
             'borrower_type.*' => 'Pilih daftar sebagai siswa atau tenaga pendidik.',
@@ -141,6 +144,7 @@ class AuthController extends Controller
             'nim_nip'   => $pendidik ? 'NIP' : 'NIS',
             'class'     => 'Kelas',
             'job_title' => 'Jabatan / mapel',
+            'phone_code' => 'Kode negara',
             'phone'     => 'No. telepon',
             'password'  => 'Password',
         ]);
@@ -154,7 +158,7 @@ class AuthController extends Controller
             'class'         => $pendidik ? null : $request->class,
             'job_title'     => $pendidik ? $request->job_title : null,
             'email'         => $request->email,
-            'phone'         => $request->phone,
+            'phone'         => User::gabungTelepon($kodeTelepon, $nomorTelepon),
             'password'      => Hash::make($request->password),
         ]);
 

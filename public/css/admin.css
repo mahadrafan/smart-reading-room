@@ -483,3 +483,8 @@ table.tabel td.aksi .aksi-mati { font-size: 13px; font-weight: 700; color: #cbbc
 @media (max-width: 700px) {
     .cari-input, .pilih-buku-filter, .pilih-filter { flex: 1 1 100%; width: 100%; max-width: none; min-width: 0; }
 }
+
+/* no. telepon peminjam: tautan ke chat WhatsApp */
+.tautan-wa { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.tautan-wa svg { flex-shrink: 0; color: #1e8e4e; }
+.tautan-wa:hover { color: #1e6b3a; }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -24,15 +25,21 @@ class ProfilController extends Controller
             ? ['job_title' => ['required', 'string', 'max:50']]
             : ['class' => ['required', 'string', 'max:20']];
 
+        // no. telepon + kode negara dirapikan seperti saat daftar
+        [$kodeTelepon, $nomorTelepon] = User::rapikanTelepon($request->input('phone_code', User::KODE_INDONESIA), $request->phone);
+        $request->merge(['phone_code' => $kodeTelepon, 'phone' => $nomorTelepon]);
+
         $data = $request->validate([
             'name'  => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:100', Rule::unique('users', 'email')->ignore($user->user_id, 'user_id')],
-            'phone' => ['required', 'string', 'max:20'],
-        ] + $keterangan, [], [
+        ] + User::aturanTelepon($kodeTelepon) + $keterangan, User::pesanTelepon(), [
             'job_title' => 'jabatan / mapel',
             'class'     => 'kelas',
+            'phone'     => 'no. telepon',
         ]);
 
+        unset($data['phone_code']);
+        $data['phone'] = User::gabungTelepon($kodeTelepon, $nomorTelepon);
         $user->update($data);
 
         return redirect()->route('profil')->with('status', 'Data diri berhasil diperbarui.');

@@ -45,37 +45,41 @@
                     @enderror
                 </div>
 
-                <div class="dua-kolom">
-                    {{-- siswa mengubah kelas, tenaga pendidik mengubah jabatan/mapel --}}
-                    @if (Auth::user()->isTenagaPendidik())
-                        <div class="isian">
-                            <label for="job_title">Jabatan / mapel</label>
-                            <input type="text" id="job_title" name="job_title" maxlength="50"
-                                   value="{{ old('job_title', Auth::user()->job_title) }}"
-                                   class="@error('job_title') salah @enderror" required>
-                            @error('job_title')
-                                <p class="pesan-salah">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    @else
-                        <div class="isian">
-                            <label for="class">Kelas</label>
-                            <input type="text" id="class" name="class" maxlength="20"
-                                   value="{{ old('class', Auth::user()->class) }}"
-                                   class="@error('class') salah @enderror" required>
-                            @error('class')
-                                <p class="pesan-salah">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    @endif
+                {{-- siswa mengubah kelas, tenaga pendidik mengubah jabatan/mapel; no. telepon satu baris penuh agar kode negara muat --}}
+                @if (Auth::user()->isTenagaPendidik())
                     <div class="isian">
-                        <label for="phone">No. telepon</label>
-                        <input type="text" id="phone" name="phone" value="{{ old('phone', Auth::user()->phone) }}"
-                               class="@error('phone') salah @enderror" required>
-                        @error('phone')
+                        <label for="job_title">Jabatan / mapel</label>
+                        <input type="text" id="job_title" name="job_title" maxlength="50"
+                               value="{{ old('job_title', Auth::user()->job_title) }}"
+                               class="@error('job_title') salah @enderror" required>
+                        @error('job_title')
                             <p class="pesan-salah">{{ $message }}</p>
                         @enderror
                     </div>
+                @else
+                    <div class="isian">
+                        <label for="class">Kelas</label>
+                        <input type="text" id="class" name="class" maxlength="20"
+                               value="{{ old('class', Auth::user()->class) }}"
+                               class="@error('class') salah @enderror" required>
+                        @error('class')
+                            <p class="pesan-salah">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
+                <div class="isian">
+                    <label for="phone">No. telepon</label>
+                    @include('_isian-telepon', [
+                        'kode'       => Auth::user()->kode_telepon,
+                        'nomor'      => Auth::user()->nomor_telepon,
+                        'kelasSalah' => 'salah',
+                    ])
+                    @error('phone_code')
+                        <p class="pesan-salah">{{ $message }}</p>
+                    @enderror
+                    @error('phone')
+                        <p class="pesan-salah">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <p class="pesan-info">Terdaftar sejak {{ Auth::user()->created_at }}</p>
