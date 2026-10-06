@@ -56,7 +56,8 @@ DROP TABLE IF EXISTS `authors`;
 CREATE TABLE `authors` (
   `author_id` int NOT NULL AUTO_INCREMENT,
   `author_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`author_id`)
+  PRIMARY KEY (`author_id`),
+  UNIQUE KEY `uk_authors_name` (`author_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -151,7 +152,8 @@ DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
   `category_id` int NOT NULL AUTO_INCREMENT,
   `category_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`category_id`)
+  PRIMARY KEY (`category_id`),
+  UNIQUE KEY `uk_categories_name` (`category_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

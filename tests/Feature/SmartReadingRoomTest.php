@@ -298,6 +298,10 @@ class SmartReadingRoomTest extends TestCase
         $this->assertSame(1, Category::where('category_name', 'Kategori Uji')->count());
         $this->assertSame(1, Author::where('author_name', 'Penulis Uji')->count());
 
+        // database juga menolak nama kembar
+        $this->assertThrows(fn () => DB::table('categories')->insert(['category_name' => 'Kategori Uji']), QueryException::class);
+        $this->assertThrows(fn () => DB::table('authors')->insert(['author_name' => 'Penulis Uji']), QueryException::class);
+
         // tidak ada buku yang ikut dibuat, dan kategori/penulis baru langsung bisa dipilih di form buku
         $this->assertSame($jumlahBuku, Book::count());
         $this->get('/admin/buku/create')->assertOk()->assertSee('Sejarah')->assertSee('Pramoedya Ananta Toer');
