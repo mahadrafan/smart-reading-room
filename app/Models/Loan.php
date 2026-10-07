@@ -59,6 +59,52 @@ class Loan extends Model
         return $this->belongsTo(User::class, 'approved_by', 'user_id');
     }
 
+    // catatan aksi admin untuk peminjaman ini (admin_logs bertabel loans), terbaru di depan
+    public function logAdmin()
+    {
+        return $this->hasMany(AdminLog::class, 'record_id', 'loan_id')
+            ->where('table_name', 'loans')
+            ->orderByDesc('log_id');
+    }
+
+    // label aksi di admin_logs yang mengubah status peminjaman
+    const LABEL_PROSES = [
+        'ACC'            => 'Dikonfirmasi',
+        'Tolak'          => 'Ditolak',
+        'Dipinjam'       => 'Ditandai Dipinjam',
+        'Kembalikan'     => 'Ditandai Kembali',
+        'Denda Lunas'    => 'Denda Lunas',
+        'Gagal Otomatis' => 'Gagal otomatis (tidak diambil)',
+    ];
+
+    // siapa yang terakhir memproses status peminjaman: ['nama', 'aksi', 'waktu'] dari admin_logs.
+    // data lama tanpa catatan log memakai admin yang menyetujui (approved_by); null bila belum pernah diproses
+    public function getProsesTerakhirAttribute(): ?array
+    {
+        $log = $this->logAdmin->first(fn ($l) => isset(self::LABEL_PROSES[$l->action]));
+
+        if ($log) {
+            $aksi = self::LABEL_PROSES[$log->action];
+            // pelunasan denda saat buku terlambat dikembalikan sekaligus mencatat pengembalian
+            if ($log->action === 'Denda Lunas' && str_contains((string) $log->description, 'dikembalikan')) {
+                $aksi = 'Kembali & Denda Lunas';
+            }
+
+            return [
+                // gagal otomatis dijalankan sistem, bukan diklik admin
+                'nama'  => $log->action === 'Gagal Otomatis' ? 'Sistem' : ($log->admin->name ?? '-'),
+                'aksi'  => $aksi,
+                'waktu' => $log->created_at ? \Illuminate\Support\Carbon::parse($log->created_at) : null,
+            ];
+        }
+
+        if ($this->approver) {
+            return ['nama' => $this->approver->name, 'aksi' => 'Dikonfirmasi', 'waktu' => $this->approved_at];
+        }
+
+        return null;
+    }
+
     public function getDendaLunasAttribute(): bool
     {
         return $this->jumlah_denda > 0 && $this->fine_paid_at !== null;

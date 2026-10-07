@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\PeminjamController as AdminPeminjamController;
 use App\Http\Controllers\Admin\PeminjamanAdminController;
 use App\Http\Controllers\Admin\KategoriPenulisController;
+use App\Http\Controllers\Admin\AkunAdminController;
 use App\Http\Middleware\CekRole;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +78,14 @@ Route::middleware(CekRole::class . ':Admin')->prefix('admin')->group(function ()
     Route::get('/dashboard', [DashboardController::class, 'admin'])->name('admin.dashboard');
 
     Route::get('/peminjam', [AdminPeminjamController::class, 'index'])->name('admin.peminjam.index');
+
+    // Kelola Admin: tambah & ubah akun admin (tanpa hapus, agar riwayat aktivitas admin tetap utuh)
+    Route::get('/akun-admin', [AkunAdminController::class, 'index'])->name('admin.akun.index');
+    Route::get('/akun-admin/tambah', [AkunAdminController::class, 'create'])->name('admin.akun.create');
+    Route::post('/akun-admin', [AkunAdminController::class, 'store'])->name('admin.akun.store');
+    Route::get('/akun-admin/{id}/edit', [AkunAdminController::class, 'edit'])->name('admin.akun.edit');
+    Route::put('/akun-admin/{id}', [AkunAdminController::class, 'update'])->name('admin.akun.update');
+    Route::put('/akun-admin/{id}/password', [AkunAdminController::class, 'password'])->name('admin.akun.password');
     Route::get('/ulasan', [AdminReviewController::class, 'index'])->name('admin.reviews.index');
     Route::delete('/ulasan/{id}', [AdminReviewController::class, 'destroy'])->name('admin.reviews.destroy');
 

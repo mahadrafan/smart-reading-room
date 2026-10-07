@@ -488,3 +488,31 @@ table.tabel td.aksi .aksi-mati { font-size: 13px; font-weight: 700; color: #cbbc
 .tautan-wa { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .tautan-wa svg { flex-shrink: 0; color: #1e8e4e; }
 .tautan-wa:hover { color: #1e6b3a; }
+
+/* ---------- Kelola Admin ---------- */
+/* no. telepon: kode negara (+62) dan nomor dalam satu kotak, sama seperti di profil peminjam */
+.telepon {
+    display: flex; border: 1.5px solid var(--garis); border-radius: 8px; background: #fff;
+    transition: border-color 0.15s;
+}
+.telepon:focus-within { outline: 3px solid rgba(139,94,52,0.25); border-color: var(--kayu); }
+.telepon.salah { border-color: var(--merah); }
+.kode-negara {
+    position: relative; display: flex; align-items: center; gap: 7px; padding: 0 10px 0 14px;
+    font-size: 14px; font-weight: 600; border-right: 1.5px solid var(--garis);
+}
+.kode-negara::after {
+    content: ""; width: 5px; height: 5px; margin-top: -3px;
+    border-right: 2px solid var(--abu); border-bottom: 2px solid var(--abu); transform: rotate(45deg);
+}
+.kode-negara select { position: absolute; inset: 0; width: 100%; font: inherit; opacity: 0; cursor: pointer; }
+.isian .telepon input { flex: 1; min-width: 0; border: 0; border-radius: 0 8px 8px 0; background: transparent; }
+.isian .telepon input:focus { outline: none; }
+
+.dua-kotak { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .dua-kotak { grid-template-columns: 1fr; } }
+.judul-kotak { margin: 0 0 16px; font-size: 16px; color: var(--coklat-tua); }
+
+/* nama admin di sidebar menuju halaman Akun Saya */
+.akun-bawah a.nama { display: block; color: #fff; text-decoration: none; }
+.akun-bawah a.nama:hover { text-decoration: underline; }

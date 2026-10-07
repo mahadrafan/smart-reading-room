@@ -14,6 +14,8 @@ Repository: <https://github.com/mahadrafan/smart-reading-room>
 - Tenggat pengambilan dan pembatalan otomatis
 - Denda keterlambatan beserta status Belum Lunas/Lunas
 - Data kontak peminjam untuk tindak lanjut admin
+- Kelola Admin: admin menambah akun admin baru, mengubah data, dan mereset password admin lain
+  (form daftar publik selalu membuat akun Peminjam)
 - Ulasan dan rating buku
 - Notifikasi peminjaman di dalam aplikasi, dengan pop up untuk notifikasi baru
 

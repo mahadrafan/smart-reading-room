@@ -1,5 +1,5 @@
 {{-- no. telepon dengan pilihan kode negara (dipakai form daftar & profil).
-     butuh $kode dan $nomor (nilai awal); opsional $kelasSalah (kelas saat ada error) dan $placeholder.
+     butuh $kode dan $nomor (nilai awal); opsional $kelasSalah (kelas saat ada error), $placeholder, dan $wajib (bawaan true).
      select kode negara dibuat transparan di atas teks "+62" supaya kotaknya tetap ringkas,
      sementara daftar pilihannya tetap menampilkan nama negara --}}
 @php
@@ -18,6 +18,6 @@
     </span>
     <input type="tel" id="phone" name="phone" inputmode="tel" maxlength="20"
            value="{{ old('phone', $nomor) }}" placeholder="{{ $placeholder ?? 'No. telepon' }}"
-           autocomplete="tel-national" required
+           autocomplete="tel-national" @if ($wajib ?? true) required @endif
            @if ($salah) aria-invalid="true" @endif>
 </div>

@@ -144,7 +144,7 @@ class PeminjamanAdminController extends Controller
 
         $daftar = Loan::whereIn('status', self::STATUS_RIWAYAT)
             ->when($status, fn ($q) => $q->where('status', $status))
-            ->with(['user', 'book', 'approver'])
+            ->with(['user', 'book', 'approver', 'logAdmin.admin'])
             ->orderBy('loan_id', 'desc')
             ->paginate(self::PER_HALAMAN)
             ->withQueryString();

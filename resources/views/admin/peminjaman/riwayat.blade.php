@@ -70,14 +70,19 @@
                             @endif
                         </td>
                         <td>
+                            {{-- Diproses = admin yang terakhir mengubah status (dari admin_logs), bukan selalu yang menyetujui --}}
+                            @php $proses = $p->proses_terakhir; @endphp
                             @if ($p->status == 'Dikonfirmasi')
                                 <span style="color:#1d4ed8; font-weight:600;">Tenggat Ambil:</span><br>
                                 <span class="pesan-info">{{ $p->tenggat_pengambilan ? $p->tenggat_pengambilan->format('d/m/Y H:i') : '-' }}</span>
-                            @else
-                                {{ $p->approver ? $p->approver->name : '-' }}
-                                @if ($p->approved_at)
-                                    <br><span class="pesan-info">{{ $p->approved_at->format('d/m/Y H:i') }}</span>
+                                @if ($proses)
+                                    <br><span class="pesan-info">Dikonfirmasi oleh {{ $proses['nama'] }}</span>
                                 @endif
+                            @elseif ($proses)
+                                {{ $proses['nama'] }}
+                                <br><span class="pesan-info">{{ $proses['aksi'] }}@if ($proses['waktu']) · {{ $proses['waktu']->format('d/m/Y H:i') }}@endif</span>
+                            @else
+                                -
                             @endif
                         </td>
                         <td>{{ $p->return_date ? \Illuminate\Support\Carbon::parse($p->return_date)->format('d/m/Y') : '-' }}</td>

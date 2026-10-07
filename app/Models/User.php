@@ -230,4 +230,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserNotification::class, 'user_id', 'user_id');
     }
+
+    // catatan aktivitas milik admin ini (tabel admin_logs)
+    public function adminLogs()
+    {
+        return $this->hasMany(AdminLog::class, 'admin_id', 'user_id');
+    }
 }

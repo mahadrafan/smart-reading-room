@@ -1960,6 +1960,151 @@ class SmartReadingRoomTest extends TestCase
         $this->assertStringStartsWith('Menghapus riwayat peminjaman "JJJ', $log->description);
     }
 
+    public function test_admin_can_add_edit_and_reset_password_of_admin_accounts(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $peminjam = $this->makeUser('Peminjam', 'SISWA-TEST');
+
+        // hanya admin yang bisa membuka menu ini; peminjam diarahkan ke katalog
+        $this->actingAs($peminjam)->get('/admin/akun-admin')->assertRedirect(route('dashboard'));
+
+        $this->actingAs($admin)->get('/admin/akun-admin')->assertOk()
+            ->assertSee('Kelola Admin')->assertSee('ADM-TEST')->assertSee('Anda')
+            ->assertDontSee('SISWA-TEST');
+        $this->get('/admin/akun-admin/tambah')->assertOk()->assertSee('Tambah Admin');
+
+        // tambah admin: role selalu Admin, password di-hash, no. telepon dengan kode negara, tercatat di log
+        $this->post('/admin/akun-admin', [
+            'nim_nip' => 'ADM002', 'name' => 'Petugas Baru', 'email' => 'petugas@example.test',
+            'phone_code' => '62', 'phone' => '081298765432',
+            'password' => 'rahasia123', 'password_confirmation' => 'rahasia123',
+            'role' => 'Peminjam',
+        ])->assertRedirect(route('admin.akun.index'));
+        $baru = User::where('nim_nip', 'ADM002')->firstOrFail();
+        $this->assertSame('Admin', $baru->role);
+        $this->assertNull($baru->borrower_type);
+        $this->assertSame('+6281298765432', $baru->phone);
+        $this->assertTrue(Hash::check('rahasia123', $baru->password));
+        $this->assertDatabaseHas('admin_logs', ['admin_id' => $admin->user_id, 'table_name' => 'users', 'record_id' => $baru->user_id, 'action' => 'Tambah']);
+
+        // NIP/ID dan email tidak boleh kembar, password minimal 8 karakter
+        $this->from('/admin/akun-admin/tambah')->post('/admin/akun-admin', [
+            'nim_nip' => 'SISWA-TEST', 'name' => 'Kembar', 'email' => $peminjam->email,
+            'phone_code' => '62', 'phone' => '81234567890', 'password' => 'abc', 'password_confirmation' => 'abc',
+        ])->assertSessionHasErrors([
+            'nim_nip' => 'NIP / ID admin sudah dipakai akun lain.',
+            'email' => 'Email sudah dipakai akun lain.',
+            'password' => 'Password minimal 8 karakter.',
+        ]);
+        $this->assertSame(2, User::where('role', 'Admin')->count());
+
+        // admin baru bisa login dan langsung masuk ke dashboard admin
+        $this->post('/logout');
+        $this->post('/login', ['nim_nip' => 'ADM002', 'password' => 'rahasia123'])->assertRedirect(route('admin.dashboard'));
+        $this->post('/logout');
+
+        // edit data admin lain
+        $this->actingAs($admin)->get('/admin/akun-admin/' . $baru->user_id . '/edit')->assertOk()
+            ->assertSee('Edit Admin')->assertSee('Reset password')->assertDontSee('Password lama');
+        $this->put('/admin/akun-admin/' . $baru->user_id, [
+            'nim_nip' => 'ADM002', 'name' => 'Petugas Pagi', 'email' => 'pagi@example.test',
+            'phone_code' => '62', 'phone' => '81298765432',
+        ])->assertRedirect(route('admin.akun.edit', $baru->user_id));
+        $this->assertSame('Petugas Pagi', $baru->fresh()->name);
+
+        // no. telepon admin opsional: boleh dikosongkan (akun admin lama belum punya nomor), tetapi bila diisi harus valid
+        $this->put('/admin/akun-admin/' . $baru->user_id, [
+            'nim_nip' => 'ADM002', 'name' => 'Petugas Pagi', 'email' => 'pagi@example.test', 'phone_code' => '62', 'phone' => '',
+        ])->assertSessionHasNoErrors();
+        $this->assertNull($baru->fresh()->phone);
+        $this->put('/admin/akun-admin/' . $baru->user_id, [
+            'nim_nip' => 'ADM002', 'name' => 'Petugas Pagi', 'email' => 'pagi@example.test', 'phone_code' => '62', 'phone' => '12',
+        ])->assertSessionHasErrors('phone');
+
+        // reset password admin lain tanpa password lama
+        $this->put('/admin/akun-admin/' . $baru->user_id . '/password', [
+            'password_baru' => 'passwordBaru1', 'password_baru_confirmation' => 'passwordBaru1',
+        ])->assertRedirect(route('admin.akun.edit', $baru->user_id));
+        $this->assertTrue(Hash::check('passwordBaru1', $baru->fresh()->password));
+        $this->assertDatabaseHas('admin_logs', ['record_id' => $baru->user_id, 'table_name' => 'users', 'action' => 'Reset Password']);
+
+        // ganti password akun sendiri wajib password lama yang benar
+        $this->get('/admin/akun-admin/' . $admin->user_id . '/edit')->assertOk()
+            ->assertSee('Akun Saya')->assertSee('Password lama');
+        $this->from('/admin/akun-admin/' . $admin->user_id . '/edit')->followingRedirects()
+            ->put('/admin/akun-admin/' . $admin->user_id . '/password', [
+                'password_lama' => 'salah-password', 'password_baru' => 'gantiBaru99', 'password_baru_confirmation' => 'gantiBaru99',
+            ])->assertOk()->assertSee('Password lama tidak sesuai.');
+        $this->assertTrue(Hash::check('password123', $admin->fresh()->password));
+        $this->put('/admin/akun-admin/' . $admin->user_id . '/password', [
+            'password_lama' => 'password123', 'password_baru' => 'gantiBaru99', 'password_baru_confirmation' => 'gantiBaru99',
+        ])->assertSessionHasNoErrors();
+        $this->assertTrue(Hash::check('gantiBaru99', $admin->fresh()->password));
+
+        // akun peminjam tidak bisa dibuka / diubah lewat menu admin, dan tidak ada fitur hapus akun
+        $this->get('/admin/akun-admin/' . $peminjam->user_id . '/edit')->assertNotFound();
+        $this->put('/admin/akun-admin/' . $peminjam->user_id . '/password', [
+            'password_baru' => 'dibajak123', 'password_baru_confirmation' => 'dibajak123',
+        ])->assertNotFound();
+        $this->assertTrue(Hash::check('password123', $peminjam->fresh()->password));
+        $this->delete('/admin/akun-admin/' . $baru->user_id)->assertStatus(405);
+    }
+
+    public function test_history_shows_the_admin_who_processed_the_latest_status_change(): void
+    {
+        $admin1 = $this->makeUser('Admin', 'ADM001');
+        $admin1->update(['name' => 'Admin Satu']);
+        $admin3 = $this->makeUser('Admin', 'ADM003');
+        $admin3->update(['name' => 'admin 3']);
+        $peminjam = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin1, 3);
+        // isi satu baris tabel Riwayat milik peminjaman tertentu (nama admin di sidebar tidak ikut terbaca)
+        $baris = function (Loan $loan) {
+            $html = $this->get('/admin/riwayat')->assertOk()->getContent();
+            $kode = $loan->fresh()->kode;
+            $this->assertStringContainsString($kode, $html);
+
+            return (string) str($html)->after($kode)->before('</tr>');
+        };
+
+        // Admin Satu mengonfirmasi pengajuan
+        $loan = $this->makeLoan($peminjam, $book, ['loan_date' => null]);
+        $this->actingAs($admin1)->put('/admin/peminjaman/' . $loan->loan_id . '/setujui');
+
+        // admin 3 menandai buku diambil: kolom Diproses menampilkan admin 3, bukan Admin Satu
+        $this->actingAs($admin3)->put('/admin/riwayat/' . $loan->loan_id . '/dipinjam');
+        $isi = $baris($loan);
+        $this->assertStringContainsString('admin 3', $isi);
+        $this->assertStringContainsString('Ditandai Dipinjam', $isi);
+        $this->assertStringNotContainsString('Admin Satu', $isi);
+
+        // Admin Satu menandai buku kembali: Diproses berganti ke Admin Satu
+        $this->actingAs($admin1)->put('/admin/riwayat/' . $loan->loan_id . '/kembalikan');
+        $isi = $baris($loan);
+        $this->assertStringContainsString('Admin Satu', $isi);
+        $this->assertStringContainsString('Ditandai Kembali', $isi);
+
+        // buku terlambat yang dikembalikan & dilunasi admin 3
+        $telat = $this->makeLoan($peminjam, $book, ['status' => 'Dipinjam', 'loan_date' => today()->subDays(10),
+            'due_date' => today()->subDays(3), 'approved_by' => $admin1->user_id, 'approved_at' => now()->subDays(10)]);
+        $this->actingAs($admin3)->put('/admin/riwayat/' . $telat->loan_id . '/denda');
+        $isi = $baris($telat);
+        $this->assertStringContainsString('admin 3', $isi);
+        $this->assertStringContainsString('Kembali &amp; Denda Lunas', $isi);
+
+        // ditolak admin 3
+        $ditolak = $this->makeLoan($peminjam, $book, ['loan_date' => null]);
+        $this->actingAs($admin3)->put('/admin/peminjaman/' . $ditolak->loan_id . '/tolak');
+        $isi = $baris($ditolak);
+        $this->assertStringContainsString('admin 3', $isi);
+        $this->assertStringContainsString('Ditolak', $isi);
+
+        // data lama tanpa catatan log tetap menampilkan admin yang menyetujui
+        $lama = $this->makeLoan($peminjam, $book, ['status' => 'Dikembalikan', 'loan_date' => today()->subDays(5),
+            'due_date' => today()->addDay(), 'return_date' => today(), 'approved_by' => $admin1->user_id, 'approved_at' => now()->subDays(6)]);
+        $this->assertStringContainsString('Admin Satu', $baris($lama));
+    }
+
     private function makeUser(string $role, string $nim): User
     {
         return User::create([

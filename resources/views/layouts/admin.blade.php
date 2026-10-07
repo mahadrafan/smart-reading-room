@@ -31,6 +31,8 @@
                    class="{{ request()->routeIs('admin.reviews.*') ? 'aktif' : '' }}">Kelola Ulasan</a>
                 <a href="{{ route('admin.peminjam.index') }}"
                    class="{{ request()->routeIs('admin.peminjam.*') ? 'aktif' : '' }}">Data Peminjam</a>
+                <a href="{{ route('admin.akun.index') }}"
+                   class="{{ request()->routeIs('admin.akun.*') ? 'aktif' : '' }}">Kelola Admin</a>
 
                 <div class="grup-menu">Peminjaman</div>
                 <a href="{{ route('admin.peminjaman.index') }}"
@@ -40,7 +42,7 @@
             </nav>
 
             <div class="akun-bawah">
-                <div class="nama">{{ Auth::user()->name }}</div>
+                <a href="{{ route('admin.akun.edit', Auth::id()) }}" class="nama" title="Ubah akun saya">{{ Auth::user()->name }}</a>
                 <div class="kelas">{{ Auth::user()->nim_nip }}</div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
