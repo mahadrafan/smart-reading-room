@@ -105,11 +105,11 @@
 <path d="M1841.0,932.8 L1825.0,941.8 M1841.0,932.8 L1825.0,932.8 M1841.0,932.8 L1825.0,923.8"/>
 <path d="M1846.0,941.8 L1846.0,923.8"/>
 <polyline points="2350.0,852.8 2350.0,482.8"/>
-<path d="M2342.0,494.8 L2358.0,494.8"/>
-<path d="M2342.0,500.8 L2358.0,500.8"/>
+<path d="M2350.0,498.8 L2341.0,482.8 M2350.0,498.8 L2350.0,482.8 M2350.0,498.8 L2359.0,482.8"/>
+<path d="M2341.0,503.8 L2359.0,503.8"/>
 <polyline points="2350.0,852.8 2350.0,1253.2"/>
-<path d="M2350.0,1237.2 L2359.0,1253.2 M2350.0,1237.2 L2350.0,1253.2 M2350.0,1237.2 L2341.0,1253.2"/>
-<path d="M2359.0,1232.2 L2341.0,1232.2"/>
+<path d="M2358.0,1241.2 L2342.0,1241.2"/>
+<path d="M2358.0,1235.2 L2342.0,1235.2"/>
 <polyline points="1450.0,1282.8 1150.0,1282.8 1150.0,482.7"/>
 <path d="M1142.0,494.7 L1158.0,494.7"/>
 <path d="M1142.0,500.7 L1158.0,500.7"/>
@@ -332,8 +332,8 @@
 <text x="1641.0" y="918.8" font-size="15" font-weight="bold">N</text>
 <text x="2286.0" y="516.6" font-size="15" font-weight="bold">1</text>
 <text x="1859.0" y="946.8" font-size="15" font-weight="bold">N</text>
-<text x="2336.0" y="516.8" font-size="15" font-weight="bold">1</text>
-<text x="2364.0" y="1219.2" font-size="15" font-weight="bold">N</text>
+<text x="2336.0" y="516.8" font-size="15" font-weight="bold">N</text>
+<text x="2364.0" y="1219.2" font-size="15" font-weight="bold">1</text>
 <text x="1136.0" y="516.7" font-size="15" font-weight="bold">1</text>
 <text x="1641.0" y="1268.8" font-size="15" font-weight="bold">N</text>
 <text x="2241.0" y="1268.8" font-size="15" font-weight="bold">1</text>
