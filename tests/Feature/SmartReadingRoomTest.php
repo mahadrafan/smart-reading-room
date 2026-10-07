@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\PengingatPengembalian;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Category;
@@ -14,6 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -250,7 +252,7 @@ class SmartReadingRoomTest extends TestCase
         $this->get('/register?sebagai=pendidik')->assertOk()
             ->assertSee('value="Tenaga Pendidik"', false)
             ->assertSee('placeholder="NIP"', false)
-            ->assertSee('placeholder="Jabatan / mapel"', false);
+            ->assertSee('placeholder="Jabatan"', false);
 
         $data = [
             'name' => 'Guru Uji',
@@ -261,10 +263,10 @@ class SmartReadingRoomTest extends TestCase
             'password_confirmation' => 'password123',
         ];
 
-        // jenis wajib dipilih, dan tenaga pendidik wajib mengisi jabatan/mapel (bukan kelas)
+        // jenis wajib dipilih, dan tenaga pendidik wajib mengisi jabatan (bukan kelas)
         $this->post('/register', $data)->assertSessionHasErrors('borrower_type');
         $this->post('/register', $data + ['borrower_type' => 'Tenaga Pendidik', 'class' => 'XII IPA 1'])
-            ->assertSessionHasErrors(['job_title' => 'Jabatan / mapel wajib diisi.']);
+            ->assertSessionHasErrors(['job_title' => 'Jabatan wajib diisi.']);
         $this->post('/register', $data + ['borrower_type' => 'Siswa'])
             ->assertSessionHasErrors(['class' => 'Kelas wajib diisi.']);
         $this->post('/register', $data + ['borrower_type' => 'Admin', 'class' => 'X'])
@@ -287,7 +289,7 @@ class SmartReadingRoomTest extends TestCase
         // profil & form peminjaman memakai NIP dan jabatan, bukan NIS dan kelas
         $this->actingAs($guru)->get('/profil')->assertOk()
             ->assertSee('<label>NIP</label>', false)
-            ->assertSee('Jabatan / mapel')
+            ->assertSee('Jabatan')
             ->assertSee('value="Guru Biologi"', false)
             ->assertDontSee('id="class"', false);
 
@@ -1150,7 +1152,7 @@ class SmartReadingRoomTest extends TestCase
         $this->assertSame('Gagal', $loan->fresh()->status);
     }
 
-    public function test_overdue_fine_and_contact_information_for_manual_reminder(): void
+    public function test_overdue_fine_and_contact_information_for_admin(): void
     {
         $admin = $this->makeUser('Admin', 'ADM-TEST');
         $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
@@ -1187,8 +1189,10 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('Denda dibayar langsung saat mengembalikan buku ke perpustakaan');
         $this->actingAs($admin);
 
-        // pengingat keterlambatan dilakukan manual oleh admin lewat nomor telepon, tidak ada pengingat otomatis
-        $this->assertDatabaseCount('notifications', 0);
+        // selain dihubungi admin lewat nomor telepon, peminjam & admin mendapat pengingat otomatis saat membuka halaman
+        $this->assertDatabaseCount('notifications', 2);
+        $this->assertDatabaseHas('notifications', ['user_id' => $borrower->user_id, 'loan_id' => $loan->loan_id, 'type' => 'Terlambat']);
+        $this->assertDatabaseHas('notifications', ['user_id' => $admin->user_id, 'loan_id' => $loan->loan_id, 'type' => 'Terlambat']);
 
         // bayar denda = sekaligus mengembalikan buku
         $this->put('/admin/riwayat/' . $loan->loan_id . '/denda')
@@ -1788,12 +1792,11 @@ class SmartReadingRoomTest extends TestCase
             ->assertSee('Pengajuan peminjaman terkirim.')
             ->assertSee('Perpustakaan tutup hari Minggu.');
 
-        // lima filter utama selalu ada; jenis lain hanya bila ada isinya; angka sama di filter mana pun
+        // enam filter utama selalu ada; jenis lain hanya bila ada isinya; angka sama di filter mana pun
         foreach (['', '?jenis=pengajuan', '?jenis=gagal', '?jenis=ngawur'] as $filter) {
             $this->get('/notifikasi' . $filter)->assertOk()
                 ->assertSeeInOrder(['Semua (3)', 'Pengajuan (1)', 'Dikonfirmasi (1)', 'Dipinjam (0)',
-                    'Dikembalikan (0)', 'Gagal (0)', 'Pengumuman (1)'])
-                ->assertDontSee('Terlambat (');
+                    'Terlambat (0)', 'Dikembalikan (0)', 'Gagal (0)', 'Pengumuman (1)']);
         }
     }
 
@@ -1809,7 +1812,7 @@ class SmartReadingRoomTest extends TestCase
         ]);
 
         // tidak ada tombol perpanjang (fiturnya tidak ada), cukup tautan ke detail peminjaman
-        // notifikasi Terlambat dari data lama tetap punya filter sendiri
+        // notifikasi Terlambat punya filter sendiri
         foreach (['', '?jenis=terlambat'] as $filter) {
             $this->actingAs($borrower)->get('/notifikasi' . $filter)->assertOk()
                 ->assertSee('Buku sudah melewati batas pengembalian.')
@@ -1960,96 +1963,6 @@ class SmartReadingRoomTest extends TestCase
         $this->assertStringStartsWith('Menghapus riwayat peminjaman "JJJ', $log->description);
     }
 
-    public function test_admin_can_add_edit_and_reset_password_of_admin_accounts(): void
-    {
-        $admin = $this->makeUser('Admin', 'ADM-TEST');
-        $peminjam = $this->makeUser('Peminjam', 'SISWA-TEST');
-
-        // hanya admin yang bisa membuka menu ini; peminjam diarahkan ke katalog
-        $this->actingAs($peminjam)->get('/admin/akun-admin')->assertRedirect(route('dashboard'));
-
-        $this->actingAs($admin)->get('/admin/akun-admin')->assertOk()
-            ->assertSee('Kelola Admin')->assertSee('ADM-TEST')->assertSee('Anda')
-            ->assertDontSee('SISWA-TEST');
-        $this->get('/admin/akun-admin/tambah')->assertOk()->assertSee('Tambah Admin');
-
-        // tambah admin: role selalu Admin, password di-hash, no. telepon dengan kode negara, tercatat di log
-        $this->post('/admin/akun-admin', [
-            'nim_nip' => 'ADM002', 'name' => 'Petugas Baru', 'email' => 'petugas@example.test',
-            'phone_code' => '62', 'phone' => '081298765432',
-            'password' => 'rahasia123', 'password_confirmation' => 'rahasia123',
-            'role' => 'Peminjam',
-        ])->assertRedirect(route('admin.akun.index'));
-        $baru = User::where('nim_nip', 'ADM002')->firstOrFail();
-        $this->assertSame('Admin', $baru->role);
-        $this->assertNull($baru->borrower_type);
-        $this->assertSame('+6281298765432', $baru->phone);
-        $this->assertTrue(Hash::check('rahasia123', $baru->password));
-        $this->assertDatabaseHas('admin_logs', ['admin_id' => $admin->user_id, 'table_name' => 'users', 'record_id' => $baru->user_id, 'action' => 'Tambah']);
-
-        // NIP/ID dan email tidak boleh kembar, password minimal 8 karakter
-        $this->from('/admin/akun-admin/tambah')->post('/admin/akun-admin', [
-            'nim_nip' => 'SISWA-TEST', 'name' => 'Kembar', 'email' => $peminjam->email,
-            'phone_code' => '62', 'phone' => '81234567890', 'password' => 'abc', 'password_confirmation' => 'abc',
-        ])->assertSessionHasErrors([
-            'nim_nip' => 'NIP / ID admin sudah dipakai akun lain.',
-            'email' => 'Email sudah dipakai akun lain.',
-            'password' => 'Password minimal 8 karakter.',
-        ]);
-        $this->assertSame(2, User::where('role', 'Admin')->count());
-
-        // admin baru bisa login dan langsung masuk ke dashboard admin
-        $this->post('/logout');
-        $this->post('/login', ['nim_nip' => 'ADM002', 'password' => 'rahasia123'])->assertRedirect(route('admin.dashboard'));
-        $this->post('/logout');
-
-        // edit data admin lain
-        $this->actingAs($admin)->get('/admin/akun-admin/' . $baru->user_id . '/edit')->assertOk()
-            ->assertSee('Edit Admin')->assertSee('Reset password')->assertDontSee('Password lama');
-        $this->put('/admin/akun-admin/' . $baru->user_id, [
-            'nim_nip' => 'ADM002', 'name' => 'Petugas Pagi', 'email' => 'pagi@example.test',
-            'phone_code' => '62', 'phone' => '81298765432',
-        ])->assertRedirect(route('admin.akun.edit', $baru->user_id));
-        $this->assertSame('Petugas Pagi', $baru->fresh()->name);
-
-        // no. telepon admin opsional: boleh dikosongkan (akun admin lama belum punya nomor), tetapi bila diisi harus valid
-        $this->put('/admin/akun-admin/' . $baru->user_id, [
-            'nim_nip' => 'ADM002', 'name' => 'Petugas Pagi', 'email' => 'pagi@example.test', 'phone_code' => '62', 'phone' => '',
-        ])->assertSessionHasNoErrors();
-        $this->assertNull($baru->fresh()->phone);
-        $this->put('/admin/akun-admin/' . $baru->user_id, [
-            'nim_nip' => 'ADM002', 'name' => 'Petugas Pagi', 'email' => 'pagi@example.test', 'phone_code' => '62', 'phone' => '12',
-        ])->assertSessionHasErrors('phone');
-
-        // reset password admin lain tanpa password lama
-        $this->put('/admin/akun-admin/' . $baru->user_id . '/password', [
-            'password_baru' => 'passwordBaru1', 'password_baru_confirmation' => 'passwordBaru1',
-        ])->assertRedirect(route('admin.akun.edit', $baru->user_id));
-        $this->assertTrue(Hash::check('passwordBaru1', $baru->fresh()->password));
-        $this->assertDatabaseHas('admin_logs', ['record_id' => $baru->user_id, 'table_name' => 'users', 'action' => 'Reset Password']);
-
-        // ganti password akun sendiri wajib password lama yang benar
-        $this->get('/admin/akun-admin/' . $admin->user_id . '/edit')->assertOk()
-            ->assertSee('Akun Saya')->assertSee('Password lama');
-        $this->from('/admin/akun-admin/' . $admin->user_id . '/edit')->followingRedirects()
-            ->put('/admin/akun-admin/' . $admin->user_id . '/password', [
-                'password_lama' => 'salah-password', 'password_baru' => 'gantiBaru99', 'password_baru_confirmation' => 'gantiBaru99',
-            ])->assertOk()->assertSee('Password lama tidak sesuai.');
-        $this->assertTrue(Hash::check('password123', $admin->fresh()->password));
-        $this->put('/admin/akun-admin/' . $admin->user_id . '/password', [
-            'password_lama' => 'password123', 'password_baru' => 'gantiBaru99', 'password_baru_confirmation' => 'gantiBaru99',
-        ])->assertSessionHasNoErrors();
-        $this->assertTrue(Hash::check('gantiBaru99', $admin->fresh()->password));
-
-        // akun peminjam tidak bisa dibuka / diubah lewat menu admin, dan tidak ada fitur hapus akun
-        $this->get('/admin/akun-admin/' . $peminjam->user_id . '/edit')->assertNotFound();
-        $this->put('/admin/akun-admin/' . $peminjam->user_id . '/password', [
-            'password_baru' => 'dibajak123', 'password_baru_confirmation' => 'dibajak123',
-        ])->assertNotFound();
-        $this->assertTrue(Hash::check('password123', $peminjam->fresh()->password));
-        $this->delete('/admin/akun-admin/' . $baru->user_id)->assertStatus(405);
-    }
-
     public function test_history_shows_the_admin_who_processed_the_latest_status_change(): void
     {
         $admin1 = $this->makeUser('Admin', 'ADM001');
@@ -2103,6 +2016,246 @@ class SmartReadingRoomTest extends TestCase
         $lama = $this->makeLoan($peminjam, $book, ['status' => 'Dikembalikan', 'loan_date' => today()->subDays(5),
             'due_date' => today()->addDay(), 'return_date' => today(), 'approved_by' => $admin1->user_id, 'approved_at' => now()->subDays(6)]);
         $this->assertStringContainsString('Admin Satu', $baris($lama));
+    }
+
+    public function test_borrower_gets_a_daily_overdue_reminder_until_the_fine_is_paid(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+        $loan = $this->makeLoan($borrower, $book, [
+            'status' => 'Dipinjam', 'loan_date' => today()->subDays(5), 'due_date' => today()->subDays(2),
+            'approved_by' => $admin->user_id, 'approved_at' => now()->subDays(6),
+        ]);
+        $terlambat = fn () => UserNotification::where('loan_id', $loan->loan_id)->where('type', 'Terlambat');
+
+        // terlambat 2 hari: pop up "Terlambat" dengan denda Rp2.000 muncul di halaman peminjam mana pun
+        $this->actingAs($borrower)->get('/dashboard')->assertOk()
+            ->assertSee('data-popup-notif', false)
+            ->assertSee('terlambat 2 hari dan dendanya Rp2.000 belum lunas');
+
+        // dibuka lagi di hari yang sama: tidak ada pengingat ganda, dan setelah "Mengerti" pop up hilang
+        $this->get('/peminjaman')->assertOk();
+        $this->assertSame(1, $terlambat()->count());
+        $this->post('/notifikasi/dibaca')->assertRedirect();
+        $this->get('/dashboard')->assertOk()->assertDontSee('data-popup-notif', false);
+
+        // besoknya pengingat baru muncul dengan denda Rp3.000, juga di halaman Notifikasi (filter Terlambat)
+        $this->travel(1)->days();
+        $this->get('/notifikasi?jenis=terlambat')->assertOk()
+            ->assertSee('terlambat 3 hari dan dendanya Rp3.000 belum lunas')
+            ->assertSee('terlambat 2 hari dan dendanya Rp2.000 belum lunas')
+            ->assertSee('Terlambat (2)');
+        $this->travel(1)->days();
+        $this->get('/dashboard')->assertOk()->assertSee('terlambat 4 hari dan dendanya Rp4.000 belum lunas');
+        $this->assertSame(3, $terlambat()->count());
+
+        // setelah buku dikembalikan & denda lunas, pengingat berhenti
+        $this->actingAs($admin)->put('/admin/riwayat/' . $loan->loan_id . '/denda')->assertRedirect();
+        $this->assertSame('Dikembalikan', $loan->fresh()->status);
+        $this->travel(1)->days();
+        $this->actingAs($borrower)->get('/dashboard')->assertOk();
+        $this->assertSame(3, $terlambat()->count());
+
+        // pengingat hanya untuk pemilik peminjaman
+        $lain = $this->makeUser('Peminjam', 'SISWA-LAIN');
+        $this->actingAs($lain)->get('/dashboard')->assertOk()->assertDontSee('dendanya');
+    }
+
+    public function test_history_can_filter_overdue_loans_and_search_by_borrower_or_loan_number(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $budi = $this->makeUser('Peminjam', 'SISWA-BUDI');
+        $budi->update(['name' => 'Budi Santoso']);
+        $sari = $this->makeUser('Peminjam', 'SISWA-SARI');
+        $sari->update(['name' => 'Sari Wulandari']);
+        $book = $this->makeBook($admin, 5);
+        $book->update(['title' => 'Buku Riwayat']);
+
+        $telat = $this->makeLoan($budi, $book, ['status' => 'Dipinjam', 'loan_date' => today()->subDays(5), 'due_date' => today()->subDays(2)]);
+        $tepat = $this->makeLoan($sari, $book, ['status' => 'Dipinjam', 'loan_date' => today(), 'due_date' => today()->addDays(3)]);
+        $lunas = $this->makeLoan($sari, $book, ['status' => 'Dikembalikan', 'loan_date' => today()->subDays(9),
+            'due_date' => today()->subDays(6), 'return_date' => today()->subDays(4), 'fine_paid_at' => now()->subDays(4)]);
+        $kode = fn ($loan) => $loan->fresh()->kode;
+
+        // pop up pengingat denda (berisi no. peminjaman) ditutup dulu lewat halaman Notifikasi
+        $this->actingAs($admin)->get('/admin/notifikasi')->assertOk();
+
+        // chip Terlambat: hanya yang terlambat & dendanya belum lunas (yang sudah lunas tidak ikut)
+        $this->get('/admin/riwayat?status=Terlambat')->assertOk()
+            ->assertSee('class="chip aktif">Terlambat</a>', false)
+            ->assertSee('dari <strong>1</strong> peminjaman yang terlambat &amp; dendanya belum lunas', false)
+            ->assertSee($kode($telat))->assertDontSee($kode($tepat))->assertDontSee($kode($lunas));
+
+        // cari nama peminjam (sebagian, tanpa peduli huruf besar) atau NIS
+        $this->get('/admin/riwayat?q=budi')->assertOk()
+            ->assertSee($kode($telat))->assertDontSee($kode($tepat))->assertDontSee($kode($lunas));
+        $this->get('/admin/riwayat?q=SISWA-SARI')->assertOk()
+            ->assertSee($kode($tepat))->assertSee($kode($lunas))->assertDontSee($kode($telat));
+
+        // cari no. peminjaman: lengkap, tanpa awalan LOAN-, atau nomor urutnya saja
+        $nomor = str_pad($tepat->loan_id, 3, '0', STR_PAD_LEFT);
+        foreach ([$kode($tepat), strtolower($kode($tepat)), substr($kode($tepat), 5), $nomor] as $cari) {
+            $this->get('/admin/riwayat?q=' . urlencode($cari))->assertOk()
+                ->assertSee('dari <strong>1</strong> peminjaman yang cocok', false)
+                ->assertSee($kode($tepat))->assertDontSee($kode($telat));
+        }
+
+        // pencarian digabung dengan filter status, dan chip status tetap membawa kata kuncinya
+        $this->get('/admin/riwayat?status=Terlambat&q=sari')->assertOk()
+            ->assertSee('Tidak ada peminjaman yang terlambat &amp; dendanya belum lunas yang cocok dengan &quot;sari&quot;.', false)
+            ->assertSee('href="' . e(route('admin.peminjaman.riwayat', ['status' => 'Dipinjam', 'q' => 'sari'])) . '"', false);
+
+        // setelah aksi, kembali ke hasil pencarian yang sama
+        $this->put('/admin/riwayat/' . $tepat->loan_id . '/kembalikan', ['status' => 'Dipinjam', 'q' => 'sari'])
+            ->assertRedirect(route('admin.peminjaman.riwayat', ['status' => 'Dipinjam', 'q' => 'sari']));
+        $this->assertSame('Dikembalikan', $tepat->fresh()->status);
+    }
+
+    public function test_admins_get_popup_notifications_for_new_requests_and_daily_unpaid_fines(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $admin2 = $this->makeUser('Admin', 'ADM-DUA');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+        $book->update(['title' => 'Buku Notif Admin']);
+
+        // pengajuan baru: setiap admin mendapat notifikasi, peminjam tidak melihat notifikasi admin
+        $this->actingAs($borrower)->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => '7'])
+            ->assertRedirect(route('peminjaman.index'));
+        $loan = Loan::firstOrFail();
+        $this->assertSame(2, UserNotification::where('type', 'Pengajuan')->whereIn('user_id', [$admin->user_id, $admin2->user_id])->count());
+        $this->get('/dashboard')->assertOk()->assertDontSee('Pengajuan baru dari');
+
+        // pop up di halaman admin mana pun + angka di menu Notifikasi
+        $this->actingAs($admin)->get('/admin/buku')->assertOk()
+            ->assertSee('data-popup-notif', false)
+            ->assertSee('Pengajuan baru dan denda yang belum lunas sejak terakhir kali dibuka.')
+            ->assertSee('Pengajuan baru dari Peminjam Uji (SISWA-TEST): buku &quot;Buku Notif Admin&quot; selama 7 hari (' . $loan->fresh()->kode . ').', false)
+            ->assertSee('aria-label="1 notifikasi belum dibaca"', false)
+            ->assertSee('action="' . route('admin.notifikasi.dibaca') . '"', false);
+
+        // "Mengerti" hanya menutup milik admin ini; admin lain tetap melihat pop up-nya
+        $this->post('/admin/notifikasi/dibaca')->assertRedirect();
+        $this->get('/admin/dashboard')->assertOk()->assertDontSee('data-popup-notif', false);
+        $this->actingAs($admin2)->get('/admin/dashboard')->assertOk()->assertSee('data-popup-notif', false);
+
+        // halaman Notifikasi admin: filter Pengajuan & Terlambat, tautan ke Request Masuk selama masih Menunggu
+        $this->actingAs($admin)->get('/admin/notifikasi')->assertOk()
+            ->assertSeeInOrder(['Semua (1)', 'Pengajuan (1)', 'Terlambat (0)'])
+            ->assertSee('Proses di Request Masuk')
+            ->assertDontSee('data-popup-notif', false);
+
+        // buku terlambat 2 hari: setiap hari admin mendapat pengingat denda yang belum lunas
+        $loan->update(['status' => 'Dipinjam', 'loan_date' => today()->subDays(5), 'due_date' => today()->subDays(2)]);
+        $this->get('/admin/dashboard')->assertOk()
+            ->assertSee('data-popup-notif', false)
+            ->assertSee('yang dipinjam Peminjam Uji (SISWA-TEST) terlambat 2 hari, denda Rp2.000 belum lunas');
+        $this->get('/admin/riwayat')->assertOk();
+        $this->assertSame(1, UserNotification::where('user_id', $admin->user_id)->where('type', 'Terlambat')->count());
+        $this->post('/admin/notifikasi/dibaca');
+
+        $this->travel(1)->days();
+        $this->get('/admin/dashboard')->assertOk()->assertSee('terlambat 3 hari, denda Rp3.000 belum lunas');
+        $this->get('/admin/notifikasi?jenis=terlambat')->assertOk()
+            ->assertSee('Terlambat (2)')->assertSee('Lihat di Riwayat (Dipinjam)');
+
+        // pengingat admin & peminjam terpisah: peminjam tetap mendapat pengingatnya sendiri hari ini
+        $this->actingAs($borrower)->get('/dashboard')->assertOk()->assertSee('terlambat 3 hari dan dendanya Rp3.000 belum lunas');
+
+        // setelah dikembalikan & lunas, tidak ada pengingat lagi
+        $this->actingAs($admin)->put('/admin/riwayat/' . $loan->loan_id . '/denda')->assertRedirect();
+        $this->travel(1)->days();
+        $this->get('/admin/dashboard')->assertOk();
+        $this->assertSame(2, UserNotification::where('user_id', $admin->user_id)->where('type', 'Terlambat')->count());
+    }
+
+    public function test_email_reminder_is_sent_one_day_before_due_and_once_when_overdue(): void
+    {
+        Mail::fake();
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+        $book->update(['title' => 'Buku Email']);
+        $loan = $this->makeLoan($borrower, $book, [
+            'status' => 'Dipinjam', 'loan_date' => today()->subDays(2), 'due_date' => today()->addDays(2),
+        ]);
+        $pengingat = fn () => UserNotification::where('loan_id', $loan->loan_id)->where('type', 'Pengingat');
+
+        // dua hari sebelum batas kembali: belum ada email
+        $this->artisan('pengingat:email')->assertSuccessful();
+        Mail::assertNothingSent();
+
+        // H-1: satu email ke alamat peminjam + catatan "Pengingat" di web, tidak terkirim dua kali di hari yang sama
+        $this->travel(1)->days();
+        $this->artisan('pengingat:email')->expectsOutput('Email H-1 terkirim: 1')->assertSuccessful();
+        $this->artisan('pengingat:email')->expectsOutput('Email H-1 terkirim: 0')->assertSuccessful();
+        Mail::assertSent(PengingatPengembalian::class, 1);
+        Mail::assertSent(PengingatPengembalian::class, fn ($mail) => $mail->hasTo($borrower->email) && $mail->jenis === 'H-1'
+            && $mail->envelope()->subject === 'Pengingat: besok batas pengembalian buku "Buku Email"'
+            // nama pengirim = nama aplikasi, bukan "Example" bawaan Laravel
+            && $mail->envelope()->from->name === config('app.name'));
+        $this->assertSame(1, $pengingat()->count());
+        $email = (new PengingatPengembalian($loan->fresh(), 'H-1'))->render();
+        $this->assertStringContainsString('paling lambat <strong>besok, ' . today()->addDay()->format('d/m/Y') . '</strong>', $email);
+
+        // hari batas kembali: tidak ada email
+        $this->travel(1)->days();
+        $this->artisan('pengingat:email')->assertSuccessful();
+        Mail::assertSent(PengingatPengembalian::class, 1);
+
+        // terlambat: email hanya sekali, hari-hari berikutnya cukup pengingat di web
+        $this->travel(1)->days();
+        $this->artisan('pengingat:email')->expectsOutput('Email terlambat terkirim: 1')->assertSuccessful();
+        $this->travel(1)->days();
+        $this->artisan('pengingat:email')->expectsOutput('Email terlambat terkirim: 0')->assertSuccessful();
+        Mail::assertSent(PengingatPengembalian::class, 2);
+        Mail::assertSent(PengingatPengembalian::class, fn ($mail) => $mail->jenis === 'Terlambat'
+            && $mail->envelope()->subject === 'Buku "Buku Email" terlambat dikembalikan');
+        $this->assertStringContainsString('Denda saat ini <strong>Rp2.000</strong>',
+            (new PengingatPengembalian($loan->fresh(), 'Terlambat'))->render());
+
+        // catatan pengingat tampil di halaman Notifikasi peminjam
+        $this->actingAs($borrower)->get('/notifikasi')->assertOk()
+            ->assertSee('harus dikembalikan besok')
+            ->assertSee('Pengingat ini juga dikirim ke email ' . $borrower->email . '.')
+            ->assertSee('Email terkirim');
+
+        // buku yang sudah dikembalikan & lunas tidak mendapat email
+        $lain = $this->makeLoan($borrower, $book, ['status' => 'Dikembalikan', 'due_date' => today()->subDay(),
+            'return_date' => today(), 'fine_paid_at' => now()]);
+        $this->artisan('pengingat:email')->assertSuccessful();
+        Mail::assertSent(PengingatPengembalian::class, 2);
+        $this->assertSame(0, UserNotification::where('loan_id', $lain->loan_id)->count());
+    }
+
+    public function test_failed_reminder_email_is_retried_on_the_next_run(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $loan = $this->makeLoan($borrower, $this->makeBook($admin), [
+            'status' => 'Dipinjam', 'loan_date' => today()->subDays(3), 'due_date' => today()->addDay(),
+        ]);
+
+        // server email bermasalah (pengiriman melempar error): tidak dicatat sebagai terkirim
+        config(['mail.default' => 'array']);
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Mail\Events\MessageSending::class,
+            fn () => throw new \RuntimeException('SMTP mati'));
+        $this->artisan('pengingat:email')->expectsOutputToContain('Gagal terkirim: 1')->assertSuccessful();
+        $this->assertSame(0, UserNotification::where('loan_id', $loan->loan_id)->count());
+
+        // jadwal berikutnya berhasil
+        \Illuminate\Support\Facades\Event::forget(\Illuminate\Mail\Events\MessageSending::class);
+        $this->artisan('pengingat:email')->expectsOutput('Email H-1 terkirim: 1')->assertSuccessful();
+        $this->assertSame(1, UserNotification::where('loan_id', $loan->loan_id)->where('type', 'Pengingat')->count());
+    }
+
+    public function test_email_reminder_is_scheduled_every_morning(): void
+    {
+        $this->artisan('schedule:list')->expectsOutputToContain('pengingat:email')->assertSuccessful();
+        $event = collect(app(\Illuminate\Console\Scheduling\Schedule::class)->events())
+            ->first(fn ($e) => str_contains($e->command, 'pengingat:email'));
+        $this->assertSame('0 7 * * *', $event->expression);
     }
 
     private function makeUser(string $role, string $nim): User

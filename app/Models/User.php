@@ -6,7 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    // jenis peminjam: siswa mengisi NIS + kelas, tenaga pendidik mengisi NIP + jabatan/mapel
+    // jenis peminjam: siswa mengisi NIS + kelas, tenaga pendidik mengisi NIP + jabatan
     const SISWA = 'Siswa';
     const TENAGA_PENDIDIK = 'Tenaga Pendidik';
 
@@ -47,10 +47,10 @@ class User extends Authenticatable
         return $this->isTenagaPendidik() ? 'NIP' : 'NIS';
     }
 
-    // label & isi keterangan peminjam: kelas untuk siswa, jabatan/mapel untuk tenaga pendidik
+    // label & isi keterangan peminjam: kelas untuk siswa, jabatan untuk tenaga pendidik
     public function getLabelKeteranganAttribute(): string
     {
-        return $this->isTenagaPendidik() ? 'Jabatan / mapel' : 'Kelas';
+        return $this->isTenagaPendidik() ? 'Jabatan' : 'Kelas';
     }
 
     public function getKeteranganAttribute(): ?string
@@ -229,11 +229,5 @@ class User extends Authenticatable
     public function notifications()
     {
         return $this->hasMany(UserNotification::class, 'user_id', 'user_id');
-    }
-
-    // catatan aktivitas milik admin ini (tabel admin_logs)
-    public function adminLogs()
-    {
-        return $this->hasMany(AdminLog::class, 'admin_id', 'user_id');
     }
 }

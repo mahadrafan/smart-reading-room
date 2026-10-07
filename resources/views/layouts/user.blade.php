@@ -43,7 +43,7 @@
 
             <div class="akun-bawah">
                 <div class="nama">{{ Auth::user()->name }}</div>
-                {{-- kelas untuk siswa, jabatan/mapel untuk tenaga pendidik --}}
+                {{-- kelas untuk siswa, jabatan untuk tenaga pendidik --}}
                 <div class="kelas">{{ Auth::user()->keterangan }}</div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -63,7 +63,7 @@
     </div>
 
     @if ($popupNotif->isNotEmpty())
-        @include('user._popup-notifikasi')
+        @include('_popup-notifikasi')
     @endif
 
     @yield('scripts')

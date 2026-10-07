@@ -14,8 +14,6 @@ Repository: <https://github.com/mahadrafan/smart-reading-room>
 - Tenggat pengambilan dan pembatalan otomatis
 - Denda keterlambatan beserta status Belum Lunas/Lunas
 - Data kontak peminjam untuk tindak lanjut admin
-- Kelola Admin: admin menambah akun admin baru, mengubah data, dan mereset password admin lain
-  (form daftar publik selalu membuat akun Peminjam)
 - Ulasan dan rating buku
 - Notifikasi peminjaman di dalam aplikasi, dengan pop up untuk notifikasi baru
 
@@ -186,7 +184,7 @@ Akun ini dibuat oleh `php artisan migrate --seed`:
 | Peminjam (tenaga pendidik) | `198501012010011001` | `pendidik123` |
 
 Saat mendaftar, peminjam memilih **Siswa** (mengisi NIS dan kelas) atau
-**Tenaga Pendidik** (mengisi NIP dan jabatan/mapel).
+**Tenaga Pendidik** (mengisi NIP dan jabatan).
 
 Ganti password akun demo sebelum aplikasi digunakan di lingkungan nyata.
 
@@ -256,21 +254,72 @@ php artisan storage:link
 
 ## Notifikasi dan pengingat keterlambatan
 
-Semua notifikasi peminjaman hanya tampil di halaman **Notifikasi** peminjam di
-dalam web; tidak ada email yang dikirim, jadi tidak perlu pengaturan SMTP maupun
-scheduler.
+Notifikasi peminjaman tampil di halaman **Notifikasi** di dalam web, dengan pop up
+di halaman mana pun selama masih ada yang belum dibaca (status **Belum Dibaca** di
+tabel `notifications`, menjadi **Dibaca** setelah tombol **Mengerti** ditekan atau
+halaman Notifikasi dibuka).
 
-Setiap perubahan status dari admin atau sistem (dikonfirmasi, dipinjam,
-dikembalikan, ditolak, gagal otomatis) tersimpan sebagai **Belum Dibaca** di kolom
-`status` tabel `notifications`. Selama masih ada yang belum dibaca, peminjam melihat
-pop up notifikasi baru di halaman mana pun dan angka di menu Notifikasi. Notifikasi
-menjadi **Dibaca** setelah tombol **Mengerti** ditekan (atau Esc / klik di luar
-pop up) atau setelah halaman Notifikasi dibuka. Notifikasi pengajuan dibuat oleh
-peminjam sendiri sehingga langsung dianggap dibaca.
+- **Peminjam** menerima perubahan status peminjaman (dikonfirmasi, dipinjam,
+  dikembalikan, ditolak, gagal otomatis) dan, selama buku terlambat dan denda belum
+  lunas, satu pengingat **Terlambat** setiap hari dengan denda terbaru.
+- **Admin** menerima notifikasi setiap ada pengajuan baru dan pengingat harian untuk
+  setiap peminjaman yang terlambat dan dendanya belum lunas (menu **Notifikasi** di
+  panel admin).
 
-Untuk mengingatkan peminjam yang terlambat (misalnya sudah berapa hari dan berapa
-dendanya), admin menghubungi peminjam secara manual lewat nomor telepon yang
-tampil di Dashboard admin, Riwayat, dan Data Peminjam.
+Pengingat di web dibuat saat halaman dibuka, jadi tidak membutuhkan scheduler.
+Admin tetap bisa menghubungi peminjam lewat nomor telepon / WhatsApp di Dashboard.
+
+## Email pengingat (H-1 dan saat terlambat)
+
+Peminjam login memakai NIS/NIP, tetapi email pengingat dikirim ke kolom `email`
+akunnya:
+
+- **H-1**: sehari sebelum batas kembali buku yang sedang dipinjam.
+- **Terlambat**: sekali saja, saat buku pertama kali melewati batas kembali.
+
+Setiap email yang berhasil terkirim juga muncul sebagai notifikasi **Pengingat**
+di web. Email yang gagal terkirim dicoba lagi pada jadwal berikutnya.
+
+### 1. Pengaturan pengirim (Gmail)
+
+Bawaannya `MAIL_MAILER=log`: email hanya ditulis ke `storage/logs/laravel.log`.
+Untuk benar-benar mengirim lewat Gmail:
+
+1. Aktifkan **Verifikasi 2 Langkah** di akun Google pengirim.
+2. Buat **App Password** di <https://myaccount.google.com/apppasswords>
+   (16 huruf, bukan password Gmail biasa).
+3. Ubah `.env`:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=alamat.pengirim@gmail.com
+MAIL_PASSWORD=app-password-16-huruf
+MAIL_FROM_ADDRESS="alamat.pengirim@gmail.com"
+MAIL_FROM_NAME="Smart Reading Room"
+```
+
+4. Jalankan `php artisan config:clear`, lalu coba kirim:
+
+```powershell
+php artisan pengingat:email
+```
+
+### 2. Menjalankan otomatis setiap hari (pukul 07.00 WIB)
+
+Jadwal sudah terdaftar (`php artisan schedule:list`), tetapi perlu dipanggil oleh
+sistem operasi:
+
+- **Linux/macOS (cron)**: tambahkan lewat `crontab -e`
+
+```bash
+* * * * * cd /path/ke/smart-reading-room && php artisan schedule:run >> /dev/null 2>&1
+```
+
+- **Windows (Task Scheduler)**: buat tugas harian pukul 07.00 dengan program
+  `php` dan argumen `artisan pengingat:email`, folder awal (*Start in*) diisi
+  folder proyek.
 
 ## Aset frontend
 

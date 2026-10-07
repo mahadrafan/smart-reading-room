@@ -77,9 +77,9 @@
             </div>
 
             <div class="field" data-khusus="Tenaga Pendidik" @unless ($pendidik) hidden @endunless>
-                <label for="job_title" class="sr-only">Jabatan / mapel</label>
+                <label for="job_title" class="sr-only">Jabatan</label>
                 <input type="text" id="job_title" name="job_title" maxlength="50"
-                       placeholder="Jabatan / mapel"
+                       placeholder="Jabatan"
                        value="{{ old('job_title') }}"
                        class="@error('job_title') is-invalid @enderror"
                        @if ($pendidik) required @else disabled @endif>

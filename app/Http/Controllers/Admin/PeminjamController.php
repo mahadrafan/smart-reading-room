@@ -10,7 +10,7 @@ class PeminjamController extends Controller
 {
     const PER_HALAMAN = 10;
 
-    // daftar peminjam + pencarian NIS/NIP, nama, kelas, atau jabatan/mapel; 10 per halaman
+    // daftar peminjam + pencarian NIS/NIP, nama, kelas, atau jabatan; 10 per halaman
     public function index(Request $request)
     {
         $cari = trim((string) $request->q);

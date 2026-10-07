@@ -105,6 +105,47 @@ class Loan extends Model
         return null;
     }
 
+    // peminjaman terlambat yang dendanya belum lunas: masih dipinjam & lewat batas kembali,
+    // atau (data lama) sudah dikembalikan terlambat tapi belum bayar.
+    // dipakai dashboard admin, filter Terlambat di Riwayat, dan pengingat harian peminjam
+    public function scopeTerlambatBelumLunas($query)
+    {
+        return $query->whereNull('fine_paid_at')->where(function ($q) {
+            $q->where(fn ($dipinjam) => $dipinjam->where('status', 'Dipinjam')->whereDate('due_date', '<', today()))
+                ->orWhere(fn ($kembali) => $kembali->where('status', 'Dikembalikan')->whereColumn('return_date', '>', 'due_date'));
+        });
+    }
+
+    // pencarian di Riwayat admin: nama / NIS/NIP peminjam, atau no. peminjaman
+    // (LOAN-20261004-030, 20261004-030, 030, atau tanggalnya saja LOAN-20261004)
+    public function scopeCari($query, string $cari)
+    {
+        return $query->where(function ($w) use ($cari) {
+            $w->whereHas('user', fn ($u) => $u->where('name', 'like', '%' . $cari . '%')
+                ->orWhere('nim_nip', 'like', '%' . $cari . '%'));
+
+            if (! preg_match('/^(?:LOAN-?)?(\d{8})?-?(\d{1,7})?$/i', $cari, $m)) {
+                return;
+            }
+            $tanggal = $m[1] ?? '';
+            $nomor = $m[2] ?? '';
+            if ($tanggal . $nomor === '') {
+                return;
+            }
+            if ($tanggal !== '' && ! checkdate((int) substr($tanggal, 4, 2), (int) substr($tanggal, 6, 2), (int) substr($tanggal, 0, 4))) {
+                return;
+            }
+            $w->orWhere(function ($no) use ($tanggal, $nomor) {
+                if ($tanggal !== '') {
+                    $no->whereDate('request_date', substr($tanggal, 0, 4) . '-' . substr($tanggal, 4, 2) . '-' . substr($tanggal, 6, 2));
+                }
+                if ($nomor !== '') {
+                    $no->where('loan_id', (int) $nomor);
+                }
+            });
+        });
+    }
+
     public function getDendaLunasAttribute(): bool
     {
         return $this->jumlah_denda > 0 && $this->fine_paid_at !== null;

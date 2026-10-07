@@ -14,16 +14,27 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // data notifikasi belum dibaca untuk setiap halaman peminjam: angka di menu Notifikasi + pop up
-        View::composer('layouts.user', function ($view) {
-            $belumDibaca = UserNotification::where('user_id', Auth::id())->belumDibaca();
+        // data notifikasi belum dibaca untuk setiap halaman peminjam dan admin: angka di menu Notifikasi + pop up
+        View::composer(['layouts.user', 'layouts.admin'], function ($view) {
+            $user = Auth::user();
+            $admin = $user->role === 'Admin';
+            $ruteNotif = $admin ? 'admin.notifikasi' : 'notifikasi';
+
+            // pengingat harian denda yang belum lunas, agar langsung ikut muncul di pop up halaman ini
+            UserNotification::kirimPengingatTerlambat($user);
+
+            $belumDibaca = UserNotification::where('user_id', $user->user_id)->belumDibaca();
 
             $jumlah = (clone $belumDibaca)->count();
 
             // pop up tidak perlu di halaman Notifikasi sendiri (di sana notifikasi baru sudah diberi tanda "Baru")
-            $tampilPopup = $jumlah > 0 && ! request()->routeIs('notifikasi.index');
+            $tampilPopup = $jumlah > 0 && ! request()->routeIs($ruteNotif . '.index');
 
             $view->with([
+                'ruteNotif'       => $ruteNotif,
+                'ketPopup'        => $admin
+                    ? 'Pengajuan baru dan denda yang belum lunas sejak terakhir kali dibuka.'
+                    : 'Perubahan peminjamanmu sejak terakhir kali dibuka.',
                 'jumlahNotifBaru' => $jumlah,
                 'popupNotif'      => $tampilPopup
                     ? (clone $belumDibaca)->orderByDesc('notification_id')->limit(self::POPUP_MAKS)->get()

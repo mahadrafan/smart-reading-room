@@ -135,7 +135,7 @@ class AuthController extends Controller
         [$kodeTelepon, $nomorTelepon] = User::rapikanTelepon($request->input('phone_code', User::KODE_INDONESIA), $request->phone);
         $request->merge(['phone_code' => $kodeTelepon, 'phone' => $nomorTelepon]);
 
-        // siswa wajib mengisi kelas, tenaga pendidik wajib mengisi jabatan/mapel
+        // siswa wajib mengisi kelas, tenaga pendidik wajib mengisi jabatan
         $request->validate([
             'borrower_type' => 'required|in:' . User::SISWA . ',' . User::TENAGA_PENDIDIK,
             'name'          => 'required|max:100',
@@ -158,7 +158,7 @@ class AuthController extends Controller
             'email'     => 'Email',
             'nim_nip'   => $pendidik ? 'NIP' : 'NIS',
             'class'     => 'Kelas',
-            'job_title' => 'Jabatan / mapel',
+            'job_title' => 'Jabatan',
             'phone_code' => 'Kode negara',
             'phone'     => 'No. telepon',
             'password'  => 'Password',

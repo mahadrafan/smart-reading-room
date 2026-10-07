@@ -1,12 +1,13 @@
-{{-- pop up notifikasi baru: tampil di halaman peminjam mana pun selama masih ada notifikasi belum dibaca.
-     Tombol "Mengerti" menandainya sudah dibaca; tanpa JavaScript tetap bekerja sebagai form biasa. --}}
+{{-- pop up notifikasi baru: tampil di halaman peminjam / admin mana pun selama masih ada notifikasi belum dibaca.
+     Tombol "Mengerti" menandainya sudah dibaca; tanpa JavaScript tetap bekerja sebagai form biasa.
+     $ruteNotif = awalan nama route halaman Notifikasi ('notifikasi' atau 'admin.notifikasi'), lihat AppServiceProvider --}}
 <div class="popup-notif-latar" data-popup-notif>
     <div class="popup-notif" role="dialog" aria-modal="true" aria-labelledby="popup-notif-judul">
         <div class="popup-notif-kepala">
             <span class="popup-notif-lonceng" aria-hidden="true">🔔</span>
             <div>
                 <h2 id="popup-notif-judul">Ada {{ $jumlahNotifBaru }} notifikasi baru</h2>
-                <p>Perubahan peminjamanmu sejak terakhir kali dibuka.</p>
+                <p>{{ $ketPopup }}</p>
             </div>
         </div>
 
@@ -31,8 +32,8 @@
         @endif
 
         <div class="popup-notif-aksi">
-            <a href="{{ route('notifikasi.index') }}" class="popup-notif-lihat">Lihat semua notifikasi</a>
-            <form method="POST" action="{{ route('notifikasi.dibaca') }}" data-popup-notif-form>
+            <a href="{{ route($ruteNotif . '.index') }}" class="popup-notif-lihat">Lihat semua notifikasi</a>
+            <form method="POST" action="{{ route($ruteNotif . '.dibaca') }}" data-popup-notif-form>
                 @csrf
                 <input type="hidden" name="sampai" value="{{ $popupSampai }}">
                 <button type="submit" class="tombol-pil-utama" autofocus>Mengerti</button>

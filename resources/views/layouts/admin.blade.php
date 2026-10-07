@@ -31,18 +31,23 @@
                    class="{{ request()->routeIs('admin.reviews.*') ? 'aktif' : '' }}">Kelola Ulasan</a>
                 <a href="{{ route('admin.peminjam.index') }}"
                    class="{{ request()->routeIs('admin.peminjam.*') ? 'aktif' : '' }}">Data Peminjam</a>
-                <a href="{{ route('admin.akun.index') }}"
-                   class="{{ request()->routeIs('admin.akun.*') ? 'aktif' : '' }}">Kelola Admin</a>
 
                 <div class="grup-menu">Peminjaman</div>
                 <a href="{{ route('admin.peminjaman.index') }}"
                    class="{{ request()->routeIs('admin.peminjaman.index') ? 'aktif' : '' }}">Request Masuk</a>
                 <a href="{{ route('admin.peminjaman.riwayat') }}"
                    class="{{ request()->routeIs('admin.peminjaman.riwayat') ? 'aktif' : '' }}">Riwayat</a>
+                <a href="{{ route('admin.notifikasi.index') }}"
+                   class="{{ request()->routeIs('admin.notifikasi.*') ? 'aktif' : '' }}">
+                    Notifikasi
+                    @if ($jumlahNotifBaru > 0)
+                        <span class="menu-angka" data-angka-notif aria-label="{{ $jumlahNotifBaru }} notifikasi belum dibaca">{{ $jumlahNotifBaru }}</span>
+                    @endif
+                </a>
             </nav>
 
             <div class="akun-bawah">
-                <a href="{{ route('admin.akun.edit', Auth::id()) }}" class="nama" title="Ubah akun saya">{{ Auth::user()->name }}</a>
+                <div class="nama">{{ Auth::user()->name }}</div>
                 <div class="kelas">{{ Auth::user()->nim_nip }}</div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -62,6 +67,12 @@
             @yield('content')
         </main>
     </div>
+
+    {{-- pop up pengajuan baru & denda belum lunas (data dari AppServiceProvider) --}}
+    @if ($popupNotif->isNotEmpty())
+        @include('_popup-notifikasi')
+    @endif
+
     @yield('scripts')
 </body>
 </html>

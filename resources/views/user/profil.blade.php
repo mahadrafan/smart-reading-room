@@ -45,10 +45,10 @@
                     @enderror
                 </div>
 
-                {{-- siswa mengubah kelas, tenaga pendidik mengubah jabatan/mapel; no. telepon satu baris penuh agar kode negara muat --}}
+                {{-- siswa mengubah kelas, tenaga pendidik mengubah jabatan; no. telepon satu baris penuh agar kode negara muat --}}
                 @if (Auth::user()->isTenagaPendidik())
                     <div class="isian">
-                        <label for="job_title">Jabatan / mapel</label>
+                        <label for="job_title">Jabatan</label>
                         <input type="text" id="job_title" name="job_title" maxlength="50"
                                value="{{ old('job_title', Auth::user()->job_title) }}"
                                class="@error('job_title') salah @enderror" required>

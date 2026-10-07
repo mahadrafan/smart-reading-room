@@ -16,7 +16,7 @@ class ProfilController extends Controller
         return view('user.profil');
     }
 
-    // ubah data diri (name, email, phone, dan kelas untuk siswa atau jabatan/mapel untuk tenaga pendidik)
+    // ubah data diri (name, email, phone, dan kelas untuk siswa atau jabatan untuk tenaga pendidik)
     public function update(Request $request)
     {
         $user = Auth::user();
@@ -40,7 +40,7 @@ class ProfilController extends Controller
         ], [
             'name'      => 'Nama lengkap',
             'email'     => 'Email',
-            'job_title' => 'Jabatan / mapel',
+            'job_title' => 'Jabatan',
             'class'     => 'Kelas',
             'phone'     => 'No. telepon',
         ]);

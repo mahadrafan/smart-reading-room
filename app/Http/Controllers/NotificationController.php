@@ -10,12 +10,19 @@ use Illuminate\Support\Facades\Auth;
 class NotificationController extends Controller
 {
     // filter jenis notifikasi yang selalu tampil (urut sesuai alur peminjaman)
-    const JENIS_UTAMA = ['Pengajuan', 'Dikonfirmasi', 'Dipinjam', 'Dikembalikan', 'Gagal'];
+    const JENIS_UTAMA = ['Pengajuan', 'Dikonfirmasi', 'Dipinjam', 'Terlambat', 'Dikembalikan', 'Gagal'];
+    // admin hanya menerima notifikasi pengajuan baru dan denda yang belum lunas
+    const JENIS_ADMIN = ['Pengajuan', 'Terlambat'];
 
+    // halaman Notifikasi peminjam (/notifikasi) dan admin (/admin/notifikasi)
     public function index(Request $request)
     {
-        // proses tenggat pengambilan dulu agar notifikasi "gagal otomatis" langsung tampil di sini
+        $admin = Auth::user()->role === 'Admin';
+
+        // proses tenggat pengambilan & pengingat denda dulu agar notifikasi "gagal otomatis" dan
+        // "terlambat" hari ini langsung tampil di sini
         Loan::prosesTenggatPengambilan();
+        UserNotification::kirimPengingatTerlambat(Auth::user());
 
         $milikSaya = UserNotification::where('user_id', Auth::id());
 
@@ -25,16 +32,17 @@ class NotificationController extends Controller
             ->groupBy('type')
             ->pluck('jumlah', 'type');
 
-        // filter utama selalu ada; jenis lain (misal Terlambat dari data lama, Pengumuman) hanya bila ada isinya
-        $jumlahJenis = collect(self::JENIS_UTAMA)
-            ->merge($perJenis->keys()->filter()->diff(self::JENIS_UTAMA)->sort())
+        // filter utama selalu ada; jenis lain (misal Pengumuman) hanya bila ada isinya
+        $jenisUtama = $admin ? self::JENIS_ADMIN : self::JENIS_UTAMA;
+        $jumlahJenis = collect($jenisUtama)
+            ->merge($perJenis->keys()->filter()->diff($jenisUtama)->sort())
             ->mapWithKeys(fn ($jenis) => [$jenis => (int) ($perJenis[$jenis] ?? 0)]);
 
         // ?jenis= yang tidak dikenal dianggap "Semua"
         $jenisAktif = $jumlahJenis->keys()
             ->first(fn ($jenis) => strtolower($jenis) === strtolower((string) $request->jenis));
 
-        $query = (clone $milikSaya)->with('loan.book')->orderByDesc('notification_id');
+        $query = (clone $milikSaya)->with(['loan.book', 'loan.user'])->orderByDesc('notification_id');
         if ($jenisAktif) {
             $query->where('type', $jenisAktif);
         }
@@ -47,7 +55,7 @@ class NotificationController extends Controller
             UserNotification::whereIn('notification_id', $idBaru)->update(['status' => UserNotification::DIBACA]);
         }
 
-        return view('user.notifications', [
+        return view($admin ? 'admin.notifikasi' : 'user.notifications', [
             'notifications' => $notifications,
             'idBaru'        => $idBaru,
             'jenisAktif'    => $jenisAktif,

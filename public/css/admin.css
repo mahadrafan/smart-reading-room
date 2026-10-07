@@ -15,6 +15,9 @@
     --hijau: #1e6b3a;
     --hijau-muda: #e6f4ea;
     --kuning: #9a7010;
+    --biru: #1d4ed8;
+    --biru-muda: #dbeafe;
+    --putih: #ffffff;
 }
 
 * { box-sizing: border-box; }
@@ -382,6 +385,8 @@ table.tabel td.aksi .aksi-mati { font-size: 13px; font-weight: 700; color: #cbbc
     min-width: 260px; padding: 9px 16px; font: inherit; font-size: 13px; color: var(--teks);
     background: #fff; border: 1.5px solid var(--garis); border-radius: 10px;
 }
+/* kotak cari dengan placeholder panjang (Riwayat): cukup lebar agar kalimatnya tidak terpotong */
+.cari-input.cari-lebar { width: 380px; max-width: 100%; }
 .cari-input:focus, .pilih-filter:focus { outline: 2px solid var(--kayu); border-color: var(--kayu); }
 .pilih-filter {
     max-width: 230px; padding: 9px 12px; font: inherit; font-size: 13px; color: var(--teks);
@@ -489,30 +494,99 @@ table.tabel td.aksi .aksi-mati { font-size: 13px; font-weight: 700; color: #cbbc
 .tautan-wa svg { flex-shrink: 0; color: #1e8e4e; }
 .tautan-wa:hover { color: #1e6b3a; }
 
-/* ---------- Kelola Admin ---------- */
-/* no. telepon: kode negara (+62) dan nomor dalam satu kotak, sama seperti di profil peminjam */
-.telepon {
-    display: flex; border: 1.5px solid var(--garis); border-radius: 8px; background: #fff;
-    transition: border-color 0.15s;
+/* ---------- Notifikasi admin: angka di menu, halaman Notifikasi, dan pop up (sama dengan halaman peminjam) ---------- */
+.menu a { display: flex; align-items: center; gap: 8px; }
+.menu-angka {
+    margin-left: auto; min-width: 20px; padding: 2px 7px; border-radius: 999px;
+    background: var(--kayu-terang); color: var(--coklat-tua);
+    font-size: 11px; font-weight: 800; line-height: 1.3; text-align: center;
 }
-.telepon:focus-within { outline: 3px solid rgba(139,94,52,0.25); border-color: var(--kayu); }
-.telepon.salah { border-color: var(--merah); }
-.kode-negara {
-    position: relative; display: flex; align-items: center; gap: 7px; padding: 0 10px 0 14px;
-    font-size: 14px; font-weight: 600; border-right: 1.5px solid var(--garis);
+.tombol-pil-utama {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 150px;
+    padding: 13px 26px; font: inherit; font-size: 13px; font-weight: 700; text-decoration: none;
+    border-radius: 999px; cursor: pointer; transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
 }
-.kode-negara::after {
-    content: ""; width: 5px; height: 5px; margin-top: -3px;
-    border-right: 2px solid var(--abu); border-bottom: 2px solid var(--abu); transform: rotate(45deg);
+.tombol-pil-utama {
+    color: #fff; border: 0; background: linear-gradient(135deg, #a57748, var(--kayu));
+    box-shadow: 0 8px 18px -8px rgba(139,94,52,0.75);
 }
-.kode-negara select { position: absolute; inset: 0; width: 100%; font: inherit; opacity: 0; cursor: pointer; }
-.isian .telepon input { flex: 1; min-width: 0; border: 0; border-radius: 0 8px 8px 0; background: transparent; }
-.isian .telepon input:focus { outline: none; }
+.tombol-pil-utama:hover { background: linear-gradient(135deg, #956838, var(--kayu-gelap)); transform: translateY(-1px); }
+.tombol-pil-utama:focus-visible { outline: 3px solid rgba(139,94,52,0.45); outline-offset: 2px; }
 
-.dua-kotak { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
-@media (max-width: 900px) { .dua-kotak { grid-template-columns: 1fr; } }
-.judul-kotak { margin: 0 0 16px; font-size: 16px; color: var(--coklat-tua); }
+.notif-grup {
+    background: var(--putih); border: 1px solid var(--garis);
+    border-radius: 16px; overflow: hidden; margin-bottom: 12px;
+}
+.notifikasi-item {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 18px 20px; border-bottom: 1px solid var(--garis);
+}
+.notifikasi-item:last-child { border-bottom: none; }
 
-/* nama admin di sidebar menuju halaman Akun Saya */
-.akun-bawah a.nama { display: block; color: #fff; text-decoration: none; }
-.akun-bawah a.nama:hover { text-decoration: underline; }
+.notif-ikon-wrap {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 20px;
+}
+.notif-ikon-peringatan { background: var(--merah-muda); color: var(--merah); }
+.notif-ikon-sukses { background: var(--hijau-muda); color: var(--hijau); }
+.notif-ikon-info { background: var(--biru-muda); color: var(--biru); }
+
+.notif-isi { flex: 1; min-width: 0; }
+.notif-judul-baris {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
+    flex-wrap: wrap;
+}
+.notif-judul { font-size: 14px; font-weight: 700; color: var(--coklat-tua); }
+.notif-badge { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.notif-badge.penting { background: #fef3c7; color: #92400e; }
+.notif-badge.selesai { background: var(--hijau-muda); color: var(--hijau); }
+.notif-badge.pengumuman { background: var(--biru-muda); color: var(--biru); }
+
+.notif-waktu { font-size: 12px; color: var(--abu); margin-left: auto; white-space: nowrap; padding-left: 10px; }
+.notif-pesan { font-size: 13.5px; color: var(--teks); line-height: 1.55; margin-bottom: 10px; }
+.notif-aksi { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.notif-aksi-link {
+    font-size: 13px; font-weight: 600; color: var(--abu);
+    text-decoration: none; padding: 7px 4px;
+}
+.notif-aksi-link:hover { color: var(--kayu); }
+
+/* notifikasi yang baru dibaca di halaman Notifikasi */
+.notif-badge.baru { background: var(--kayu); color: #fff; }
+.notif-grup.notif-baru { border-color: var(--kayu-terang); box-shadow: 0 0 0 1px var(--kayu-terang); }
+
+/* ---------- pop up notifikasi baru ---------- */
+body.ada-popup { overflow: hidden; }
+.popup-notif-latar {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; background: rgba(43,33,25,0.55);
+}
+.popup-notif {
+    width: 100%; max-width: 480px; max-height: calc(100vh - 32px); overflow-y: auto;
+    padding: 22px; background: var(--putih);
+    border-top: 5px solid var(--kayu); border-radius: 18px;
+    box-shadow: 0 24px 60px -20px rgba(43,33,25,0.55);
+}
+.popup-notif-kepala { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.popup-notif-lonceng {
+    width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--kayu-muda); font-size: 20px;
+}
+.popup-notif-kepala h2 { margin: 0 0 3px; font-size: 18px; font-weight: 800; color: var(--coklat-tua); }
+.popup-notif-kepala p { margin: 0; font-size: 13px; color: var(--abu); }
+.popup-notif-daftar { margin: 0; padding: 0; list-style: none; }
+.popup-notif-daftar li { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--garis); }
+.popup-notif-daftar .notif-pesan { margin: 0; }
+.popup-notif-lainnya { margin: 0; padding-top: 10px; border-top: 1px solid var(--garis); font-size: 13px; color: var(--abu); }
+.popup-notif-aksi {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+    gap: 12px; margin-top: 18px;
+}
+.popup-notif-lihat { font-size: 13px; font-weight: 600; }
+@media (max-width: 480px) {
+    .popup-notif { padding: 18px; }
+    .popup-notif-aksi form, .popup-notif-aksi .tombol-pil-utama { width: 100%; }
+}

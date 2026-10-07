@@ -177,6 +177,15 @@ class PeminjamanController extends Controller
             'Pengajuan peminjaman buku "' . $buku->title . '" sudah diterima dan sedang menunggu konfirmasi admin.'
         );
 
+        // semua admin diberi tahu lewat pop up bahwa ada pengajuan yang perlu diproses
+        $peminjam = Auth::user();
+        UserNotification::kirimKeAdmin(
+            $loan,
+            'Pengajuan',
+            'Pengajuan baru dari ' . $peminjam->name . ' (' . $peminjam->nim_nip . '): buku "' . $buku->title
+                . '" selama ' . $lama . ' hari (' . $loan->fresh()->kode . ').'
+        );
+
         return redirect()->route('peminjaman.index')
             ->with('status', 'Permintaan terkirim. Tunggu konfirmasi admin.');
     }

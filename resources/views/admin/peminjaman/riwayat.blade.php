@@ -4,8 +4,11 @@
 
 @section('content')
     @php
-        // filter status & halaman ikut dikirim saat aksi agar kembali ke tampilan yang sama
-        $bawaFilter = array_filter(['status' => $status, 'page' => $daftar->currentPage()]);
+        // filter status, pencarian, & halaman ikut dikirim saat aksi agar kembali ke tampilan yang sama
+        $bawaFilter = array_filter(['status' => $status, 'q' => $cari, 'page' => $daftar->currentPage()]);
+        // keterangan filter untuk ringkasan & pesan kosong
+        $ketStatus = $status === 'Terlambat' ? ' yang terlambat & dendanya belum lunas' : ($status ? ' berstatus ' . $status : '');
+        $ketCari = $cari !== '' ? ' yang cocok dengan "' . $cari . '"' : '';
     @endphp
 
     <div class="kepala">
@@ -13,17 +16,33 @@
         <p class="ket">Kelola status peminjaman (dikonfirmasi, dipinjam, gagal, atau dikembalikan).</p>
     </div>
 
+    {{-- cari nama / NIS peminjam atau no. peminjaman; filter status yang sedang dibuka tetap dipakai --}}
+    <form method="GET" action="{{ route('admin.peminjaman.riwayat') }}" class="filter-ulasan">
+        @if ($status)
+            <input type="hidden" name="status" value="{{ $status }}">
+        @endif
+        <label class="sr-only" for="cari_riwayat">Cari nama peminjam atau no. peminjaman</label>
+        <input type="search" id="cari_riwayat" name="q" value="{{ $cari }}" class="cari-input cari-lebar"
+               placeholder="Cari nama peminjam atau no. peminjaman..."
+               title="Cari berdasarkan nama peminjam, NIS/NIP, atau no. peminjaman (mis. LOAN-20261004-030 atau 030)">
+        <button type="submit" class="tombol tombol-kecil">Cari</button>
+        @if ($cari !== '')
+            <a href="{{ route('admin.peminjaman.riwayat', array_filter(['status' => $status])) }}" class="hapus-semua-filter">Hapus pencarian</a>
+        @endif
+    </form>
+
+    {{-- pilihan status; kata kunci pencarian ikut terbawa --}}
     <div class="chip-baris">
-        <a href="{{ route('admin.peminjaman.riwayat') }}" class="chip {{ $status ? '' : 'aktif' }}">Semua</a>
-        <a href="{{ route('admin.peminjaman.riwayat', ['status' => 'Dikonfirmasi']) }}" class="chip {{ $status == 'Dikonfirmasi' ? 'aktif' : '' }}">Dikonfirmasi</a>
-        <a href="{{ route('admin.peminjaman.riwayat', ['status' => 'Dipinjam']) }}" class="chip {{ $status == 'Dipinjam' ? 'aktif' : '' }}">Dipinjam</a>
-        <a href="{{ route('admin.peminjaman.riwayat', ['status' => 'Gagal']) }}" class="chip {{ $status == 'Gagal' ? 'aktif' : '' }}">Gagal</a>
-        <a href="{{ route('admin.peminjaman.riwayat', ['status' => 'Dikembalikan']) }}" class="chip {{ $status == 'Dikembalikan' ? 'aktif' : '' }}">Dikembalikan</a>
+        @foreach (['' => 'Semua', 'Dikonfirmasi' => 'Dikonfirmasi', 'Dipinjam' => 'Dipinjam', 'Terlambat' => 'Terlambat',
+                   'Gagal' => 'Gagal', 'Dikembalikan' => 'Dikembalikan'] as $nilai => $label)
+            <a href="{{ route('admin.peminjaman.riwayat', array_filter(['status' => $nilai, 'q' => $cari])) }}"
+               class="chip {{ (string) $status === $nilai ? 'aktif' : '' }}">{{ $label }}</a>
+        @endforeach
     </div>
 
     <p class="ringkasan-hasil">
         @if ($daftar->total() > 0)
-            Menampilkan {{ $daftar->firstItem() }}–{{ $daftar->lastItem() }} dari <strong>{{ $daftar->total() }}</strong> peminjaman{{ $status ? ' berstatus ' . $status : '' }}
+            Menampilkan {{ $daftar->firstItem() }}–{{ $daftar->lastItem() }} dari <strong>{{ $daftar->total() }}</strong> peminjaman{{ $ketStatus }}{{ $ketCari }}
         @endif
     </p>
 
@@ -129,7 +148,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="kosong-tabel">{{ $status ? 'Tidak ada peminjaman berstatus ' . $status . '.' : 'Belum ada data peminjaman di riwayat.' }}</td></tr>
+                    <tr><td colspan="8" class="kosong-tabel">{{ $status || $cari !== '' ? 'Tidak ada peminjaman' . $ketStatus . $ketCari . '.' : 'Belum ada data peminjaman di riwayat.' }}</td></tr>
                 @endforelse
             </tbody>
         </table>

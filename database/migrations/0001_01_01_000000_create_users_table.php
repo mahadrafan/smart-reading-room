@@ -13,7 +13,7 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->integer('user_id', true);
             $table->enum('role', ['Peminjam', 'Admin'])->default('Peminjam');
-            // Siswa (NIS + kelas) atau Tenaga Pendidik (NIP + jabatan/mapel); admin NULL
+            // Siswa (NIS + kelas) atau Tenaga Pendidik (NIP + jabatan); admin NULL
             $table->enum('borrower_type', ['Siswa', 'Tenaga Pendidik'])->nullable();
             $table->string('nim_nip', 20)->unique('uk_users_nim_nip');
             $table->string('name', 100);

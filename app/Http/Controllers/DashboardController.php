@@ -17,14 +17,7 @@ class DashboardController extends Controller
 
         // peminjaman terlambat yang dendanya belum lunas:
         // masih dipinjam & lewat tenggat, atau sudah dikembalikan terlambat tapi belum bayar
-        $terlambat = Loan::whereNull('fine_paid_at')
-            ->where(function ($q) {
-                $q->where(function ($dipinjam) {
-                    $dipinjam->where('status', 'Dipinjam')->whereDate('due_date', '<', today());
-                })->orWhere(function ($kembali) {
-                    $kembali->where('status', 'Dikembalikan')->whereColumn('return_date', '>', 'due_date');
-                });
-            })
+        $terlambat = Loan::terlambatBelumLunas()
             ->with(['user', 'book'])
             ->orderBy('due_date')
             ->get();

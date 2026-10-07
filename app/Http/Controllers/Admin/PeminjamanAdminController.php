@@ -67,7 +67,7 @@ class PeminjamanAdminController extends Controller
 
     private function keRiwayat(Request $request)
     {
-        return redirect()->route('admin.peminjaman.riwayat', $request->only(['status', 'page']));
+        return redirect()->route('admin.peminjaman.riwayat', $request->only(['status', 'q', 'page']));
     }
 
     // UPDATE: setujui / konfirmasi pengajuan
@@ -139,11 +139,14 @@ class PeminjamanAdminController extends Controller
     {
         Loan::prosesTenggatPengambilan();
 
-        // status di luar daftar diabaikan (dianggap "Semua")
-        $status = in_array($request->status, self::STATUS_RIWAYAT, true) ? $request->status : null;
+        // status di luar daftar diabaikan (dianggap "Semua"); "Terlambat" = terlambat & denda belum lunas
+        $status = in_array($request->status, [...self::STATUS_RIWAYAT, 'Terlambat'], true) ? $request->status : null;
+        $cari = trim((string) $request->q);
 
         $daftar = Loan::whereIn('status', self::STATUS_RIWAYAT)
-            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($status === 'Terlambat', fn ($q) => $q->terlambatBelumLunas())
+            ->when($status && $status !== 'Terlambat', fn ($q) => $q->where('status', $status))
+            ->when($cari !== '', fn ($q) => $q->cari($cari))
             ->with(['user', 'book', 'approver', 'logAdmin.admin'])
             ->orderBy('loan_id', 'desc')
             ->paginate(self::PER_HALAMAN)
@@ -156,6 +159,7 @@ class PeminjamanAdminController extends Controller
         return view('admin.peminjaman.riwayat', [
             'daftar' => $daftar,
             'status' => $status,
+            'cari'   => $cari,
         ]);
     }
 
