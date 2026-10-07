@@ -16,8 +16,10 @@ rating yang membantu pembaca lain memilih buku.
 ## 2.2.3.1 Proses dan Alur
 
 1. **Registrasi dan Login**
+   - Pengunjung yang belum login melihat halaman perkenalan berisi buku yang paling sering
+     dipinjam, cuplikan koleksi, dan cara meminjam, dengan tombol menuju halaman login dan daftar.
    - Pengguna baru mendaftar sebagai **Siswa** (mengisi NIS dan kelas) atau **Tenaga Pendidik**
-     (mengisi NIP dan jabatan/mapel), beserta nama, email, nomor telepon dengan kode negara, dan
+     (mengisi NIP dan jabatan), beserta nama, email, nomor telepon dengan kode negara, dan
      password. Data tersimpan di tabel `users` dengan role Peminjam dan kolom `borrower_type`
      sesuai pilihan.
    - Pengguna (peminjam atau admin) login dengan NIS/NIP dan password. Sistem memverifikasi data
@@ -26,6 +28,8 @@ rating yang membantu pembaca lain memilih buku.
      tetap masuk.
    - Jika lupa password, pengguna dapat membuat password baru dengan memasukkan NIS/NIP dan email
      yang cocok dengan data di tabel `users`, lalu login kembali.
+   - Setelah login, peminjam dapat memperbarui data diri (nama, email, nomor telepon, kelas atau
+     jabatan) dan mengganti password di halaman Profil dengan memasukkan password lama.
 
 2. **Pencarian dan Pengecekan Ketersediaan Buku**
    - Peminjam membuka halaman Katalog yang menampilkan buku dari tabel `books` yang masih aktif
@@ -50,7 +54,8 @@ rating yang membantu pembaca lain memilih buku.
      (`request_date`) terisi otomatis, sedangkan tanggal pinjam (`loan_date`) masih kosong karena
      baru diisi saat buku diambil.
    - Selama status masih Menunggu, peminjam dapat membatalkan pengajuannya; data pengajuan tersebut
-     dihapus dari tabel `loans`.
+     dihapus dari tabel `loans`. Notifikasi yang sudah terkirim tetap tersimpan, tetapi kolom
+     `loan_id`-nya dikosongkan (NULL).
 
 4. **Validasi oleh Admin**
    - Admin melihat daftar pengajuan berstatus Menunggu pada halaman Request Masuk, yang dapat
@@ -60,7 +65,8 @@ rating yang membantu pembaca lain memilih buku.
      `approved_at` diisi, dan `available_stock` buku dikurangi satu. Proses ini berjalan dalam satu
      transaksi dengan penguncian baris, sehingga eksemplar terakhir tidak dapat dikonfirmasi untuk
      dua peminjam sekaligus.
-   - Jika ditolak, status menjadi **Gagal**.
+   - Jika ditolak, status menjadi **Gagal** tanpa mengubah stok. Kolom `approved_by` dan
+     `approved_at` tetap diisi sehingga admin yang menolak juga tercatat.
 
 5. **Notifikasi kepada Peminjam**
    - Setiap perubahan status (pengajuan diterima, dikonfirmasi, dipinjam, dikembalikan, atau gagal)
@@ -68,7 +74,20 @@ rating yang membantu pembaca lain memilih buku.
      (`loan_id`).
    - Notifikasi yang belum dibaca (status "Belum Dibaca") muncul sebagai pop up saat peminjam
      membuka aplikasi, dan seluruh notifikasi dapat dilihat serta difilter per jenis di halaman
-     Notifikasi.
+     Notifikasi. Notifikasi pengajuan dibuat oleh peminjam sendiri, sehingga langsung berstatus
+     "Dibaca" dan tidak muncul di pop up.
+   - Selama buku terlambat dan dendanya belum lunas, sistem mengirim satu notifikasi **Terlambat**
+     setiap hari berisi jumlah hari keterlambatan dan denda terbaru (misalnya Rp2.000 hari ini,
+     Rp3.000 besok). Pengingat dibuat saat peminjam membuka aplikasi dan berhenti setelah buku
+     dikembalikan dan denda lunas.
+   - Admin juga menerima notifikasi di tabel yang sama (kolom `user_id` berisi admin penerima):
+     setiap pengajuan baru dikirim ke semua admin, dan setiap hari admin mendapat pengingat untuk
+     setiap peminjaman yang terlambat dan dendanya belum lunas. Notifikasi admin muncul sebagai pop up
+     di halaman admin dan dapat dilihat di menu Notifikasi admin.
+   - Selain di dalam web, peminjam menerima **email pengingat** ke alamat email akunnya (login tetap
+     memakai NIS/NIP): sehari sebelum batas kembali (H-1) dan sekali saat buku pertama kali terlambat.
+     Email dikirim otomatis setiap pagi oleh penjadwal, dan setiap email yang terkirim juga dicatat
+     sebagai notifikasi "Pengingat" di tabel `notifications` agar tidak terkirim dua kali.
 
 6. **Pengambilan Buku**
    - Setelah dikonfirmasi, peminjam wajib mengambil buku di perpustakaan paling lambat **2 hari**
@@ -86,7 +105,16 @@ rating yang membantu pembaca lain memilih buku.
      keterlambatan. Pengembalian buku yang terlambat dilakukan bersamaan dengan pelunasan denda;
      waktu pelunasan dan admin yang menerimanya tercatat di kolom `fine_paid_at` dan `fine_paid_by`.
    - Dashboard Admin menampilkan daftar peminjaman terlambat beserta nomor telepon peminjam yang
-     terhubung langsung ke WhatsApp untuk pengingat.
+     terhubung langsung ke WhatsApp, sebagai pengingat tambahan selain notifikasi harian.
+   - Halaman Riwayat menampilkan seluruh peminjaman per status (Dikonfirmasi, Dipinjam, Gagal,
+     Dikembalikan), dengan filter **Terlambat** untuk peminjaman yang terlambat dan dendanya belum
+     lunas, serta pencarian berdasarkan nama atau NIS/NIP peminjam dan nomor peminjaman. Setiap baris
+     menampilkan admin yang terakhir memproses status tersebut, jenis aksinya, dan
+     waktunya, yang dibaca dari tabel `admin_logs`. Peminjaman yang gagal otomatis karena tidak
+     diambil ditampilkan sebagai diproses oleh "Sistem".
+   - Admin dapat menghapus riwayat peminjaman yang sudah selesai (Dikembalikan atau Gagal). Riwayat
+     yang dendanya belum lunas tidak dapat dihapus. Saat riwayat dihapus, notifikasi milik peminjam
+     tetap tersimpan dengan `loan_id` dikosongkan (NULL).
 
 8. **Ulasan dan Rating**
    - Peminjam dapat memberikan rating (1–5 bintang) dan komentar untuk buku. Data tersimpan di tabel
@@ -95,25 +123,27 @@ rating yang membantu pembaca lain memilih buku.
      ulasan yang tidak pantas melalui halaman Kelola Ulasan.
 
 9. **Pengelolaan Data dan Pencatatan Aktivitas Admin**
+   - Dashboard Admin menampilkan ringkasan jumlah buku aktif, kategori, penulis, peminjam,
+     pengajuan yang menunggu, dan peminjaman terlambat. Halaman Data Peminjam menampilkan daftar
+     peminjam yang dapat dicari berdasarkan NIS/NIP, nama, kelas, atau jabatan, beserta jumlah
+     peminjaman aktif dan yang terlambat milik setiap peminjam.
    - Admin mengelola data buku (tambah, ubah, nonaktifkan, aktifkan kembali), kategori, dan
      penulis. Admin yang menambah dan terakhir mengubah buku tercatat di kolom `created_by` dan
      `updated_by` pada tabel `books`.
-   - Akun admin baru hanya dapat dibuat oleh admin melalui menu Kelola Admin, karena form daftar
-     publik selalu membuat akun Peminjam. Admin juga dapat mengubah data dan mereset password admin
-     lain; untuk mengganti password akunnya sendiri, admin wajib memasukkan password lama. Akun admin
-     tidak dapat dihapus karena tercatat di `admin_logs`, `approved_by`, `fine_paid_by`, serta
-     `created_by`/`updated_by` pada buku.
+   - Akun admin tidak dapat dibuat dari aplikasi, karena form daftar publik selalu membuat akun
+     Peminjam. Akun admin ditambahkan langsung ke tabel `users` di database dengan `role` = 'Admin'
+     dan password dalam bentuk hash, sehingga hanya pengelola database yang dapat menambah admin.
    - Buku yang dihapus hanya dinonaktifkan (`is_active` = 0) agar riwayat peminjaman dan ulasan
      tetap tersimpan. Buku hanya dapat dihapus permanen jika belum pernah dipinjam maupun diulas.
-   - Setiap aksi admin (konfirmasi, tolak, pengambilan, pengembalian, pelunasan denda, serta
-     perubahan data buku, kategori, penulis, ulasan, dan akun admin) dicatat di tabel `admin_logs` sebagai
-     jejak audit.
+   - Setiap aksi admin (konfirmasi, tolak, pengambilan, pengembalian, pelunasan denda, hapus riwayat,
+     serta perubahan data buku, kategori, penulis, dan ulasan) dicatat di tabel
+     `admin_logs` sebagai jejak audit.
 
 ## 2.2.3.2 Relasi Antar Entitas dalam Proses
 
 - **Mendaftar dan Login:** Siswa dan tenaga pendidik terdaftar sebagai pengguna (`users`) dengan
-  role Peminjam, sedangkan petugas perpustakaan terdaftar dengan role Admin yang akunnya dibuat oleh
-  admin lain melalui menu Kelola Admin. Kedua peran berada dalam satu tabel dan dibedakan oleh
+  role Peminjam, sedangkan petugas perpustakaan terdaftar dengan role Admin yang akunnya
+  ditambahkan langsung melalui database. Kedua peran berada dalam satu tabel dan dibedakan oleh
   kolom `role`.
 - **Mengelompokkan dan Menulis:** Setiap buku (`books`) termasuk tepat satu kategori
   (`categories`), dan satu kategori dapat mengelompokkan banyak buku (1:N). Satu buku dapat ditulis
@@ -124,10 +154,16 @@ rating yang membantu pembaca lain memilih buku.
   peminjaman merujuk tepat satu buku (`books`), dan satu buku dapat dipinjam berkali-kali (1:N).
 - **Memvalidasi dan Menyetujui:** Admin (`users` dengan role Admin) mengonfirmasi atau menolak
   peminjaman (`loans`), yang tercatat di kolom `approved_by`. Satu admin dapat memvalidasi banyak
-  peminjaman (1:N).
+  peminjaman (1:N). Aksi admin berikutnya pada peminjaman yang sama (menandai Dipinjam,
+  Dikembalikan, atau denda lunas) dicatat di `admin_logs` dengan `table_name` = 'loans' dan
+  `record_id` = `loan_id`.
 - **Memicu dan Menerima Notifikasi:** Setiap perubahan status peminjaman (`loans`) memicu
   notifikasi (`notifications`) yang diterima oleh peminjam (`users`). Satu peminjaman dan satu
-  peminjam dapat memiliki banyak notifikasi (1:N).
+  peminjam dapat memiliki banyak notifikasi (1:N). Admin juga menerima notifikasi untuk pengajuan
+  baru dan denda yang belum lunas, sehingga `notifications.user_id` dapat merujuk peminjam maupun
+  admin. Pemilik notifikasi disimpan di kolom `user_id`
+  sendiri karena notifikasi tetap milik peminjam meskipun peminjamannya dibatalkan atau
+  riwayatnya dihapus (`loan_id` menjadi NULL).
 - **Mengembalikan dan Melunasi Denda:** Saat buku terlambat dikembalikan, admin (`users`) mencatat
   pelunasan denda pada peminjaman (`loans`) melalui kolom `fine_paid_by`. Besarnya denda dihitung
   dari selisih `due_date` dan `return_date`, sehingga tidak disimpan sebagai kolom tersendiri.
