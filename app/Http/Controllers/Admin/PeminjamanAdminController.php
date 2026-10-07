@@ -18,6 +18,9 @@ class PeminjamanAdminController extends Controller
     // status yang tampil di halaman Riwayat (urutan = urutan tombol filter)
     const STATUS_RIWAYAT = ['Dikonfirmasi', 'Dipinjam', 'Gagal', 'Dikembalikan'];
 
+    // pengajuan dibuka dua admin sekaligus, atau dibatalkan peminjam sebelum diproses
+    const SUDAH_DIPROSES = 'Pengajuan ini sudah diproses admin lain atau dibatalkan peminjam.';
+
     // ---------------------------------------------------------
     // READ: Request Masuk (pengajuan yang masih Menunggu) + cari peminjam & filter buku, 10 per halaman
     // ---------------------------------------------------------
@@ -76,7 +79,11 @@ class PeminjamanAdminController extends Controller
         Loan::prosesTenggatPengambilan();
 
         $pinjam = DB::transaction(function () use ($id) {
-            $pinjam = Loan::where('status', 'Menunggu')->lockForUpdate()->findOrFail($id);
+            // false = sudah diproses admin lain / dibatalkan peminjam, null = stok habis
+            $pinjam = Loan::where('status', 'Menunggu')->lockForUpdate()->find($id);
+            if (! $pinjam) {
+                return false;
+            }
             $buku = Book::whereKey($pinjam->book_id)->lockForUpdate()->firstOrFail();
             if ($buku->available_stock < 1) {
                 return null;
@@ -95,9 +102,15 @@ class PeminjamanAdminController extends Controller
             return $pinjam->load(['user', 'book']);
         });
 
+        if ($pinjam === false) {
+            return $this->keRequestMasuk($request)->with('error', self::SUDAH_DIPROSES);
+        }
         if (! $pinjam) {
             return back()->with('error', 'Stok buku sedang habis, peminjaman tidak bisa dikonfirmasi.');
         }
+
+        // pengajuan ini sudah selesai diproses: pop up "Pengajuan baru" di admin lain tidak perlu muncul lagi
+        UserNotification::tandaiSelesai($pinjam->loan_id, ['Pengajuan']);
 
         UserNotification::kirim(
             $pinjam,
@@ -113,12 +126,24 @@ class PeminjamanAdminController extends Controller
     {
         Loan::prosesTenggatPengambilan();
 
-        $pinjam = Loan::where('status', 'Menunggu')->findOrFail($id);
+        // baris dikunci seperti saat konfirmasi, agar konfirmasi & tolak dari dua admin tidak saling menimpa
+        $pinjam = DB::transaction(function () use ($id) {
+            $pinjam = Loan::where('status', 'Menunggu')->lockForUpdate()->find($id);
+            if ($pinjam) {
+                $pinjam->status      = 'Gagal';
+                $pinjam->approved_by = Auth::id();
+                $pinjam->approved_at = now();
+                $pinjam->save();
+            }
 
-        $pinjam->status      = 'Gagal';
-        $pinjam->approved_by = Auth::id();
-        $pinjam->approved_at = now();
-        $pinjam->save();
+            return $pinjam;
+        });
+
+        if (! $pinjam) {
+            return $this->keRequestMasuk($request)->with('error', self::SUDAH_DIPROSES);
+        }
+
+        UserNotification::tandaiSelesai($pinjam->loan_id, ['Pengajuan']);
 
         UserNotification::kirim(
             $pinjam->load('book'),
@@ -232,6 +257,9 @@ class PeminjamanAdminController extends Controller
             return $this->keRiwayat($request)->with('error', 'Peminjaman ini sudah diproses sebelumnya.');
         }
 
+        // buku sudah kembali: pengingat H-1 yang belum dibaca tidak perlu muncul lagi di pop up
+        UserNotification::tandaiSelesai($pinjam->loan_id, ['Pengingat']);
+
         UserNotification::kirim(
             $pinjam,
             'Dikembalikan',
@@ -280,6 +308,9 @@ class PeminjamanAdminController extends Controller
         if ($sekalianKembali === null) {
             return back()->with('error', 'Denda ini sudah lunas dan statusnya tidak bisa diubah lagi.');
         }
+
+        // denda sudah lunas: pengingat "Terlambat / denda belum lunas" milik peminjam & admin tidak muncul lagi di pop up
+        UserNotification::tandaiSelesai($pinjam->loan_id, ['Terlambat', 'Pengingat']);
 
         if ($sekalianKembali) {
             UserNotification::kirim(

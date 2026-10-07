@@ -166,6 +166,13 @@ class UserNotification extends Model
         return $hasil;
     }
 
+    // notifikasi yang sudah tidak berlaku dianggap dibaca agar tidak terus muncul di pop up siapa pun penerimanya,
+    // mis. "Pengajuan baru" setelah pengajuan diproses / dibatalkan, atau "denda belum lunas" setelah denda lunas
+    public static function tandaiSelesai(int $loanId, array $jenis): void
+    {
+        self::where('loan_id', $loanId)->whereIn('type', $jenis)->belumDibaca()->update(['status' => self::DIBACA]);
+    }
+
     // tandai notifikasi belum dibaca milik user sebagai dibaca, sampai id tertentu saja
     // (notifikasi yang masuk setelah pop up tampil tetap belum dibaca)
     public static function tandaiDibaca(int $userId, ?int $sampaiId = null): int

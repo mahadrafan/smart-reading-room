@@ -2258,6 +2258,73 @@ class SmartReadingRoomTest extends TestCase
         $this->assertSame('0 7 * * *', $event->expression);
     }
 
+    public function test_custom_duration_is_only_checked_when_custom_is_chosen(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+
+        // custom dipilih tapi kosong / lebih dari 14 hari: ditolak
+        $this->actingAs($borrower)->from('/peminjaman/buat')
+            ->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => 'custom', 'durasi_custom' => ''])
+            ->assertSessionHasErrors(['durasi_custom' => 'Isi jumlah hari untuk durasi custom.']);
+        $this->from('/peminjaman/buat')
+            ->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => 'custom', 'durasi_custom' => '20'])
+            ->assertSessionHasErrors(['durasi_custom' => 'Durasi custom maksimal 14 hari.']);
+
+        // sempat mengisi 20 lalu pindah ke durasi 3 hari: angka custom diabaikan
+        $this->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => '3', 'durasi_custom' => '20'])
+            ->assertSessionHasNoErrors()->assertRedirect(route('peminjaman.index'));
+        $this->assertSame(today()->addDays(3)->toDateString(), Loan::firstOrFail()->due_date->toDateString());
+
+        // kolom custom yang tersembunyi dinonaktifkan oleh JavaScript agar tidak menghalangi pengiriman form
+        $this->get('/peminjaman/buat')->assertOk()
+            ->assertSee("document.getElementById('durasi_custom').disabled = pilih.value !== 'custom';", false);
+    }
+
+    public function test_stale_notifications_stop_popping_up_and_processed_requests_are_handled(): void
+    {
+        $admin = $this->makeUser('Admin', 'ADM-TEST');
+        $admin2 = $this->makeUser('Admin', 'ADM-DUA');
+        $borrower = $this->makeUser('Peminjam', 'SISWA-TEST');
+        $book = $this->makeBook($admin);
+        $belumDibaca = fn ($user, $type) => UserNotification::where('user_id', $user->user_id)->where('type', $type)
+            ->where('status', UserNotification::BELUM_DIBACA)->count();
+
+        // pengajuan dibatalkan peminjam: pop up "Pengajuan baru" di admin hilang
+        $this->actingAs($borrower)->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => '7']);
+        $batal = Loan::firstOrFail();
+        $this->assertSame(1, $belumDibaca($admin, 'Pengajuan'));
+        $this->delete('/peminjaman/' . $batal->loan_id)->assertRedirect();
+        $this->assertSame(0, $belumDibaca($admin, 'Pengajuan'));
+        $this->actingAs($admin)->get('/admin/dashboard')->assertOk()->assertDontSee('data-popup-notif', false);
+
+        // dikonfirmasi admin pertama: admin kedua tidak lagi disodori pengajuan itu
+        $this->actingAs($borrower)->post('/peminjaman', ['book_id' => $book->book_id, 'durasi' => '7']);
+        $loan = Loan::where('status', 'Menunggu')->firstOrFail();
+        $this->actingAs($admin)->put('/admin/peminjaman/' . $loan->loan_id . '/setujui')->assertSessionHas('status');
+        $this->assertSame(0, $belumDibaca($admin2, 'Pengajuan'));
+
+        // admin kedua yang masih membuka halaman lama: pesan jelas, bukan halaman 404
+        $pesan = 'Pengajuan ini sudah diproses admin lain atau dibatalkan peminjam.';
+        $this->actingAs($admin2)->put('/admin/peminjaman/' . $loan->loan_id . '/setujui')
+            ->assertRedirect(route('admin.peminjaman.index'))->assertSessionHas('error', $pesan);
+        $this->put('/admin/peminjaman/' . $loan->loan_id . '/tolak')
+            ->assertRedirect(route('admin.peminjaman.index'))->assertSessionHas('error', $pesan);
+        $this->assertSame('Dikonfirmasi', $loan->fresh()->status);
+        $this->assertSame(2, $book->fresh()->available_stock);
+
+        // buku terlambat lalu dikembalikan & dilunasi: pengingat denda milik admin dan peminjam tidak muncul lagi
+        $loan->update(['status' => 'Dipinjam', 'loan_date' => today()->subDays(5), 'due_date' => today()->subDays(2)]);
+        $this->actingAs($borrower)->get('/dashboard')->assertOk()->assertSee('data-popup-notif', false);
+        $this->actingAs($admin2)->get('/admin/dashboard')->assertOk()->assertSee('data-popup-notif', false);
+        $this->assertSame(1, $belumDibaca($admin2, 'Terlambat'));
+        $this->actingAs($admin)->put('/admin/riwayat/' . $loan->loan_id . '/denda')->assertRedirect();
+        $this->assertSame(0, $belumDibaca($admin2, 'Terlambat'));
+        $this->assertSame(0, $belumDibaca($borrower, 'Terlambat'));
+        $this->actingAs($admin2)->get('/admin/dashboard')->assertOk()->assertDontSee('data-popup-notif', false);
+    }
+
     private function makeUser(string $role, string $nim): User
     {
         return User::create([

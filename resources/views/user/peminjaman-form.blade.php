@@ -196,6 +196,10 @@
 
             if (!pilih) { return; }
 
+            // kolom custom yang tersembunyi dinonaktifkan: tidak ikut dikirim dan tidak menghalangi pengiriman form
+            // (mis. sempat diisi 20 lalu pindah ke durasi 3 hari)
+            document.getElementById('durasi_custom').disabled = pilih.value !== 'custom';
+
             var lama;
             if (pilih.value === 'custom') {
                 kotakCustom.style.display = 'block';

@@ -96,7 +96,8 @@ class PeminjamanController extends Controller
         $request->validate([
             'book_id'       => 'required|exists:books,book_id',
             'durasi'        => 'required|in:1,3,5,7,custom',
-            'durasi_custom' => 'required_if:durasi,custom|nullable|integer|min:1|max:' . self::MAKS_DURASI,
+            // jumlah hari custom hanya diperiksa (dan dipakai) bila durasi yang dipilih memang custom
+            'durasi_custom' => 'exclude_unless:durasi,custom|required|integer|min:1|max:' . self::MAKS_DURASI,
         ], [
             'required'             => ':attribute wajib diisi.',
             'exists'               => ':attribute tidak ditemukan.',
@@ -104,7 +105,7 @@ class PeminjamanController extends Controller
             'integer'              => ':attribute harus berupa angka.',
             'min'                  => ':attribute minimal :min hari.',
             'max'                  => ':attribute maksimal :max hari.',
-            'durasi_custom.required_if' => 'Isi jumlah hari untuk durasi custom.',
+            'durasi_custom.required' => 'Isi jumlah hari untuk durasi custom.',
         ], [
             'book_id'       => 'Nama buku',
             'durasi'        => 'Durasi',
@@ -215,6 +216,8 @@ class PeminjamanController extends Controller
             ->where('status', 'Menunggu')
             ->findOrFail($id);
 
+        // pengajuan batal: pop up "Pengajuan baru" di halaman admin tidak perlu muncul lagi
+        UserNotification::tandaiSelesai($pinjam->loan_id, ['Pengajuan']);
         UserNotification::where('loan_id', $pinjam->loan_id)->update(['loan_id' => null]);
         $pinjam->delete();
 
