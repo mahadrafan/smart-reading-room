@@ -169,7 +169,7 @@ class Loan extends Model
 
     public function getJumlahDendaAttribute(): int
     {
-        return $this->hari_terlambat * config('library.fine_per_day');
+        return $this->hari_terlambat * config('app.fine_per_day');
     }
 
     // Method untuk mengeksekusi otomatis pengubahan status Dikonfirmasi yang hangus (> 2 hari) menjadi Gagal & mengembalikan stok buku

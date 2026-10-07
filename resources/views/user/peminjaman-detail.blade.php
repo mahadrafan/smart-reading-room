@@ -65,7 +65,7 @@
                 <tr><th>Tanggal dikembalikan</th><td>{{ $pinjam->return_date ? $pinjam->return_date->format('d/m/Y') : '-' }}</td></tr>
                 @if ($pinjam->hari_terlambat > 0)
                     <tr><th>Keterlambatan</th><td><strong style="color:#d12b3d">{{ $pinjam->hari_terlambat }} hari</strong></td></tr>
-                    <tr><th>{{ $pinjam->status == 'Dipinjam' ? 'Denda berjalan' : 'Denda' }}</th><td><strong style="color:#d12b3d">Rp{{ number_format($pinjam->jumlah_denda, 0, ',', '.') }}</strong><br><span class="pesan-info">Rp{{ number_format(config('library.fine_per_day'), 0, ',', '.') }} per hari</span></td></tr>
+                    <tr><th>{{ $pinjam->status == 'Dipinjam' ? 'Denda berjalan' : 'Denda' }}</th><td><strong style="color:#d12b3d">Rp{{ number_format($pinjam->jumlah_denda, 0, ',', '.') }}</strong><br><span class="pesan-info">Rp{{ number_format(config('app.fine_per_day'), 0, ',', '.') }} per hari</span></td></tr>
                     <tr><th>Status pembayaran</th><td><span class="badge {{ $pinjam->denda_lunas ? 'b-setuju' : 'b-tolak' }}">{{ $pinjam->denda_lunas ? 'Lunas' : 'Belum Lunas' }}</span></td></tr>
                 @endif
                 <tr>
@@ -95,7 +95,7 @@
                 <div class="alert alert-galat">
                     Pengembalian sudah terlambat {{ $pinjam->hari_terlambat }} hari. Denda sementara
                     <strong>Rp{{ number_format($pinjam->jumlah_denda, 0, ',', '.') }}</strong> dan bertambah
-                    Rp{{ number_format(config('library.fine_per_day'), 0, ',', '.') }} setiap hari sampai buku dikembalikan.
+                    Rp{{ number_format(config('app.fine_per_day'), 0, ',', '.') }} setiap hari sampai buku dikembalikan.
                     Denda dibayar langsung saat mengembalikan buku ke perpustakaan, jadi siapkan uangnya ya.
                 </div>
             @endif

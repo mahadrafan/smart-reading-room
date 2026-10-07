@@ -51,7 +51,7 @@ class LandingController extends Controller
             'aturan' => [
                 'batasAktif'  => PeminjamanController::BATAS_AKTIF,
                 'maksDurasi'  => PeminjamanController::MAKS_DURASI,
-                'dendaPerHari' => config('library.fine_per_day'),
+                'dendaPerHari' => config('app.fine_per_day'),
             ],
         ]);
     }
