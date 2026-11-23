@@ -1,0 +1,542 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<transformation>
+  <info>
+    <name>tr_fact_keterlambatan</name>
+    <description>DW 3 - memuat fact_keterlambatan dari loans yang sudah jatuh tempo. Grain: 1 kewajiban pengembalian.</description>
+    <extended_description>Rumus identik dengan bagian D 03_etl_data_warehouse.sql. Memakai variabel TGL_ETL dan TARIF_DENDA dari kettle.properties. Dimensi (tr_dim_waktu, tr_dim_dw3) harus sudah terisi dan fact_keterlambatan sudah dikosongkan oleh job. Baris yang gagal lookup dicatat di log_gagal_lookup.</extended_description>
+    <trans_version>1</trans_version>
+    <trans_type>Normal</trans_type>
+    <directory>/</directory>
+    <parameters>
+    </parameters>
+    <size_rowset>10000</size_rowset>
+    <sleep_time_empty>50</sleep_time_empty>
+    <sleep_time_full>50</sleep_time_full>
+    <unique_connections>N</unique_connections>
+    <feedback_shown>Y</feedback_shown>
+    <feedback_size>50000</feedback_size>
+    <using_thread_priorities>Y</using_thread_priorities>
+    <shared_objects_file/>
+    <capture_step_performance>N</capture_step_performance>
+    <step_performance_capturing_delay>1000</step_performance_capturing_delay>
+    <step_performance_capturing_size_limit>100</step_performance_capturing_size_limit>
+    <dependencies>
+    </dependencies>
+    <partitionschemas>
+    </partitionschemas>
+    <slaveservers>
+    </slaveservers>
+    <clusterschemas>
+    </clusterschemas>
+    <created_user>-</created_user>
+    <created_date>2026/11/23 15:00:00.000</created_date>
+    <modified_user>-</modified_user>
+    <modified_date>2026/11/23 15:00:00.000</modified_date>
+    <key_for_session_key/>
+    <is_key_private>N</is_key_private>
+  </info>
+  <notepads>
+    <notepad>
+      <note>tr_fact_keterlambatan (DW 3, Isma - B2)
+Filter : Dikembalikan (return_date terisi) atau Dipinjam dengan due_date &lt; TGL_ETL
+hari   : maks(0, (return_date atau TGL_ETL) - due_date)
+Ukuran : flag_terlambat = hari &gt; 0, flag_tepat_waktu = hari = 0, denda = hari x TARIF_DENDA
+Kategori dicari lewat nama (lookup tidak bisa mencocokkan category_id NULL)
+Target acuan (TGL_ETL 2026-11-22, tarif 1000): 899 baris; 188 / 711; 3.836 hari; Rp3.836.000
+status_kembali_key 1..5 = 711 / 151 / 24 / 13 / 0</note>
+      <xloc>32</xloc>
+      <yloc>16</yloc>
+      <width>420</width>
+      <heigth>130</heigth>
+      <fontname>Segoe UI</fontname>
+      <fontsize>9</fontsize>
+      <fontbold>N</fontbold>
+      <fontitalic>N</fontitalic>
+      <fontcolorred>14</fontcolorred>
+      <fontcolorgreen>58</fontcolorgreen>
+      <fontcolorblue>90</fontcolorblue>
+      <backgroundcolorred>255</backgroundcolorred>
+      <backgroundcolorgreen>205</backgroundcolorgreen>
+      <backgroundcolorblue>112</backgroundcolorblue>
+      <bordercolorred>100</bordercolorred>
+      <bordercolorgreen>100</bordercolorgreen>
+      <bordercolorblue>100</bordercolorblue>
+      <drawshadow>Y</drawshadow>
+    </notepad>
+  </notepads>
+  <connection>
+    <name>dw_target</name>
+    <server>${DB_HOST}</server>
+    <type>MYSQL</type>
+    <access>Native</access>
+    <database>${DW_DB}</database>
+    <port>${DB_PORT}</port>
+    <username>${DB_USER}</username>
+    <password>${DB_PASS}</password>
+    <servername/>
+    <data_tablespace/>
+    <index_tablespace/>
+    <attributes>
+      <attribute><code>EXTRA_OPTION_MYSQL.defaultFetchSize</code><attribute>500</attribute></attribute>
+      <attribute><code>EXTRA_OPTION_MYSQL.useCursorFetch</code><attribute>true</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
+      <attribute><code>PORT_NUMBER</code><attribute>${DB_PORT}</attribute></attribute>
+      <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>Y</attribute></attribute>
+      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
+      <attribute><code>STREAM_RESULTS</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
+    </attributes>
+  </connection>
+  <connection>
+    <name>src_sumber</name>
+    <server>${DB_HOST}</server>
+    <type>MYSQL</type>
+    <access>Native</access>
+    <database>${SRC_DB}</database>
+    <port>${DB_PORT}</port>
+    <username>${DB_USER}</username>
+    <password>${DB_PASS}</password>
+    <servername/>
+    <data_tablespace/>
+    <index_tablespace/>
+    <attributes>
+      <attribute><code>EXTRA_OPTION_MYSQL.defaultFetchSize</code><attribute>500</attribute></attribute>
+      <attribute><code>EXTRA_OPTION_MYSQL.useCursorFetch</code><attribute>true</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
+      <attribute><code>PORT_NUMBER</code><attribute>${DB_PORT}</attribute></attribute>
+      <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>Y</attribute></attribute>
+      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
+      <attribute><code>STREAM_RESULTS</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
+    </attributes>
+  </connection>
+  <order>
+    <hop><from>in_loans_jatuh_tempo</from><to>ambil_variabel</to><enabled>Y</enabled></hop>
+    <hop><from>ambil_variabel</from><to>hitung_selisih_hari</to><enabled>Y</enabled></hop>
+    <hop><from>hitung_selisih_hari</from><to>hitung_hari</to><enabled>Y</enabled></hop>
+    <hop><from>hitung_hari</from><to>hitung_ukuran</to><enabled>Y</enabled></hop>
+    <hop><from>hitung_ukuran</from><to>lk_kategori_buku</to><enabled>Y</enabled></hop>
+    <hop><from>lk_kategori_buku</from><to>lk_peminjam_kembali</to><enabled>Y</enabled></hop>
+    <hop><from>lk_peminjam_kembali</from><to>cek_key_lengkap</to><enabled>Y</enabled></hop>
+    <hop><from>cek_key_lengkap</from><to>pilih_kolom_fakta</to><enabled>Y</enabled></hop>
+    <hop><from>cek_key_lengkap</from><to>log_gagal_lookup</to><enabled>Y</enabled></hop>
+    <hop><from>pilih_kolom_fakta</from><to>out_fact_keterlambatan</to><enabled>Y</enabled></hop>
+  </order>
+
+  <!-- 1. Extract: kewajiban pengembalian yang sudah jatuh tempo (filter DW 3, sama dengan acuan SQL) -->
+  <step>
+    <name>in_loans_jatuh_tempo</name>
+    <type>TableInput</type>
+    <description>Dikembalikan (return_date terisi) atau Dipinjam dengan due_date &lt; TGL_ETL. Replace variables aktif.</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <connection>src_sumber</connection>
+    <sql>SELECT l.loan_id,
+       l.user_id,
+       l.status,
+       l.due_date,
+       l.return_date,
+       IF(l.return_date  IS NOT NULL, 1, 0) AS sudah_kembali,
+       IF(l.fine_paid_at IS NOT NULL, 1, 0) AS sudah_bayar,
+       COALESCE(c.category_name, 'Tanpa Kategori') AS nama_kategori,
+       CAST(DATE_FORMAT(l.due_date, '%Y%m%d') AS SIGNED) AS waktu_jatuh_tempo_key
+FROM loans l
+JOIN books b           ON b.book_id = l.book_id
+LEFT JOIN categories c ON c.category_id = b.category_id
+WHERE l.due_date IS NOT NULL
+  AND (   (l.status = 'Dikembalikan' AND l.return_date IS NOT NULL)
+       OR (l.status = 'Dipinjam'     AND l.due_date &lt; '${TGL_ETL}') )
+ORDER BY l.loan_id</sql>
+    <limit>0</limit>
+    <lookup/>
+    <execute_each_row>N</execute_each_row>
+    <variables_active>Y</variables_active>
+    <lazy_conversion_active>N</lazy_conversion_active>
+    <cached_row_meta_active>N</cached_row_meta_active>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>64</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 2. Parameter ETL dari kettle.properties -->
+  <step>
+    <name>ambil_variabel</name>
+    <type>GetVariable</type>
+    <description>TGL_ETL (tanggal acuan untuk buku yang belum kembali) dan TARIF_DENDA (Rp per hari)</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <fields>
+      <field>
+        <name>tgl_etl</name>
+        <variable>${TGL_ETL}</variable>
+        <type>Date</type>
+        <format>yyyy-MM-dd</format>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tarif_denda</name>
+        <variable>${TARIF_DENDA}</variable>
+        <type>Integer</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>both</trim_type>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>224</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 3. hari mentah = (return_date atau TGL_ETL) - due_date -->
+  <step>
+    <name>hitung_selisih_hari</name>
+    <type>Calculator</type>
+    <description>tgl_acuan = return_date, atau TGL_ETL bila belum kembali; hari_mentah = tgl_acuan - due_date</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <calculation>
+      <field_name>tgl_acuan</field_name>
+      <calc_type>NVL</calc_type>
+      <field_a>return_date</field_a>
+      <field_b>tgl_etl</field_b>
+      <field_c/>
+      <value_type>Date</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <remove>N</remove>
+      <conversion_mask/>
+      <decimal_symbol/>
+      <grouping_symbol/>
+      <currency_symbol/>
+    </calculation>
+    <calculation>
+      <field_name>hari_mentah</field_name>
+      <calc_type>DATE_DIFF</calc_type>
+      <field_a>tgl_acuan</field_a>
+      <field_b>due_date</field_b>
+      <field_c/>
+      <value_type>Integer</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <remove>N</remove>
+      <conversion_mask/>
+      <decimal_symbol/>
+      <grouping_symbol/>
+      <currency_symbol/>
+    </calculation>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>384</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 4. hari = maks(0, hari_mentah)  (GREATEST(..., 0) di SQL) -->
+  <step>
+    <name>hitung_hari</name>
+    <type>Formula</type>
+    <description>Pengembalian lebih awal dari jatuh tempo dihitung 0 hari</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <formula>
+      <field_name>hari_terlambat</field_name>
+      <formula_string>IF([hari_mentah]&lt;0;0;[hari_mentah])</formula_string>
+      <value_type>Integer</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <replace_field/>
+    </formula>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>544</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 5. Ukuran dan key dimensi khas (urutan IF sama dengan CASE di acuan SQL) -->
+  <step>
+    <name>hitung_ukuran</name>
+    <type>Formula</type>
+    <description>status_kembali_key 1-5, flag terlambat/tepat waktu, nominal_denda = hari x TARIF_DENDA</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <formula>
+      <field_name>status_kembali_key</field_name>
+      <formula_string>IF([hari_terlambat]=0;1;IF([sudah_kembali]=1;IF([sudah_bayar]=1;2;3);IF([sudah_bayar]=1;5;4)))</formula_string>
+      <value_type>Integer</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <replace_field/>
+    </formula>
+    <formula>
+      <field_name>flag_terlambat</field_name>
+      <formula_string>IF([hari_terlambat]&gt;0;1;0)</formula_string>
+      <value_type>Integer</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <replace_field/>
+    </formula>
+    <formula>
+      <field_name>flag_tepat_waktu</field_name>
+      <formula_string>IF([hari_terlambat]=0;1;0)</formula_string>
+      <value_type>Integer</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <replace_field/>
+    </formula>
+    <formula>
+      <field_name>nominal_denda</field_name>
+      <formula_string>[hari_terlambat]*[tarif_denda]</formula_string>
+      <value_type>Integer</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <replace_field/>
+    </formula>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>704</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 6. Lookup ke dimensi milik DW 3. Kategori dicari lewat nama karena lookup tidak bisa mencocokkan category_id NULL -->
+  <step>
+    <name>lk_kategori_buku</name>
+    <type>DBLookup</type>
+    <description>nama_kategori ('Tanpa Kategori' bila kosong) -> dim_kategori_buku.kategori_key</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <connection>dw_target</connection>
+    <cache>Y</cache>
+    <cache_load_all>Y</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema/>
+      <table>dim_kategori_buku</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>nama_kategori</name>
+        <field>nama_kategori</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>kategori_key</name>
+        <rename>kategori_key</rename>
+        <default/>
+        <type>Integer</type>
+      </value>
+    </lookup>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>864</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <step>
+    <name>lk_peminjam_kembali</name>
+    <type>DBLookup</type>
+    <description>user_id -> dim_peminjam_kembali.peminjam_kembali_key (hanya siswa)</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <connection>dw_target</connection>
+    <cache>Y</cache>
+    <cache_load_all>Y</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema/>
+      <table>dim_peminjam_kembali</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>user_id</name>
+        <field>user_id</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>peminjam_kembali_key</name>
+        <rename>peminjam_kembali_key</rename>
+        <default/>
+        <type>Integer</type>
+      </value>
+    </lookup>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>1024</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 7. Pengganti INNER JOIN di SQL -->
+  <step>
+    <name>cek_key_lengkap</name>
+    <type>FilterRows</type>
+    <description>true -> dimuat; false -> dicatat (baris gagal lookup tidak dibuang diam-diam)</description>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <send_true_to>pilih_kolom_fakta</send_true_to>
+    <send_false_to>log_gagal_lookup</send_false_to>
+    <compare>
+      <condition>
+        <negated>N</negated>
+        <conditions>
+          <condition>
+            <negated>N</negated>
+            <leftvalue>kategori_key</leftvalue>
+            <function>IS NOT NULL</function>
+            <rightvalue/>
+          </condition>
+          <condition>
+            <negated>N</negated>
+            <operator>AND</operator>
+            <leftvalue>peminjam_kembali_key</leftvalue>
+            <function>IS NOT NULL</function>
+            <rightvalue/>
+          </condition>
+        </conditions>
+      </condition>
+    </compare>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>1184</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <step>
+    <name>log_gagal_lookup</name>
+    <type>WriteToLog</type>
+    <description>Kewajiban pengembalian yang tidak dimuat ke fakta beserta key yang kosong</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <loglevel>log_level_basic</loglevel>
+    <displayHeader>Y</displayHeader>
+    <limitRows>N</limitRows>
+    <limitRowsNumber>0</limitRowsNumber>
+    <logmessage>tr_fact_keterlambatan: baris gagal lookup, tidak dimuat ke fact_keterlambatan</logmessage>
+    <fields>
+      <field><name>loan_id</name></field>
+      <field><name>user_id</name></field>
+      <field><name>nama_kategori</name></field>
+      <field><name>kategori_key</name></field>
+      <field><name>peminjam_kembali_key</name></field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>1184</xloc><yloc>336</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 8. Kolom fakta sesuai 01_ddl (keterlambatan_key tidak dikirim: AUTO_INCREMENT) -->
+  <step>
+    <name>pilih_kolom_fakta</name>
+    <type>SelectValues</type>
+    <description>Sisakan kolom fact_keterlambatan</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <fields>
+      <field><name>loan_id</name><rename/></field>
+      <field><name>waktu_jatuh_tempo_key</name><rename/></field>
+      <field><name>kategori_key</name><rename/></field>
+      <field><name>peminjam_kembali_key</name><rename/></field>
+      <field><name>status_kembali_key</name><rename/></field>
+      <field><name>flag_terlambat</name><rename/></field>
+      <field><name>flag_tepat_waktu</name><rename/></field>
+      <field><name>hari_terlambat</name><rename/></field>
+      <field><name>nominal_denda</name><rename/></field>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>1344</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 9. Load. Tabel dikosongkan oleh job_etl_dw (truncate di sini sengaja N) -->
+  <step>
+    <name>out_fact_keterlambatan</name>
+    <type>TableOutput</type>
+    <description>Insert ke fact_keterlambatan; FK ke dim_waktu dan dim_status_kembali dicek oleh MySQL</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <connection>dw_target</connection>
+    <schema/>
+    <table>fact_keterlambatan</table>
+    <commit>1000</commit>
+    <truncate>N</truncate>
+    <ignore_errors>N</ignore_errors>
+    <use_batch>Y</use_batch>
+    <specify_fields>Y</specify_fields>
+    <partitioning_enabled>N</partitioning_enabled>
+    <partitioning_field/>
+    <partitioning_daily>N</partitioning_daily>
+    <partitioning_monthly>Y</partitioning_monthly>
+    <tablename_in_field>N</tablename_in_field>
+    <tablename_field/>
+    <tablename_in_table>Y</tablename_in_table>
+    <return_keys>N</return_keys>
+    <return_field/>
+    <fields>
+      <field><column_name>loan_id</column_name><stream_name>loan_id</stream_name></field>
+      <field><column_name>waktu_jatuh_tempo_key</column_name><stream_name>waktu_jatuh_tempo_key</stream_name></field>
+      <field><column_name>kategori_key</column_name><stream_name>kategori_key</stream_name></field>
+      <field><column_name>peminjam_kembali_key</column_name><stream_name>peminjam_kembali_key</stream_name></field>
+      <field><column_name>status_kembali_key</column_name><stream_name>status_kembali_key</stream_name></field>
+      <field><column_name>flag_terlambat</column_name><stream_name>flag_terlambat</stream_name></field>
+      <field><column_name>flag_tepat_waktu</column_name><stream_name>flag_tepat_waktu</stream_name></field>
+      <field><column_name>hari_terlambat</column_name><stream_name>hari_terlambat</stream_name></field>
+      <field><column_name>nominal_denda</column_name><stream_name>nominal_denda</stream_name></field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>1504</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <step_error_handling>
+  </step_error_handling>
+  <slave-step-copy-partition-distribution>
+  </slave-step-copy-partition-distribution>
+  <slave_transformation>N</slave_transformation>
+  <attributes/>
+</transformation>

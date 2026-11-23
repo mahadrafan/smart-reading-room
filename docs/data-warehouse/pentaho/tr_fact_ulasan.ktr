@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<transformation>
+  <info>
+    <name>tr_fact_ulasan</name>
+    <description>DW 2 - memuat fact_ulasan dari reviews dengan rating 1-5. Grain: 1 ulasan.</description>
+    <extended_description>Rumus identik dengan bagian C 03_etl_data_warehouse.sql. Dimensi (tr_dim_waktu, tr_dim_dw2) harus sudah terisi dan fact_ulasan sudah dikosongkan oleh job sebelum transformasi ini dijalankan. Ulasan tanpa rating dibuang di in_reviews; baris yang gagal lookup (mis. ulasan tenaga pendidik) dicatat di log_gagal_lookup.</extended_description>
+    <trans_version>1</trans_version>
+    <trans_type>Normal</trans_type>
+    <directory>/</directory>
+    <parameters>
+    </parameters>
+    <size_rowset>10000</size_rowset>
+    <sleep_time_empty>50</sleep_time_empty>
+    <sleep_time_full>50</sleep_time_full>
+    <unique_connections>N</unique_connections>
+    <feedback_shown>Y</feedback_shown>
+    <feedback_size>50000</feedback_size>
+    <using_thread_priorities>Y</using_thread_priorities>
+    <shared_objects_file/>
+    <capture_step_performance>N</capture_step_performance>
+    <step_performance_capturing_delay>1000</step_performance_capturing_delay>
+    <step_performance_capturing_size_limit>100</step_performance_capturing_size_limit>
+    <dependencies>
+    </dependencies>
+    <partitionschemas>
+    </partitionschemas>
+    <slaveservers>
+    </slaveservers>
+    <clusterschemas>
+    </clusterschemas>
+    <created_user>-</created_user>
+    <created_date>2026/11/23 15:00:00.000</created_date>
+    <modified_user>-</modified_user>
+    <modified_date>2026/11/23 15:00:00.000</modified_date>
+    <key_for_session_key/>
+    <is_key_private>N</is_key_private>
+  </info>
+  <notepads>
+    <notepad>
+      <note>tr_fact_ulasan (DW 2, Isma - B2)
+Sumber : reviews dengan rating 1-5 (tanpa rating dibuang)
+Ukuran : rating, jumlah_ulasan = 1
+         flag_rating_tinggi = rating &gt;= 3
+         flag_rating_rendah = rating &lt;= 2
+rating_key = nilai rating (tanpa lookup)
+Target acuan: 389 baris; SUM 389 / 1.439 / 349 / 40
+Baris di log_gagal_lookup harus 0</note>
+      <xloc>32</xloc>
+      <yloc>16</yloc>
+      <width>420</width>
+      <heigth>130</heigth>
+      <fontname>Segoe UI</fontname>
+      <fontsize>9</fontsize>
+      <fontbold>N</fontbold>
+      <fontitalic>N</fontitalic>
+      <fontcolorred>14</fontcolorred>
+      <fontcolorgreen>58</fontcolorgreen>
+      <fontcolorblue>90</fontcolorblue>
+      <backgroundcolorred>255</backgroundcolorred>
+      <backgroundcolorgreen>205</backgroundcolorgreen>
+      <backgroundcolorblue>112</backgroundcolorblue>
+      <bordercolorred>100</bordercolorred>
+      <bordercolorgreen>100</bordercolorgreen>
+      <bordercolorblue>100</bordercolorblue>
+      <drawshadow>Y</drawshadow>
+    </notepad>
+  </notepads>
+  <connection>
+    <name>dw_target</name>
+    <server>${DB_HOST}</server>
+    <type>MYSQL</type>
+    <access>Native</access>
+    <database>${DW_DB}</database>
+    <port>${DB_PORT}</port>
+    <username>${DB_USER}</username>
+    <password>${DB_PASS}</password>
+    <servername/>
+    <data_tablespace/>
+    <index_tablespace/>
+    <attributes>
+      <attribute><code>EXTRA_OPTION_MYSQL.defaultFetchSize</code><attribute>500</attribute></attribute>
+      <attribute><code>EXTRA_OPTION_MYSQL.useCursorFetch</code><attribute>true</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
+      <attribute><code>PORT_NUMBER</code><attribute>${DB_PORT}</attribute></attribute>
+      <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>Y</attribute></attribute>
+      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
+      <attribute><code>STREAM_RESULTS</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
+    </attributes>
+  </connection>
+  <connection>
+    <name>src_sumber</name>
+    <server>${DB_HOST}</server>
+    <type>MYSQL</type>
+    <access>Native</access>
+    <database>${SRC_DB}</database>
+    <port>${DB_PORT}</port>
+    <username>${DB_USER}</username>
+    <password>${DB_PASS}</password>
+    <servername/>
+    <data_tablespace/>
+    <index_tablespace/>
+    <attributes>
+      <attribute><code>EXTRA_OPTION_MYSQL.defaultFetchSize</code><attribute>500</attribute></attribute>
+      <attribute><code>EXTRA_OPTION_MYSQL.useCursorFetch</code><attribute>true</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
+      <attribute><code>PORT_NUMBER</code><attribute>${DB_PORT}</attribute></attribute>
+      <attribute><code>PRESERVE_RESERVED_WORD_CASE</code><attribute>Y</attribute></attribute>
+      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
+      <attribute><code>STREAM_RESULTS</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>SUPPORTS_TIMESTAMP_DATA_TYPE</code><attribute>Y</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
+    </attributes>
+  </connection>
+  <order>
+    <hop><from>in_reviews</from><to>hitung_ukuran</to><enabled>Y</enabled></hop>
+    <hop><from>hitung_ukuran</from><to>lk_buku_ulasan</to><enabled>Y</enabled></hop>
+    <hop><from>lk_buku_ulasan</from><to>lk_pengulas</to><enabled>Y</enabled></hop>
+    <hop><from>lk_pengulas</from><to>cek_key_lengkap</to><enabled>Y</enabled></hop>
+    <hop><from>cek_key_lengkap</from><to>pilih_kolom_fakta</to><enabled>Y</enabled></hop>
+    <hop><from>cek_key_lengkap</from><to>log_gagal_lookup</to><enabled>Y</enabled></hop>
+    <hop><from>pilih_kolom_fakta</from><to>out_fact_ulasan</to><enabled>Y</enabled></hop>
+  </order>
+
+  <!-- 1. Extract: hanya ulasan dengan rating 1-5. waktu_ulasan_key = yyyyMMdd dari created_at (kosong -> 0) -->
+  <step>
+    <name>in_reviews</name>
+    <type>TableInput</type>
+    <description>reviews dengan rating 1-5; ulasan tanpa rating / rating tidak valid dibuang di sini</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <connection>src_sumber</connection>
+    <sql>SELECT r.review_id,
+       r.book_id,
+       r.user_id,
+       r.rating,
+       COALESCE(CAST(DATE_FORMAT(r.created_at, '%Y%m%d') AS SIGNED), 0) AS waktu_ulasan_key
+FROM reviews r
+WHERE r.rating BETWEEN 1 AND 5
+ORDER BY r.review_id</sql>
+    <limit>0</limit>
+    <lookup/>
+    <execute_each_row>N</execute_each_row>
+    <variables_active>N</variables_active>
+    <lazy_conversion_active>N</lazy_conversion_active>
+    <cached_row_meta_active>N</cached_row_meta_active>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>80</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 2. Transform: ukuran DW 2 dan rating_key -->
+  <step>
+    <name>hitung_ukuran</name>
+    <type>Formula</type>
+    <description>rating_key = rating; jumlah_ulasan = 1; tinggi = rating &gt;= 3; rendah = rating &lt;= 2</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <formula>
+      <field_name>rating_key</field_name>
+      <formula_string>[rating]</formula_string>
+      <value_type>Integer</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <replace_field/>
+    </formula>
+    <formula>
+      <field_name>jumlah_ulasan</field_name>
+      <formula_string>1</formula_string>
+      <value_type>Integer</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <replace_field/>
+    </formula>
+    <formula>
+      <field_name>flag_rating_tinggi</field_name>
+      <formula_string>IF([rating]&gt;=3;1;0)</formula_string>
+      <value_type>Integer</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <replace_field/>
+    </formula>
+    <formula>
+      <field_name>flag_rating_rendah</field_name>
+      <formula_string>IF([rating]&lt;=2;1;0)</formula_string>
+      <value_type>Integer</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <replace_field/>
+    </formula>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>224</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 3. Lookup ke dimensi milik DW 2 (dw_target). Gagal lookup -> key NULL, ditangkap cek_key_lengkap -->
+  <step>
+    <name>lk_buku_ulasan</name>
+    <type>DBLookup</type>
+    <description>book_id -> dim_buku_ulasan.buku_ulasan_key</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <connection>dw_target</connection>
+    <cache>Y</cache>
+    <cache_load_all>Y</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema/>
+      <table>dim_buku_ulasan</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>book_id</name>
+        <field>book_id</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>buku_ulasan_key</name>
+        <rename>buku_ulasan_key</rename>
+        <default/>
+        <type>Integer</type>
+      </value>
+    </lookup>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>368</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <step>
+    <name>lk_pengulas</name>
+    <type>DBLookup</type>
+    <description>user_id -> dim_pengulas.pengulas_key (hanya siswa; tenaga pendidik tidak ketemu)</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <connection>dw_target</connection>
+    <cache>Y</cache>
+    <cache_load_all>Y</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema/>
+      <table>dim_pengulas</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>user_id</name>
+        <field>user_id</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>pengulas_key</name>
+        <rename>pengulas_key</rename>
+        <default/>
+        <type>Integer</type>
+      </value>
+    </lookup>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>512</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 4. Pengganti INNER JOIN di SQL -->
+  <step>
+    <name>cek_key_lengkap</name>
+    <type>FilterRows</type>
+    <description>true -> dimuat; false -> dicatat (baris gagal lookup tidak dibuang diam-diam)</description>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <send_true_to>pilih_kolom_fakta</send_true_to>
+    <send_false_to>log_gagal_lookup</send_false_to>
+    <compare>
+      <condition>
+        <negated>N</negated>
+        <conditions>
+          <condition>
+            <negated>N</negated>
+            <leftvalue>buku_ulasan_key</leftvalue>
+            <function>IS NOT NULL</function>
+            <rightvalue/>
+          </condition>
+          <condition>
+            <negated>N</negated>
+            <operator>AND</operator>
+            <leftvalue>pengulas_key</leftvalue>
+            <function>IS NOT NULL</function>
+            <rightvalue/>
+          </condition>
+        </conditions>
+      </condition>
+    </compare>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>656</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <step>
+    <name>log_gagal_lookup</name>
+    <type>WriteToLog</type>
+    <description>Ulasan yang tidak dimuat ke fakta beserta key yang kosong</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <loglevel>log_level_basic</loglevel>
+    <displayHeader>Y</displayHeader>
+    <limitRows>N</limitRows>
+    <limitRowsNumber>0</limitRowsNumber>
+    <logmessage>tr_fact_ulasan: baris gagal lookup, tidak dimuat ke fact_ulasan</logmessage>
+    <fields>
+      <field><name>review_id</name></field>
+      <field><name>book_id</name></field>
+      <field><name>user_id</name></field>
+      <field><name>rating</name></field>
+      <field><name>buku_ulasan_key</name></field>
+      <field><name>pengulas_key</name></field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>656</xloc><yloc>336</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 5. Kolom fakta sesuai 01_ddl (ulasan_key tidak dikirim: AUTO_INCREMENT) -->
+  <step>
+    <name>pilih_kolom_fakta</name>
+    <type>SelectValues</type>
+    <description>Buang book_id dan user_id; sisakan kolom fact_ulasan</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <fields>
+      <field><name>review_id</name><rename/></field>
+      <field><name>buku_ulasan_key</name><rename/></field>
+      <field><name>waktu_ulasan_key</name><rename/></field>
+      <field><name>pengulas_key</name><rename/></field>
+      <field><name>rating_key</name><rename/></field>
+      <field><name>rating</name><rename/></field>
+      <field><name>jumlah_ulasan</name><rename/></field>
+      <field><name>flag_rating_tinggi</name><rename/></field>
+      <field><name>flag_rating_rendah</name><rename/></field>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>800</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <!-- 6. Load. Tabel dikosongkan oleh job_etl_dw (truncate di sini sengaja N) -->
+  <step>
+    <name>out_fact_ulasan</name>
+    <type>TableOutput</type>
+    <description>Insert ke fact_ulasan; FK ke dim_waktu dan dim_rating dicek oleh MySQL</description>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning><method>none</method><schema_name/></partitioning>
+    <connection>dw_target</connection>
+    <schema/>
+    <table>fact_ulasan</table>
+    <commit>1000</commit>
+    <truncate>N</truncate>
+    <ignore_errors>N</ignore_errors>
+    <use_batch>Y</use_batch>
+    <specify_fields>Y</specify_fields>
+    <partitioning_enabled>N</partitioning_enabled>
+    <partitioning_field/>
+    <partitioning_daily>N</partitioning_daily>
+    <partitioning_monthly>Y</partitioning_monthly>
+    <tablename_in_field>N</tablename_in_field>
+    <tablename_field/>
+    <tablename_in_table>Y</tablename_in_table>
+    <return_keys>N</return_keys>
+    <return_field/>
+    <fields>
+      <field><column_name>review_id</column_name><stream_name>review_id</stream_name></field>
+      <field><column_name>buku_ulasan_key</column_name><stream_name>buku_ulasan_key</stream_name></field>
+      <field><column_name>waktu_ulasan_key</column_name><stream_name>waktu_ulasan_key</stream_name></field>
+      <field><column_name>pengulas_key</column_name><stream_name>pengulas_key</stream_name></field>
+      <field><column_name>rating_key</column_name><stream_name>rating_key</stream_name></field>
+      <field><column_name>rating</column_name><stream_name>rating</stream_name></field>
+      <field><column_name>jumlah_ulasan</column_name><stream_name>jumlah_ulasan</stream_name></field>
+      <field><column_name>flag_rating_tinggi</column_name><stream_name>flag_rating_tinggi</stream_name></field>
+      <field><column_name>flag_rating_rendah</column_name><stream_name>flag_rating_rendah</stream_name></field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps><input></input><output></output></remotesteps>
+    <GUI><xloc>944</xloc><yloc>208</yloc><draw>Y</draw></GUI>
+  </step>
+
+  <step_error_handling>
+  </step_error_handling>
+  <slave-step-copy-partition-distribution>
+  </slave-step-copy-partition-distribution>
+  <slave_transformation>N</slave_transformation>
+  <attributes/>
+</transformation>

@@ -10,7 +10,7 @@ Pembagian tugas dan keputusan kelompok ada di `laporan/Panduan-Pengerjaan-Implem
 | Lokasi | Isi | PIC |
 |---|---|---|
 | `sql/` | `01_ddl` (13 tabel `basdat_dw`), `02_basdat_sumber` (database sumber dummy), `03_etl` (ETL SQL acuan), `04_query_analisis`, `basdat_dw_acuan.sql`, `angka-acuan.md`; nanti `05_view_dashboard.sql` | Rafan, Vincent |
-| `pentaho/` | `tr_dim_waktu`, `tr_dim_dw1`–`tr_dim_dw3`; nanti `tr_fact_*`, `job_etl_dw.kjb`, `kettle.properties.contoh` | Irma, Isma |
+| `pentaho/` | `tr_dim_waktu`, `tr_dim_dw1`–`tr_dim_dw3`; `tr_fact_peminjaman`, `tr_fact_ulasan`, `tr_fact_keterlambatan` beserta `validasi_fact_*.sql` dan `pemetaan-rumus-fakta.md`; nanti `job_etl_dw.kjb`, `kettle.properties.contoh` | Irma, Isma |
 | `dashboard/` | Berkas atau kode dashboard admin | Vincent, Mako |
 | `laporan/` | Panduan pengerjaan, laporan DW, tangkapan layar, dan skrip pembuat dokumen | Mako |
 | `gambar/`, `gambar-tanpa-judul/` | Skema setiap DW, fact constellation, dan pembanding versi dinormalisasi (`buat_gambar_*.py`) | – |
