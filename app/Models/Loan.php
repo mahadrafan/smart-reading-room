@@ -116,7 +116,7 @@ class Loan extends Model
         });
     }
 
-    // pencarian di Riwayat admin: nama / NIS/NIP peminjam, atau no. peminjaman
+    // pencarian di Riwayat admin: nama / NIS peminjam, atau no. peminjaman
     // (LOAN-20261004-030, 20261004-030, 030, atau tanggalnya saja LOAN-20261004)
     public function scopeCari($query, string $cari)
     {

@@ -16,15 +16,9 @@
                 @csrf
                 @method('PUT')
 
-                <div class="dua-kolom">
-                    <div class="isian">
-                        <label>{{ Auth::user()->label_nomor_induk }}</label>
-                        <input type="text" value="{{ Auth::user()->nim_nip }}" readonly>
-                    </div>
-                    <div class="isian">
-                        <label>Terdaftar sebagai</label>
-                        <input type="text" value="{{ Auth::user()->borrower_type }}" readonly>
-                    </div>
+                <div class="isian">
+                    <label>{{ Auth::user()->label_nomor_induk }}</label>
+                    <input type="text" value="{{ Auth::user()->nim_nip }}" readonly>
                 </div>
 
                 <div class="isian">
@@ -45,28 +39,16 @@
                     @enderror
                 </div>
 
-                {{-- siswa mengubah kelas, tenaga pendidik mengubah jabatan; no. telepon satu baris penuh agar kode negara muat --}}
-                @if (Auth::user()->isTenagaPendidik())
-                    <div class="isian">
-                        <label for="job_title">Jabatan</label>
-                        <input type="text" id="job_title" name="job_title" maxlength="50"
-                               value="{{ old('job_title', Auth::user()->job_title) }}"
-                               class="@error('job_title') salah @enderror" required>
-                        @error('job_title')
-                            <p class="pesan-salah">{{ $message }}</p>
-                        @enderror
-                    </div>
-                @else
-                    <div class="isian">
-                        <label for="class">Kelas</label>
-                        <input type="text" id="class" name="class" maxlength="20"
-                               value="{{ old('class', Auth::user()->class) }}"
-                               class="@error('class') salah @enderror" required>
-                        @error('class')
-                            <p class="pesan-salah">{{ $message }}</p>
-                        @enderror
-                    </div>
-                @endif
+                {{-- no. telepon satu baris penuh agar kode negara muat --}}
+                <div class="isian">
+                    <label for="class">Kelas</label>
+                    <input type="text" id="class" name="class" maxlength="20"
+                           value="{{ old('class', Auth::user()->class) }}"
+                           class="@error('class') salah @enderror" required>
+                    @error('class')
+                        <p class="pesan-salah">{{ $message }}</p>
+                    @enderror
+                </div>
                 <div class="isian">
                     <label for="phone">No. telepon</label>
                     @include('_isian-telepon', [

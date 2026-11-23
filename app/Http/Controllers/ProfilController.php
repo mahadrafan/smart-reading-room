@@ -16,14 +16,10 @@ class ProfilController extends Controller
         return view('user.profil');
     }
 
-    // ubah data diri (name, email, phone, dan kelas untuk siswa atau jabatan untuk tenaga pendidik)
+    // ubah data diri (name, email, phone, dan kelas)
     public function update(Request $request)
     {
         $user = Auth::user();
-
-        $keterangan = $user->isTenagaPendidik()
-            ? ['job_title' => ['required', 'string', 'max:50']]
-            : ['class' => ['required', 'string', 'max:20']];
 
         // no. telepon + kode negara dirapikan seperti saat daftar
         [$kodeTelepon, $nomorTelepon] = User::rapikanTelepon($request->input('phone_code', User::KODE_INDONESIA), $request->phone);
@@ -32,7 +28,8 @@ class ProfilController extends Controller
         $data = $request->validate([
             'name'  => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:100', Rule::unique('users', 'email')->ignore($user->user_id, 'user_id')],
-        ] + User::aturanTelepon($kodeTelepon) + $keterangan, User::pesanTelepon() + [
+            'class' => ['required', 'string', 'max:20'],
+        ] + User::aturanTelepon($kodeTelepon), User::pesanTelepon() + [
             'required' => ':attribute wajib diisi.',
             'email'    => 'Format email belum benar.',
             'max'      => ':attribute maksimal :max karakter.',
@@ -40,7 +37,6 @@ class ProfilController extends Controller
         ], [
             'name'      => 'Nama lengkap',
             'email'     => 'Email',
-            'job_title' => 'Jabatan',
             'class'     => 'Kelas',
             'phone'     => 'No. telepon',
         ]);

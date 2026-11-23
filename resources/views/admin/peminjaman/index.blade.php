@@ -17,7 +17,7 @@
     <form method="GET" action="{{ route('admin.peminjaman.index') }}" class="filter-ulasan" data-filter-daftar>
         <label class="sr-only" for="cari_peminjam">Cari nama peminjam</label>
         <input type="search" id="cari_peminjam" name="q" value="{{ $cari }}" class="cari-input"
-               placeholder="Cari nama peminjam atau NIS..." title="Cari berdasarkan nama peminjam atau NIS/NIP">
+               placeholder="Cari nama peminjam atau NIS..." title="Cari berdasarkan nama peminjam atau NIS">
 
         <label class="sr-only" for="filter_buku" id="label_filter_buku">Pilih buku</label>
         <div class="pilih-buku pilih-buku-filter" data-cari-buku-filter hidden>

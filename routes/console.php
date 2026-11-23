@@ -4,17 +4,19 @@ use App\Models\UserNotification;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
-// ---------- pengingat pengembalian lewat email (H-1 dan sekali saat terlambat) ----------
+// ---------- pengingat pengembalian lewat email (H-1, hari batas kembali, saat terlambat, terlambat 7 hari; masing-masing sekali) ----------
 // jalankan manual: php artisan pengingat:email
 Artisan::command('pengingat:email', function () {
     $hasil = UserNotification::kirimPengingatEmail();
 
     $this->info('Email H-1 terkirim: ' . $hasil['H-1']);
+    $this->info('Email hari batas kembali terkirim: ' . $hasil['Hari-H']);
     $this->info('Email terlambat terkirim: ' . $hasil['Terlambat']);
+    $this->info('Email terlambat 7 hari terkirim: ' . $hasil['Seminggu']);
     if ($hasil['gagal'] > 0) {
         $this->error('Gagal terkirim: ' . $hasil['gagal'] . ' (lihat storage/logs/laravel.log, dicoba lagi besok)');
     }
-})->purpose('Kirim email pengingat H-1 batas kembali dan pengingat buku terlambat');
+})->purpose('Kirim email pengingat H-1, hari batas kembali, saat terlambat, dan terlambat 7 hari');
 
 // otomatis setiap hari pukul 07.00 WIB; butuh "php artisan schedule:run" yang dipanggil cron / Task Scheduler
 Schedule::command('pengingat:email')->dailyAt('07:00');

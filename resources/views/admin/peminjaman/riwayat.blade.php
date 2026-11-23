@@ -24,7 +24,7 @@
         <label class="sr-only" for="cari_riwayat">Cari nama peminjam atau no. peminjaman</label>
         <input type="search" id="cari_riwayat" name="q" value="{{ $cari }}" class="cari-input cari-lebar"
                placeholder="Cari nama peminjam atau no. peminjaman..."
-               title="Cari berdasarkan nama peminjam, NIS/NIP, atau no. peminjaman (mis. LOAN-20261004-030 atau 030)">
+               title="Cari berdasarkan nama peminjam, NIS, atau no. peminjaman (mis. LOAN-20261004-030 atau 030)">
         <button type="submit" class="tombol tombol-kecil">Cari</button>
         @if ($cari !== '')
             <a href="{{ route('admin.peminjaman.riwayat', array_filter(['status' => $status])) }}" class="hapus-semua-filter">Hapus pencarian</a>

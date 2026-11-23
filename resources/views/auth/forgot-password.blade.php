@@ -14,9 +14,9 @@
         @csrf
 
         <div class="field">
-            <label for="nim_nip" class="sr-only">NIS/NIP</label>
+            <label for="nim_nip" class="sr-only">NIS</label>
             <input type="text" id="nim_nip" name="nim_nip"
-                   placeholder="NIS/NIP Terdaftar"
+                   placeholder="NIS terdaftar"
                    value="{{ old('nim_nip') }}"
                    class="@error('nim_nip') is-invalid @enderror" required autofocus>
             @error('nim_nip')

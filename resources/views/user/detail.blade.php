@@ -46,7 +46,7 @@
                         <thead>
                             <tr>
                                 <th>Peminjam</th>
-                                <th>Kelas / jabatan</th>
+                                <th>Kelas</th>
                                 <th>Tenggat Peminjaman</th>
                             </tr>
                         </thead>
