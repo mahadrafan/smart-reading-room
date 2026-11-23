@@ -8,25 +8,27 @@ Repository: <https://github.com/mahadrafan/smart-reading-room>
 ## Fitur
 
 - Login satu pintu untuk Admin dan Peminjam
+- Peminjam khusus siswa: daftar dengan NIS dan kelas
 - Katalog, pencarian, kategori, penulis, stok, dan sampul buku
 - Pengajuan, persetujuan, pengambilan, pengembalian, dan pembatalan peminjaman
 - Penguncian otomatis ketika stok habis
 - Tenggat pengambilan dan pembatalan otomatis
 - Denda keterlambatan beserta status Belum Lunas/Lunas
-- Data kontak peminjam untuk tindak lanjut admin
+- Data kontak peminjam (telepon/WhatsApp) untuk tindak lanjut admin
 - Ulasan dan rating buku
 - Notifikasi peminjaman di dalam aplikasi, dengan pop up untuk notifikasi baru
+- Email pengingat pengembalian (H-1, hari batas kembali, terlambat, terlambat 7 hari)
 
 ## Kebutuhan sistem
 
 - PHP 8.2 atau lebih baru
 - Ekstensi PHP: `ctype`, `curl`, `fileinfo`, `mbstring`, `openssl`, `pdo`,
-  serta `pdo_sqlite` atau `pdo_mysql`
+  serta `pdo_sqlite` atau `pdo_mysql` (`gd` dibutuhkan untuk menjalankan semua tes)
 - Composer 2
 - Git
 
-Untuk Windows, Laragon direkomendasikan. Jangan memakai PHP 8.0 dari XAMPP
-karena Laravel 12 membutuhkan PHP 8.2+.
+Di Windows bisa memakai Laragon atau XAMPP, asalkan versi PHP-nya 8.2 atau lebih
+baru. XAMPP versi lama masih membawa PHP 8.0 dan tidak bisa menjalankan Laravel 12.
 
 Periksa versi yang aktif:
 
@@ -48,8 +50,7 @@ php artisan serve
 ```
 
 Buka <http://127.0.0.1:8000>.
-Skrip otomatis memakai **SQLite dan akun demo hasil seeder**. NIS/NIP login
-sekarang sama dengan yang ada di dump MySQL.
+Skrip otomatis memakai **SQLite dan akun demo hasil seeder** (lihat **Akun demo**).
 
 ## Instalasi otomatis di Linux/macOS
 
@@ -163,55 +164,55 @@ file sampulnya tidak tersedia akan ditampilkan dengan inisial judul.
 
 Akun yang sudah diverifikasi pada dump terbaru:
 
-| Role | NIS/NIP | Password |
+| Role | NIS / ID admin | Password |
 | --- | --- | --- |
 | Admin | `ADM001` | `admin12345` |
 | Peminjam | `2024001` | `peminjam123` |
 | Peminjam pengujian stok | `QASTOK` | `peminjam123` |
 
-Masukkan kode pada kolom **NIS/NIP** di halaman login, bukan alamat email atau
-nama pengguna. Akun `ADM001` dan `2024001` juga dibuat pada database baru
-melalui seeder.
-
 ## Akun demo
 
 Akun ini dibuat oleh `php artisan migrate --seed`:
 
-| Role | NIS/NIP | Password |
+| Role | NIS / ID admin | Password |
 | --- | --- | --- |
 | Admin | `ADM001` | `admin12345` |
 | Peminjam (siswa) | `2024001` | `peminjam123` |
-| Peminjam (tenaga pendidik) | `198501012010011001` | `pendidik123` |
-
-Saat mendaftar, peminjam memilih **Siswa** (mengisi NIS dan kelas) atau
-**Tenaga Pendidik** (mengisi NIP dan jabatan).
 
 Ganti password akun demo sebelum aplikasi digunakan di lingkungan nyata.
 
-## Jika NIS/NIP atau password dianggap salah
+## Login, pendaftaran, dan lupa password
+
+- Di halaman login, isi kolom **NIS atau ID admin** (misalnya `2024001` atau
+  `ADM001`), bukan alamat email atau nama.
+- Pendaftaran hanya untuk **siswa**: nama, email, NIS, kelas, no. HP, dan password.
+  Akun baru selalu menjadi Peminjam. Akun admin tidak bisa dibuat dari halaman daftar.
+- **Lupa password** hanya untuk siswa (cocokkan NIS dan email). Password akun admin
+  diubah langsung di database.
+
+Kolom `borrower_type` dan `job_title` masih ada di tabel `users` untuk menjaga
+struktur database, tetapi aplikasi selalu mengisi `borrower_type = 'Siswa'` dan
+tidak memakai `job_title`.
+
+## Jika NIS atau password dianggap salah
 
 Pertama, pastikan jalur instalasi dan akun yang digunakan sesuai:
 
-| Cara setup | `DB_CONNECTION` | NIS/NIP admin | Password |
+| Cara setup | `DB_CONNECTION` | ID admin | Password |
 | --- | --- | --- | --- |
 | Skrip otomatis atau `migrate --seed` | `sqlite`/`mysql` | `ADM001` | `admin12345` |
 | Impor `basdat_final.sql` | `mysql` | `ADM001` | `admin12345` |
 
 Jalankan perintah berikut dari folder proyek untuk melihat database yang
-dipakai Laravel dan daftar NIS/NIP di dalamnya:
+dipakai Laravel dan daftar NIS / ID admin di dalamnya:
 
 ```powershell
 php artisan optimize:clear
 php artisan tinker --execute="dump(config('database.default'), DB::table('users')->pluck('nim_nip'));"
 ```
 
-Jika setup dilakukan sebelum 26 September 2026, seeder lama membuat akun
-`ADMIN001`/`admin12345` dan `2026001`/`peminjam123`. Akun tersebut tetap bisa
-dipakai. Untuk menambahkan akun dengan NIS/NIP baru, jalankan `php artisan
-db:seed`; proses ini tidak mengganti password akun yang sudah ada.
-
 Jika hasilnya `mysql` tetapi `ADM001` tidak ada, impor belum masuk ke database
-yang dipakai aplikasi. Periksa kembali `DB_DATABASE=basdat`, impor ulang ke
+yang dipakai aplikasi. Periksa kembali `DB_DATABASE` di `.env`, impor ulang ke
 database itu, lalu jalankan `php artisan optimize:clear`.
 
 ## Memindahkan seluruh data dari laptop lama
@@ -271,7 +272,7 @@ Admin tetap bisa menghubungi peminjam lewat nomor telepon / WhatsApp di Dashboar
 
 ## Email pengingat (H-1, hari batas kembali, terlambat, dan terlambat 7 hari)
 
-Peminjam login memakai NIS/NIP, tetapi email pengingat dikirim ke kolom `email`
+Peminjam login memakai NIS, tetapi email pengingat dikirim ke kolom `email`
 akunnya. Masing-masing hanya **sekali** per peminjaman:
 
 - **H-1**: sehari sebelum batas kembali buku yang sedang dipinjam.
@@ -336,6 +337,28 @@ proses build. Cukup ubah file tersebut lalu muat ulang halaman.
 ```powershell
 php artisan test
 ```
+
+Tes memakai SQLite di memori, jadi tidak menyentuh database MySQL. Tes unggah
+sampul buku membutuhkan ekstensi PHP `gd`; jika belum aktif (misalnya di XAMPP),
+hapus tanda `;` di depan `extension=gd` pada `php.ini`.
+
+## Data warehouse
+
+Rancangan dan skrip data warehouse (tugas Basis Data) ada di `docs/data-warehouse`,
+terpisah dari aplikasi:
+
+| Berkas | Isi |
+| --- | --- |
+| `00_basdat_sumber.sql` | Database sumber dummy `basdat_sumber` (60 siswa, 985 peminjaman, 393 ulasan) |
+| `01_ddl_data_warehouse.sql` | Struktur `basdat_dw`: 3 DW (fact constellation, `dim_waktu` bersama), 13 tabel |
+| `03_etl_data_warehouse.sql` | ETL SQL acuan dari `basdat_sumber` ke `basdat_dw` |
+| `04_query_analisis.sql` | Query analisis per DW |
+| `basdat_dw_acuan.sql`, `angka-acuan.md` | `basdat_dw` yang sudah terisi dan angka untuk mencocokkan hasil Pentaho |
+| `gambar/` | Skema setiap DW dan pembanding versi dinormalisasi |
+| `Panduan-Pengerjaan-Implementasi-DW.pdf` | Pembagian tugas dan keputusan kelompok |
+
+Urutan impor: `00` → `01` → (Pentaho atau `03`) → `04`. Database `basdat_sumber`
+dan `basdat_dw` terpisah dari database aplikasi, jadi data aplikasi tidak berubah.
 
 ## Mengambil pembaruan dari GitHub
 
@@ -408,6 +431,7 @@ Lalu buka <http://127.0.0.1:8001>.
 | `public/js` | JavaScript filter daftar (ulasan & request masuk) |
 | `routes/web.php` | Daftar route web |
 | `tests/Feature` | Pengujian fitur |
+| `docs/data-warehouse` | Rancangan, skrip, dan panduan data warehouse |
 
 ## Catatan keamanan repository
 
@@ -417,6 +441,7 @@ File berikut sengaja tidak dikirim ke GitHub:
 - database SQLite lokal
 - `vendor`
 - log aplikasi
-- sampul buku yang diunggah pengguna
+- `storage/app/private` (termasuk backup database lokal)
 
-Gunakan `.env.example` sebagai templat konfigurasi pada setiap laptop.
+Sampul buku di `storage/app/public/covers` justru ikut disimpan di repository agar
+tampil sama di setiap laptop. Gunakan `.env.example` sebagai templat konfigurasi pada setiap laptop.
