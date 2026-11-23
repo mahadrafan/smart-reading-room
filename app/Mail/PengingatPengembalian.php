@@ -10,8 +10,9 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-// email pengingat pengembalian buku ke peminjam:
-// 'H-1' = sehari sebelum batas kembali, 'Terlambat' = sekali saat buku pertama kali terlambat
+// email pengingat pengembalian buku ke peminjam (masing-masing dikirim sekali per peminjaman):
+// 'H-1' = sehari sebelum batas kembali, 'Hari-H' = di hari batas kembali (masa pinjam habis),
+// 'Terlambat' = saat buku pertama kali terlambat, 'Seminggu' = saat terlambat seminggu dan denda belum lunas
 class PengingatPengembalian extends Mailable
 {
     use Queueable, SerializesModels;
@@ -27,9 +28,12 @@ class PengingatPengembalian extends Mailable
         return new Envelope(
             // nama pengirim selalu nama aplikasi, walaupun MAIL_FROM_NAME tidak diisi di .env (bawaan Laravel: "Example")
             from: new Address(config('mail.from.address'), config('app.name')),
-            subject: $this->jenis === 'H-1'
-                ? 'Pengingat: besok batas pengembalian buku "' . $judul . '"'
-                : 'Buku "' . $judul . '" terlambat dikembalikan',
+            subject: match ($this->jenis) {
+                'H-1'      => 'Pengingat: besok batas pengembalian buku "' . $judul . '"',
+                'Hari-H'   => 'Hari ini batas pengembalian buku "' . $judul . '"',
+                'Seminggu' => 'Buku "' . $judul . '" sudah terlambat seminggu lebih',
+                default    => 'Buku "' . $judul . '" terlambat dikembalikan',
+            },
         );
     }
 

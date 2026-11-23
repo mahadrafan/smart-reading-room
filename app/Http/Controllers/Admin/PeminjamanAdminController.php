@@ -257,8 +257,8 @@ class PeminjamanAdminController extends Controller
             return $this->keRiwayat($request)->with('error', 'Peminjaman ini sudah diproses sebelumnya.');
         }
 
-        // buku sudah kembali: pengingat H-1 yang belum dibaca tidak perlu muncul lagi di pop up
-        UserNotification::tandaiSelesai($pinjam->loan_id, ['Pengingat']);
+        // buku sudah kembali: pengingat email (H-1, hari batas kembali) yang belum dibaca tidak perlu muncul lagi di pop up
+        UserNotification::tandaiSelesai($pinjam->loan_id, UserNotification::TIPE_PENGINGAT);
 
         UserNotification::kirim(
             $pinjam,
@@ -310,7 +310,7 @@ class PeminjamanAdminController extends Controller
         }
 
         // denda sudah lunas: pengingat "Terlambat / denda belum lunas" milik peminjam & admin tidak muncul lagi di pop up
-        UserNotification::tandaiSelesai($pinjam->loan_id, ['Terlambat', 'Pengingat']);
+        UserNotification::tandaiSelesai($pinjam->loan_id, ['Terlambat', ...UserNotification::TIPE_PENGINGAT]);
 
         if ($sekalianKembali) {
             UserNotification::kirim(

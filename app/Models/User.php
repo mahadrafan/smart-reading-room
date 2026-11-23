@@ -6,9 +6,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    // jenis peminjam: siswa mengisi NIS + kelas, tenaga pendidik mengisi NIP + jabatan
+    // peminjam hanya siswa (mengisi NIS + kelas). Kolom borrower_type dan job_title tetap ada di
+    // database untuk data lama, tetapi akun baru selalu Siswa dan jabatan tidak dipakai lagi.
     const SISWA = 'Siswa';
-    const TENAGA_PENDIDIK = 'Tenaga Pendidik';
 
     // nama tabel dan primary key mengikuti database basdat
     protected $table = 'users';
@@ -36,26 +36,20 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function isTenagaPendidik(): bool
-    {
-        return $this->borrower_type === self::TENAGA_PENDIDIK;
-    }
-
-    // label nomor induk: NIS untuk siswa, NIP untuk tenaga pendidik
+    // label nomor induk dan keterangan peminjam (siswa: NIS dan kelas)
     public function getLabelNomorIndukAttribute(): string
     {
-        return $this->isTenagaPendidik() ? 'NIP' : 'NIS';
+        return 'NIS';
     }
 
-    // label & isi keterangan peminjam: kelas untuk siswa, jabatan untuk tenaga pendidik
     public function getLabelKeteranganAttribute(): string
     {
-        return $this->isTenagaPendidik() ? 'Jabatan' : 'Kelas';
+        return 'Kelas';
     }
 
     public function getKeteranganAttribute(): ?string
     {
-        return $this->isTenagaPendidik() ? $this->job_title : $this->class;
+        return $this->class;
     }
 
     // ---------------------------------------------------------

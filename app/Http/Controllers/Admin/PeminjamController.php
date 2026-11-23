@@ -10,7 +10,7 @@ class PeminjamController extends Controller
 {
     const PER_HALAMAN = 10;
 
-    // daftar peminjam + pencarian NIS/NIP, nama, kelas, atau jabatan; 10 per halaman
+    // daftar peminjam (siswa) + pencarian NIS, nama, atau kelas; 10 per halaman
     public function index(Request $request)
     {
         $cari = trim((string) $request->q);
@@ -20,8 +20,7 @@ class PeminjamController extends Controller
                 $q->where(function ($w) use ($cari) {
                     $w->where('nim_nip', 'like', '%' . $cari . '%')
                         ->orWhere('name', 'like', '%' . $cari . '%')
-                        ->orWhere('class', 'like', '%' . $cari . '%')
-                        ->orWhere('job_title', 'like', '%' . $cari . '%');
+                        ->orWhere('class', 'like', '%' . $cari . '%');
                 });
             })
             ->withCount([

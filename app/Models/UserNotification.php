@@ -14,6 +14,19 @@ class UserNotification extends Model
     const BELUM_DIBACA = 'Belum Dibaca';
     const DIBACA = 'Dibaca';
 
+    // jenis email pengingat nilai kolom type pada notifikasi di web (dicatat bersamaan dengan email yang terkirim).
+    // H-1 dan Terlambat memakai 'Pengingat' (dibedakan lewat tanggal kirim), dua jenis lain punya type sendiri
+    const TIPE_EMAIL = [
+        'H-1'       => 'Pengingat',
+        'Hari-H'    => 'Batas Kembali',
+        'Terlambat' => 'Pengingat',
+        'Seminggu'  => 'Terlambat 7 Hari',
+    ];
+    // semua type notifikasi hasil email pengingat, ditutup (dianggap dibaca) saat buku kembali / denda lunas
+    const TIPE_PENGINGAT = ['Pengingat', 'Batas Kembali', 'Terlambat 7 Hari'];
+    // email "Seminggu": dikirim sekali setelah buku terlambat sekian hari dan denda belum lunas
+    const HARI_PENGINGAT_AKHIR = 7;
+
     protected $table = 'notifications';
     protected $primaryKey = 'notification_id';
     public $timestamps = false;
@@ -112,28 +125,37 @@ class UserNotification extends Model
         }
     }
 
-    // pengingat lewat email (dijalankan terjadwal setiap hari oleh command pengingat:email):
+    // pengingat lewat email (dijalankan terjadwal setiap hari oleh command pengingat:email), masing-masing sekali per peminjaman:
     // - H-1: buku yang sedang dipinjam dan batas kembalinya besok
-    // - Terlambat: sekali saja, saat buku pertama kali terdeteksi melewati batas kembali dan dendanya belum lunas
-    // setiap email yang berhasil terkirim juga dicatat sebagai notifikasi "Pengingat" di web, sekaligus penanda
-    // agar tidak terkirim dua kali (dikirim sebelum/pada batas kembali = H-1, sesudahnya = Terlambat).
-    // email yang gagal terkirim tidak dicatat, jadi dicoba lagi pada jadwal berikutnya.
+    // - Hari-H: buku yang sedang dipinjam dan batas kembalinya hari ini (masa pinjam habis)
+    // - Terlambat: saat buku pertama kali terdeteksi melewati batas kembali dan dendanya belum lunas
+    // - Seminggu: saat buku sudah terlambat 7 hari atau lebih dan dendanya masih belum lunas
+    // setiap email yang berhasil terkirim juga dicatat sebagai notifikasi di web (lihat TIPE_EMAIL), sekaligus penanda
+    // agar tidak terkirim dua kali. email yang gagal terkirim tidak dicatat, jadi dicoba lagi pada jadwal berikutnya.
     public static function kirimPengingatEmail(): array
     {
-        $hasil = ['H-1' => 0, 'Terlambat' => 0, 'gagal' => 0];
+        $hasil = ['H-1' => 0, 'Hari-H' => 0, 'Terlambat' => 0, 'Seminggu' => 0, 'gagal' => 0];
 
+        $dipinjam = fn () => Loan::where('status', 'Dipinjam');
         $daftar = [
-            'H-1'       => Loan::where('status', 'Dipinjam')->whereDate('due_date', today()->addDay()),
-            'Terlambat' => Loan::where('status', 'Dipinjam')->whereNull('fine_paid_at')->whereDate('due_date', '<', today()),
+            'H-1'       => $dipinjam()->whereDate('due_date', today()->addDay()),
+            'Hari-H'    => $dipinjam()->whereDate('due_date', today()),
+            'Terlambat' => $dipinjam()->whereNull('fine_paid_at')->whereDate('due_date', '<', today()),
+            'Seminggu'  => $dipinjam()->whereNull('fine_paid_at')
+                ->whereDate('due_date', '<=', today()->subDays(self::HARI_PENGINGAT_AKHIR)),
         ];
 
         foreach ($daftar as $jenis => $query) {
             foreach ($query->with(['user', 'book'])->get() as $loan) {
-                $sudahDikirim = self::where('user_id', $loan->user_id)->where('loan_id', $loan->loan_id)
-                    ->where('type', 'Pengingat')
-                    ->whereDate('sent_at', $jenis === 'H-1' ? '<=' : '>', $loan->due_date)
-                    ->exists();
-                if ($sudahDikirim || ! $loan->user?->email) {
+                $sudahAda = self::where('user_id', $loan->user_id)->where('loan_id', $loan->loan_id)
+                    ->where('type', self::TIPE_EMAIL[$jenis]);
+                // H-1 dan Terlambat sama-sama bertype 'Pengingat': dibedakan dari tanggal kirim (sebelum / sesudah batas kembali)
+                if ($jenis === 'H-1') {
+                    $sudahAda->whereDate('sent_at', '<', $loan->due_date);
+                } elseif ($jenis === 'Terlambat') {
+                    $sudahAda->whereDate('sent_at', '>', $loan->due_date);
+                }
+                if ($sudahAda->exists() || ! $loan->user?->email) {
                     continue;
                 }
 
@@ -146,15 +168,22 @@ class UserNotification extends Model
                 }
 
                 $judul = $loan->book->title ?? '-';
-                $pesan = $jenis === 'H-1'
-                    ? 'Buku "' . $judul . '" harus dikembalikan besok, ' . $loan->due_date->format('d/m/Y') . '.'
-                    : 'Buku "' . $judul . '" sudah melewati batas kembali (' . $loan->due_date->format('d/m/Y')
-                        . '). Denda Rp' . number_format(config('app.fine_per_day'), 0, ',', '.') . ' per hari berjalan sampai buku dikembalikan.';
+                $batas = $loan->due_date->format('d/m/Y');
+                $denda = 'Rp' . number_format(config('app.fine_per_day'), 0, ',', '.');
+                $pesan = match ($jenis) {
+                    'H-1'       => 'Buku "' . $judul . '" harus dikembalikan besok, ' . $batas . '.',
+                    'Hari-H'    => 'Hari ini batas kembali buku "' . $judul . '" (' . $batas . '). Kembalikan hari ini agar tidak terkena denda '
+                        . $denda . ' per hari.',
+                    'Terlambat' => 'Buku "' . $judul . '" sudah melewati batas kembali (' . $batas . '). Denda ' . $denda
+                        . ' per hari berjalan sampai buku dikembalikan.',
+                    'Seminggu'  => 'Buku "' . $judul . '" sudah terlambat ' . $loan->hari_terlambat . ' hari dan dendanya belum lunas. Denda saat ini Rp'
+                        . number_format($loan->jumlah_denda, 0, ',', '.') . ' dan terus bertambah ' . $denda . ' per hari.',
+                };
 
                 self::create([
                     'user_id' => $loan->user_id,
                     'loan_id' => $loan->loan_id,
-                    'type'    => 'Pengingat',
+                    'type'    => self::TIPE_EMAIL[$jenis],
                     'message' => $pesan . ' Pengingat ini juga dikirim ke email ' . $loan->user->email . '.',
                     'sent_at' => now(),
                     'status'  => self::BELUM_DIBACA,
@@ -192,7 +221,7 @@ class UserNotification extends Model
             return ['ikonClass' => 'notif-ikon-peringatan', 'ikon' => '📅', 'badgeClass' => 'penting',
                 'badgeLabel' => $tipe == 'Terlambat' ? 'Penting' : 'Gagal'];
         }
-        if ($tipe == 'Pengingat') {
+        if (in_array($tipe, self::TIPE_PENGINGAT, true)) {
             return ['ikonClass' => 'notif-ikon-peringatan', 'ikon' => '⏰', 'badgeClass' => 'penting', 'badgeLabel' => 'Email terkirim'];
         }
         if (in_array($tipe, ['Dikembalikan', 'Dipinjam'])) {

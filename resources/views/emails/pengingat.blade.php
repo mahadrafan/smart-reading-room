@@ -11,7 +11,12 @@
     <div style="max-width:520px;margin:0 auto;background:#ffffff;border-top:5px solid #8b5e34;border-radius:14px;padding:28px;">
         <p style="margin:0 0 6px;font-size:13px;color:#857767;">Smart Reading Room</p>
         <h1 style="margin:0 0 18px;font-size:20px;color:#3b2a1e;">
-            {{ $jenis === 'H-1' ? 'Besok batas pengembalian buku' : 'Buku kamu terlambat dikembalikan' }}
+            {{ match ($jenis) {
+                'H-1'      => 'Besok batas pengembalian buku',
+                'Hari-H'   => 'Hari ini batas pengembalian buku',
+                'Seminggu' => 'Buku kamu sudah terlambat seminggu lebih',
+                default    => 'Buku kamu terlambat dikembalikan',
+            } }}
         </h1>
 
         <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">Halo {{ $loan->user->name ?? 'Peminjam' }},</p>
@@ -23,6 +28,23 @@
             </p>
             <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
                 Kembalikan tepat waktu agar tidak terkena denda keterlambatan {{ $dendaPerHari }} per hari.
+            </p>
+        @elseif ($jenis === 'Hari-H')
+            <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
+                Masa pinjam buku <strong>"{{ $judul }}"</strong> habis <strong>hari ini, {{ $batas }}</strong>.
+                Kembalikan ke perpustakaan hari ini.
+            </p>
+            <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
+                Mulai besok buku ini dianggap terlambat dan terkena denda {{ $dendaPerHari }} per hari.
+            </p>
+        @elseif ($jenis === 'Seminggu')
+            <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
+                Buku <strong>"{{ $judul }}"</strong> sudah terlambat <strong>{{ $loan->hari_terlambat }} hari</strong>
+                dari batas pengembalian (<strong>{{ $batas }}</strong>) dan dendanya belum lunas.
+            </p>
+            <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">
+                Denda saat ini <strong>Rp{{ number_format($loan->jumlah_denda, 0, ',', '.') }}</strong> dan terus bertambah
+                {{ $dendaPerHari }} setiap hari. Segera kembalikan buku dan lunasi denda di perpustakaan.
             </p>
         @else
             <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">

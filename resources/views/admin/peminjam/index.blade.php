@@ -10,7 +10,7 @@
 
     <form method="GET" action="{{ route('admin.peminjam.index') }}" class="cari-admin">
         <label for="q" class="sr-only">Cari peminjam</label>
-        <input type="search" id="q" name="q" value="{{ $cari }}" placeholder="Cari NIS/NIP, nama, kelas, atau jabatan">
+        <input type="search" id="q" name="q" value="{{ $cari }}" placeholder="Cari NIS, nama, atau kelas">
         <button type="submit" class="tombol tombol-kecil">Cari</button>
         @if ($cari !== '')
             <a href="{{ route('admin.peminjam.index') }}" class="hapus-semua-filter">Hapus</a>
@@ -26,11 +26,11 @@
 
     <div class="kotak">
         <table class="tabel">
-            <thead><tr><th>NIS/NIP</th><th>Nama</th><th>Jenis</th><th>Kelas / jabatan</th><th>Email</th><th>No. telepon</th><th>Pinjaman aktif</th><th>Terlambat</th></tr></thead>
+            <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>Email</th><th>No. telepon</th><th>Pinjaman aktif</th><th>Terlambat</th></tr></thead>
             <tbody>
                 @forelse ($peminjam as $user)
                     <tr>
-                        <td>{{ $user->nim_nip }}</td><td>{{ $user->name }}</td><td>{{ $user->borrower_type ?: '-' }}</td><td>{{ $user->keterangan ?: '-' }}</td>
+                        <td>{{ $user->nim_nip }}</td><td>{{ $user->name }}</td><td>{{ $user->keterangan ?: '-' }}</td>
                         <td><a href="mailto:{{ $user->email }}">{{ $user->email }}</a></td>
                         <td>@include('admin._telepon', ['user' => $user])</td>
                         <td>{{ $user->pinjaman_aktif }}</td>
@@ -38,9 +38,9 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="kosong-tabel">
+                        <td colspan="7" class="kosong-tabel">
                             @if ($cari !== '')
-                                Tidak ada peminjam dengan NIS/NIP, nama, kelas, atau jabatan yang cocok dengan “{{ $cari }}”.
+                                Tidak ada peminjam dengan NIS, nama, atau kelas yang cocok dengan “{{ $cari }}”.
                                 <a href="{{ route('admin.peminjam.index') }}">Tampilkan semua</a>
                             @else
                                 Belum ada data peminjam.

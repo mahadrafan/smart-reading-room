@@ -53,7 +53,7 @@
                     </p>
 
                     <p class="hero-catatan">
-                        Belum punya akun? <a href="{{ route('register') }}">Daftar sebagai siswa atau tenaga pendidik</a>
+                        Belum punya akun? <a href="{{ route('register') }}">Daftar sebagai siswa</a>
                     </p>
                 </div>
 
@@ -200,7 +200,7 @@
                     <li>
                         <span class="langkah-nomor">01</span>
                         <h3>Daftar &amp; masuk</h3>
-                        <p>Siswa mendaftar dengan NIS dan kelas, tenaga pendidik dengan NIP dan jabatan.</p>
+                        <p>Siswa mendaftar dengan NIS dan kelas.</p>
                     </li>
                     <li>
                         <span class="langkah-nomor">02</span>

@@ -38,16 +38,6 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('peminjam123'),
         ]);
 
-        User::firstOrCreate(['nim_nip' => '198501012010011001'], [
-            'role' => 'Peminjam',
-            'borrower_type' => User::TENAGA_PENDIDIK,
-            'name' => 'Guru Demo',
-            'job_title' => 'Guru Biologi',
-            'email' => 'guru.demo@smartreading.test',
-            'phone' => '+6281211112222',
-            'password' => Hash::make('pendidik123'),
-        ]);
-
         $fiksi = Category::firstOrCreate(['category_name' => 'Fiksi']);
         $teknologi = Category::firstOrCreate(['category_name' => 'Teknologi']);
 

@@ -115,53 +115,6 @@ body {
     outline-offset: 2px;
 }
 
-/* ---------- pilihan daftar sebagai siswa / tenaga pendidik ---------- */
-
-.pilih-jenis {
-    margin: -8px 0 22px;
-}
-
-.pilih-jenis-label {
-    display: block;
-    margin: 0 0 8px 4px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #665849;
-}
-
-.pilih-jenis-tombol {
-    display: flex;
-    gap: 4px;
-    padding: 4px;
-    border: 1.5px solid var(--garis);
-    border-radius: 999px;
-}
-
-.pilih-jenis-tombol a {
-    flex: 1;
-    padding: 10px 12px;
-    font-size: 14px;
-    font-weight: 700;
-    text-align: center;
-    text-decoration: none;
-    color: var(--kayu-teks);
-    border-radius: 999px;
-}
-
-.pilih-jenis-tombol a:hover {
-    background: #f3ebe2;
-}
-
-.pilih-jenis-tombol a.aktif {
-    color: #ffffff;
-    background: var(--kayu);
-}
-
-.pilih-jenis-tombol a:focus-visible {
-    outline: 3px solid rgba(139,94,52, 0.4);
-    outline-offset: 2px;
-}
-
 /* ---------- form ---------- */
 
 /* label disembunyikan secara visual, tetap terbaca oleh screen reader */
@@ -206,7 +159,7 @@ body {
     border-color: var(--merah);
 }
 
-/* di bawah NIS/NIP yang terisi dari "Ingat saya" */
+/* di bawah NIS / ID admin yang terisi dari "Ingat saya" */
 .info-diingat {
     margin: 6px 0 0 22px;
     font-size: 13px;
@@ -316,7 +269,7 @@ body {
     outline: 3px solid rgba(139,94,52, 0.4);
 }
 
-/* dua kolom (NIS + kelas, atau NIP + jabatan) */
+/* dua kolom (NIS + kelas) */
 .row {
     display: flex;
     gap: 12px;

@@ -43,7 +43,7 @@
 
             <div class="akun-bawah">
                 <div class="nama">{{ Auth::user()->name }}</div>
-                {{-- kelas untuk siswa, jabatan untuk tenaga pendidik --}}
+                {{-- kelas siswa --}}
                 <div class="kelas">{{ Auth::user()->keterangan }}</div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf

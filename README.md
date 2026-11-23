@@ -269,16 +269,21 @@ halaman Notifikasi dibuka).
 Pengingat di web dibuat saat halaman dibuka, jadi tidak membutuhkan scheduler.
 Admin tetap bisa menghubungi peminjam lewat nomor telepon / WhatsApp di Dashboard.
 
-## Email pengingat (H-1 dan saat terlambat)
+## Email pengingat (H-1, hari batas kembali, terlambat, dan terlambat 7 hari)
 
 Peminjam login memakai NIS/NIP, tetapi email pengingat dikirim ke kolom `email`
-akunnya:
+akunnya. Masing-masing hanya **sekali** per peminjaman:
 
 - **H-1**: sehari sebelum batas kembali buku yang sedang dipinjam.
-- **Terlambat**: sekali saja, saat buku pertama kali melewati batas kembali.
+- **Hari batas kembali**: di hari masa pinjam habis, mengingatkan agar buku dikembalikan
+  hari itu juga sebelum terkena denda.
+- **Terlambat**: saat buku pertama kali melewati batas kembali.
+- **Terlambat 7 hari**: saat buku sudah terlambat 7 hari dan denda masih belum lunas.
 
-Setiap email yang berhasil terkirim juga muncul sebagai notifikasi **Pengingat**
-di web. Email yang gagal terkirim dicoba lagi pada jadwal berikutnya.
+Setiap email yang berhasil terkirim juga muncul sebagai notifikasi di web (jenis
+**Pengingat**, **Batas Kembali**, atau **Terlambat 7 Hari**). Notifikasi yang belum
+dibaca ditutup otomatis saat buku dikembalikan atau denda lunas. Email yang gagal
+terkirim dicoba lagi pada jadwal berikutnya.
 
 ### 1. Pengaturan pengirim (Gmail)
 

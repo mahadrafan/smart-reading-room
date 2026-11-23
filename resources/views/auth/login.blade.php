@@ -20,7 +20,7 @@
          sistem membaca kolom role di database untuk menentukan
          diarahkan ke landing page peminjam atau admin --}}
     @php
-        // NIS/NIP dari login terakhir dengan "Ingat saya"; setelah percobaan login gagal, isian form yang dipakai.
+        // NIS / ID admin dari login terakhir dengan "Ingat saya"; setelah percobaan login gagal, isian form yang dipakai.
         // password tidak pernah diisi aplikasi: autocomplete current-password membuat password manager browser mengisinya
         $adaIsianLama = old('nim_nip') !== null;
         $nis = $adaIsianLama ? old('nim_nip') : $nisDiingat;
@@ -31,9 +31,9 @@
         @csrf
 
         <div class="field">
-            <label for="nim_nip" class="sr-only">NIS/NIP</label>
+            <label for="nim_nip" class="sr-only">NIS atau ID admin</label>
             <input type="text" id="nim_nip" name="nim_nip"
-                   placeholder="NIS/NIP"
+                   placeholder="NIS atau ID admin"
                    value="{{ $nis }}"
                    class="@error('nim_nip') is-invalid @enderror"
                    autocomplete="username" required @unless ($nis) autofocus @endunless>
