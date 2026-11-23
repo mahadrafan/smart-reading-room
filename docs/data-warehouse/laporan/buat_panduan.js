@@ -139,9 +139,9 @@ add(h2("5 risiko yang bisa menjatuhkan nilai (wajib dipahami semua anggota)"));
 // ---------- 1. kesepakatan ----------
 add(h1("1. Kesepakatan kelompok (berlaku untuk semua)"));
 add(table(["Struktur folder di repo (`docs/data-warehouse/`)", "Aturan teknis"], [[
-  ["`sql/` 01–04 (sudah ada) + `05_view_dashboard.sql`", "`sumber-dummy/` skrip database sumber dan data dummy",
+  ["`sql/` 01–04 (termasuk `02_basdat_sumber` dan angka acuan) + `05_view_dashboard.sql`", "`log-uji.xlsx` log uji bersama",
    "`pentaho/` `tr_*.ktr`, `job_etl_dw.kjb`, `kettle.properties.contoh`", "`dashboard/` berkas atau kode dashboard",
-   "`laporan/` laporan implementasi, tangkapan layar", "`log-uji.xlsx` log uji bersama"],
+   "`laporan/` laporan implementasi, tangkapan layar", "`gambar/` skema setiap DW"],
   ["• Rancangan DW (tabel, kolom, grain, X/Y/Z) tidak diubah tanpa persetujuan kelompok; perubahan dicatat di log.",
    "• Koneksi bersama di Pentaho: `src_sumber` dan `dw_target`.",
    "• Variabel: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `SRC_DB`, `DW_DB`, `TGL_ETL`, `TARIF_DENDA`.",
@@ -421,7 +421,7 @@ add(h1("8. Referensi dan berkas acuan"));
 add(h2("A. Berkas di repo"));
 add(table(["Berkas", "Isi", "Dipakai oleh"], [
   ["`01_ddl_data_warehouse.sql`", "Struktur `basdat_dw` (3 dimensi, 3 fakta)", "Semua"],
-  ["`sumber-dummy/02_basdat_sumber.sql`, `angka-acuan.md`", "Database sumber dummy `basdat_sumber` (D3–D4) dan angka acuan", "Rafan"],
+  ["`sql/02_basdat_sumber.sql`, `sql/angka-acuan.md`", "Database sumber dummy `basdat_sumber` (D3–D4) dan angka acuan", "Rafan"],
   ["`03_etl_data_warehouse.sql`", "ETL SQL: acuan rumus dan rekonsiliasi", "Rafan, Irma, Isma"],
   ["`04_query_analisis.sql`", "Query information package; pembanding angka dashboard", "Isma, Vincent, Mako"],
   ["`gambar/`, `01_ddl_data_warehouse.sql`", "Rancangan fact constellation, X/Y/Z, gambar skema", "Semua"],

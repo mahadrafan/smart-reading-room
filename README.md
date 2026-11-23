@@ -349,18 +349,18 @@ terpisah dari aplikasi:
 
 | Berkas | Isi |
 | --- | --- |
-| `sumber-dummy/02_basdat_sumber.sql` | Database sumber dummy `basdat_sumber` (60 siswa, 985 peminjaman, 393 ulasan) |
+| `sql/02_basdat_sumber.sql` | Database sumber dummy `basdat_sumber` (60 siswa, 985 peminjaman, 393 ulasan) |
 | `sql/01_ddl_data_warehouse.sql` | Struktur `basdat_dw`: 3 DW (fact constellation, `dim_waktu` bersama), 13 tabel |
 | `sql/03_etl_data_warehouse.sql` | ETL SQL acuan dari `basdat_sumber` ke `basdat_dw` |
 | `sql/04_query_analisis.sql` | Query analisis per DW |
-| `sumber-dummy/basdat_dw_acuan.sql`, `sumber-dummy/angka-acuan.md` | `basdat_dw` yang sudah terisi dan angka untuk mencocokkan hasil Pentaho |
+| `sql/basdat_dw_acuan.sql`, `sql/angka-acuan.md` | `basdat_dw` yang sudah terisi dan angka untuk mencocokkan hasil Pentaho |
 | `pentaho/` | Transformasi dan job Pentaho |
 | `dashboard/` | Dashboard admin (diisi Vincent dan Mako) |
 | `gambar/` | Skema setiap DW dan pembanding versi dinormalisasi |
 | `laporan/` | Panduan pengerjaan, laporan DW, dan skrip pembuatnya |
 | `log-uji.xlsx` | Log uji bersama |
 
-Urutan impor: `sql/01` → `sumber-dummy/02` → (Pentaho atau `sql/03`) → `sql/04`. Database `basdat_sumber`
+Urutan impor: `sql/01` → `sql/02` → (Pentaho atau `sql/03`) → `sql/04`. Database `basdat_sumber`
 dan `basdat_dw` terpisah dari database aplikasi, jadi data aplikasi tidak berubah.
 
 ## Mengambil pembaruan dari GitHub
