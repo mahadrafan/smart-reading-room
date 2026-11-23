@@ -1,0 +1,1526 @@
+{
+"dw1_pivot": [
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Ekonomi & Akuntansi",
+"kelas_10": "2",
+"kelas_11": "6",
+"kelas_12": "2",
+"tenaga_pendidik": "5",
+"lainnya": "0",
+"total": "15"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Fiksi & Sastra",
+"kelas_10": "8",
+"kelas_11": "4",
+"kelas_12": "2",
+"tenaga_pendidik": "3",
+"lainnya": "0",
+"total": "17"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "horror",
+"kelas_10": "1",
+"kelas_11": "3",
+"kelas_12": "3",
+"tenaga_pendidik": "1",
+"lainnya": "0",
+"total": "8"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Komputer & Teknologi",
+"kelas_10": "9",
+"kelas_11": "7",
+"kelas_12": "7",
+"tenaga_pendidik": "2",
+"lainnya": "0",
+"total": "25"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Pengujian Sistem",
+"kelas_10": "0",
+"kelas_11": "0",
+"kelas_12": "3",
+"tenaga_pendidik": "0",
+"lainnya": "0",
+"total": "3"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Romance & Drama",
+"kelas_10": "2",
+"kelas_11": "3",
+"kelas_12": "2",
+"tenaga_pendidik": "1",
+"lainnya": "0",
+"total": "8"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Semua kategori",
+"kelas_10": "22",
+"kelas_11": "23",
+"kelas_12": "19",
+"tenaga_pendidik": "12",
+"lainnya": "0",
+"total": "76"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Ekonomi & Akuntansi",
+"kelas_10": "6",
+"kelas_11": "4",
+"kelas_12": "5",
+"tenaga_pendidik": "2",
+"lainnya": "0",
+"total": "17"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Fiksi & Sastra",
+"kelas_10": "4",
+"kelas_11": "6",
+"kelas_12": "3",
+"tenaga_pendidik": "2",
+"lainnya": "0",
+"total": "15"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "horror",
+"kelas_10": "1",
+"kelas_11": "0",
+"kelas_12": "6",
+"tenaga_pendidik": "1",
+"lainnya": "0",
+"total": "8"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Komputer & Teknologi",
+"kelas_10": "10",
+"kelas_11": "7",
+"kelas_12": "3",
+"tenaga_pendidik": "4",
+"lainnya": "0",
+"total": "24"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Pengujian Sistem",
+"kelas_10": "3",
+"kelas_11": "1",
+"kelas_12": "0",
+"tenaga_pendidik": "1",
+"lainnya": "0",
+"total": "5"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Romance & Drama",
+"kelas_10": "1",
+"kelas_11": "4",
+"kelas_12": "3",
+"tenaga_pendidik": "2",
+"lainnya": "0",
+"total": "10"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Semua kategori",
+"kelas_10": "25",
+"kelas_11": "22",
+"kelas_12": "20",
+"tenaga_pendidik": "12",
+"lainnya": "0",
+"total": "79"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Ekonomi & Akuntansi",
+"kelas_10": "3",
+"kelas_11": "5",
+"kelas_12": "5",
+"tenaga_pendidik": "2",
+"lainnya": "1",
+"total": "16"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Fiksi & Sastra",
+"kelas_10": "5",
+"kelas_11": "4",
+"kelas_12": "4",
+"tenaga_pendidik": "2",
+"lainnya": "2",
+"total": "17"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "horror",
+"kelas_10": "4",
+"kelas_11": "2",
+"kelas_12": "1",
+"tenaga_pendidik": "1",
+"lainnya": "0",
+"total": "8"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Komputer & Teknologi",
+"kelas_10": "5",
+"kelas_11": "7",
+"kelas_12": "7",
+"tenaga_pendidik": "5",
+"lainnya": "1",
+"total": "25"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Pengujian Sistem",
+"kelas_10": "0",
+"kelas_11": "2",
+"kelas_12": "2",
+"tenaga_pendidik": "1",
+"lainnya": "0",
+"total": "5"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Romance & Drama",
+"kelas_10": "6",
+"kelas_11": "0",
+"kelas_12": "2",
+"tenaga_pendidik": "0",
+"lainnya": "2",
+"total": "10"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Semua kategori",
+"kelas_10": "23",
+"kelas_11": "20",
+"kelas_12": "21",
+"tenaga_pendidik": "11",
+"lainnya": "6",
+"total": "81"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "Ekonomi & Akuntansi",
+"kelas_10": "0",
+"kelas_11": "0",
+"kelas_12": "2",
+"tenaga_pendidik": "0",
+"lainnya": "0",
+"total": "2"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "Fiksi & Sastra",
+"kelas_10": "0",
+"kelas_11": "0",
+"kelas_12": "0",
+"tenaga_pendidik": "0",
+"lainnya": "0",
+"total": "0"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "horror",
+"kelas_10": "0",
+"kelas_11": "0",
+"kelas_12": "0",
+"tenaga_pendidik": "0",
+"lainnya": "1",
+"total": "1"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "Komputer & Teknologi",
+"kelas_10": "0",
+"kelas_11": "0",
+"kelas_12": "3",
+"tenaga_pendidik": "0",
+"lainnya": "0",
+"total": "3"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "Romance & Drama",
+"kelas_10": "0",
+"kelas_11": "0",
+"kelas_12": "0",
+"tenaga_pendidik": "0",
+"lainnya": "1",
+"total": "1"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "Semua kategori",
+"kelas_10": "0",
+"kelas_11": "0",
+"kelas_12": "5",
+"tenaga_pendidik": "0",
+"lainnya": "2",
+"total": "7"
+},
+{
+"tahun": "2026",
+"kuartal": "Semua kuartal",
+"kategori": "Semua kategori",
+"kelas_10": "70",
+"kelas_11": "65",
+"kelas_12": "65",
+"tenaga_pendidik": "35",
+"lainnya": "8",
+"total": "243"
+},
+{
+"tahun": "TOTAL",
+"kuartal": "Semua kuartal",
+"kategori": "Semua kategori",
+"kelas_10": "70",
+"kelas_11": "65",
+"kelas_12": "65",
+"tenaga_pendidik": "35",
+"lainnya": "8",
+"total": "243"
+}
+],
+"dw1_top": [
+{
+"judul": "Laut Bercerita",
+"nama_kategori": "Fiksi & Sastra",
+"kelas_10": "9",
+"kelas_11": "10",
+"kelas_12": "6",
+"tenaga_pendidik": "4",
+"lainnya": "1",
+"total_dipinjam": "30"
+},
+{
+"judul": "23:59",
+"nama_kategori": "Romance & Drama",
+"kelas_10": "9",
+"kelas_11": "7",
+"kelas_12": "7",
+"tenaga_pendidik": "3",
+"lainnya": "3",
+"total_dipinjam": "29"
+},
+{
+"judul": "Akuntansi Dasar: Buku Pintar untuk Pemula",
+"nama_kategori": "Ekonomi & Akuntansi",
+"kelas_10": "6",
+"kelas_11": "7",
+"kelas_12": "8",
+"tenaga_pendidik": "4",
+"lainnya": "1",
+"total_dipinjam": "26"
+},
+{
+"judul": "oijoijoijoij",
+"nama_kategori": "horror",
+"kelas_10": "6",
+"kelas_11": "5",
+"kelas_12": "10",
+"tenaga_pendidik": "3",
+"lainnya": "1",
+"total_dipinjam": "25"
+},
+{
+"judul": "adlkajlda",
+"nama_kategori": "Ekonomi & Akuntansi",
+"kelas_10": "5",
+"kelas_11": "8",
+"kelas_12": "6",
+"tenaga_pendidik": "5",
+"lainnya": "0",
+"total_dipinjam": "24"
+},
+{
+"judul": "Langsung Mahir Python untuk Pemula",
+"nama_kategori": "Komputer & Teknologi",
+"kelas_10": "7",
+"kelas_11": "5",
+"kelas_12": "6",
+"tenaga_pendidik": "5",
+"lainnya": "1",
+"total_dipinjam": "24"
+},
+{
+"judul": "Machine Learning dan Deep Learning: Konsep dan Pemrograman Python",
+"nama_kategori": "Komputer & Teknologi",
+"kelas_10": "9",
+"kelas_11": "6",
+"kelas_12": "5",
+"tenaga_pendidik": "3",
+"lainnya": "0",
+"total_dipinjam": "23"
+},
+{
+"judul": "Seporsi Mie Ayam Sebelum Mati",
+"nama_kategori": "Fiksi & Sastra",
+"kelas_10": "8",
+"kelas_11": "4",
+"kelas_12": "3",
+"tenaga_pendidik": "3",
+"lainnya": "1",
+"total_dipinjam": "19"
+},
+{
+"judul": "Computer Networking: A Top-Down Approach",
+"nama_kategori": "Komputer & Teknologi",
+"kelas_10": "6",
+"kelas_11": "5",
+"kelas_12": "5",
+"tenaga_pendidik": "2",
+"lainnya": "0",
+"total_dipinjam": "18"
+},
+{
+"judul": "Buku Uji Denda dan Stok",
+"nama_kategori": "Pengujian Sistem",
+"kelas_10": "3",
+"kelas_11": "3",
+"kelas_12": "5",
+"tenaga_pendidik": "2",
+"lainnya": "0",
+"total_dipinjam": "13"
+}
+],
+"dw1_fav": [
+{
+"kelompok_peminjam": "Kelas 10",
+"nama_kategori": "Komputer & Teknologi",
+"dipinjam": "24"
+},
+{
+"kelompok_peminjam": "Kelas 11",
+"nama_kategori": "Komputer & Teknologi",
+"dipinjam": "21"
+},
+{
+"kelompok_peminjam": "Kelas 12",
+"nama_kategori": "Komputer & Teknologi",
+"dipinjam": "20"
+},
+{
+"kelompok_peminjam": "Lainnya",
+"nama_kategori": "Romance & Drama",
+"dipinjam": "3"
+},
+{
+"kelompok_peminjam": "Tenaga Pendidik",
+"nama_kategori": "Komputer & Teknologi",
+"dipinjam": "11"
+}
+],
+"dw1_tren": [
+{
+"tahun": "2026",
+"bulan": "1",
+"nama_bulan": "Januari",
+"pengajuan": "27",
+"berhasil": "25",
+"gagal": "2",
+"persen_berhasil": "92.6"
+},
+{
+"tahun": "2026",
+"bulan": "2",
+"nama_bulan": "Februari",
+"pengajuan": "27",
+"berhasil": "24",
+"gagal": "3",
+"persen_berhasil": "88.9"
+},
+{
+"tahun": "2026",
+"bulan": "3",
+"nama_bulan": "Maret",
+"pengajuan": "30",
+"berhasil": "27",
+"gagal": "3",
+"persen_berhasil": "90.0"
+},
+{
+"tahun": "2026",
+"bulan": "4",
+"nama_bulan": "April",
+"pengajuan": "29",
+"berhasil": "26",
+"gagal": "3",
+"persen_berhasil": "89.7"
+},
+{
+"tahun": "2026",
+"bulan": "5",
+"nama_bulan": "Mei",
+"pengajuan": "30",
+"berhasil": "27",
+"gagal": "3",
+"persen_berhasil": "90.0"
+},
+{
+"tahun": "2026",
+"bulan": "6",
+"nama_bulan": "Juni",
+"pengajuan": "29",
+"berhasil": "26",
+"gagal": "3",
+"persen_berhasil": "89.7"
+},
+{
+"tahun": "2026",
+"bulan": "7",
+"nama_bulan": "Juli",
+"pengajuan": "30",
+"berhasil": "27",
+"gagal": "3",
+"persen_berhasil": "90.0"
+},
+{
+"tahun": "2026",
+"bulan": "8",
+"nama_bulan": "Agustus",
+"pengajuan": "30",
+"berhasil": "27",
+"gagal": "3",
+"persen_berhasil": "90.0"
+},
+{
+"tahun": "2026",
+"bulan": "9",
+"nama_bulan": "September",
+"pengajuan": "32",
+"berhasil": "27",
+"gagal": "5",
+"persen_berhasil": "84.4"
+},
+{
+"tahun": "2026",
+"bulan": "10",
+"nama_bulan": "Oktober",
+"pengajuan": "12",
+"berhasil": "7",
+"gagal": "3",
+"persen_berhasil": "58.3"
+}
+],
+"dw2_pivot": [
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Ekonomi & Akuntansi",
+"kelas_10": "5.00",
+"kelas_11": "4.00",
+"kelas_12": "4.00",
+"tenaga_pendidik": "3.50",
+"lainnya": "NULL",
+"jumlah_ulasan": "6",
+"rata_rating": "4.00"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Fiksi & Sastra",
+"kelas_10": "3.33",
+"kelas_11": "NULL",
+"kelas_12": "5.00",
+"tenaga_pendidik": "4.00",
+"lainnya": "NULL",
+"jumlah_ulasan": "6",
+"rata_rating": "3.83"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "horror",
+"kelas_10": "NULL",
+"kelas_11": "4.00",
+"kelas_12": "3.50",
+"tenaga_pendidik": "NULL",
+"lainnya": "NULL",
+"jumlah_ulasan": "4",
+"rata_rating": "3.75"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Komputer & Teknologi",
+"kelas_10": "4.33",
+"kelas_11": "2.67",
+"kelas_12": "3.00",
+"tenaga_pendidik": "NULL",
+"lainnya": "NULL",
+"jumlah_ulasan": "9",
+"rata_rating": "3.33"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Pengujian Sistem",
+"kelas_10": "NULL",
+"kelas_11": "NULL",
+"kelas_12": "4.00",
+"tenaga_pendidik": "NULL",
+"lainnya": "NULL",
+"jumlah_ulasan": "1",
+"rata_rating": "4.00"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Romance & Drama",
+"kelas_10": "5.00",
+"kelas_11": "NULL",
+"kelas_12": "4.00",
+"tenaga_pendidik": "3.00",
+"lainnya": "NULL",
+"jumlah_ulasan": "3",
+"rata_rating": "4.00"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"kategori": "Semua kategori",
+"kelas_10": "4.13",
+"kelas_11": "3.43",
+"kelas_12": "3.67",
+"tenaga_pendidik": "3.60",
+"lainnya": "NULL",
+"jumlah_ulasan": "29",
+"rata_rating": "3.72"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Ekonomi & Akuntansi",
+"kelas_10": "3.00",
+"kelas_11": "3.00",
+"kelas_12": "5.00",
+"tenaga_pendidik": "5.00",
+"lainnya": "NULL",
+"jumlah_ulasan": "6",
+"rata_rating": "3.67"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Fiksi & Sastra",
+"kelas_10": "3.50",
+"kelas_11": "3.50",
+"kelas_12": "3.00",
+"tenaga_pendidik": "NULL",
+"lainnya": "NULL",
+"jumlah_ulasan": "5",
+"rata_rating": "3.40"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "horror",
+"kelas_10": "NULL",
+"kelas_11": "NULL",
+"kelas_12": "4.50",
+"tenaga_pendidik": "NULL",
+"lainnya": "NULL",
+"jumlah_ulasan": "2",
+"rata_rating": "4.50"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Komputer & Teknologi",
+"kelas_10": "4.00",
+"kelas_11": "4.50",
+"kelas_12": "3.00",
+"tenaga_pendidik": "5.00",
+"lainnya": "NULL",
+"jumlah_ulasan": "9",
+"rata_rating": "4.11"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Pengujian Sistem",
+"kelas_10": "NULL",
+"kelas_11": "4.00",
+"kelas_12": "NULL",
+"tenaga_pendidik": "3.00",
+"lainnya": "NULL",
+"jumlah_ulasan": "2",
+"rata_rating": "3.50"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Romance & Drama",
+"kelas_10": "NULL",
+"kelas_11": "4.00",
+"kelas_12": "5.00",
+"tenaga_pendidik": "3.50",
+"lainnya": "NULL",
+"jumlah_ulasan": "4",
+"rata_rating": "4.00"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"kategori": "Semua kategori",
+"kelas_10": "3.75",
+"kelas_11": "3.67",
+"kelas_12": "4.17",
+"tenaga_pendidik": "4.00",
+"lainnya": "NULL",
+"jumlah_ulasan": "28",
+"rata_rating": "3.86"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Ekonomi & Akuntansi",
+"kelas_10": "3.50",
+"kelas_11": "5.00",
+"kelas_12": "3.33",
+"tenaga_pendidik": "NULL",
+"lainnya": "NULL",
+"jumlah_ulasan": "6",
+"rata_rating": "3.67"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Fiksi & Sastra",
+"kelas_10": "3.00",
+"kelas_11": "NULL",
+"kelas_12": "4.67",
+"tenaga_pendidik": "4.00",
+"lainnya": "NULL",
+"jumlah_ulasan": "6",
+"rata_rating": "4.17"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "horror",
+"kelas_10": "4.00",
+"kelas_11": "5.00",
+"kelas_12": "4.00",
+"tenaga_pendidik": "NULL",
+"lainnya": "NULL",
+"jumlah_ulasan": "4",
+"rata_rating": "4.25"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Komputer & Teknologi",
+"kelas_10": "4.50",
+"kelas_11": "3.75",
+"kelas_12": "4.00",
+"tenaga_pendidik": "3.50",
+"lainnya": "NULL",
+"jumlah_ulasan": "11",
+"rata_rating": "3.91"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Pengujian Sistem",
+"kelas_10": "NULL",
+"kelas_11": "4.00",
+"kelas_12": "NULL",
+"tenaga_pendidik": "NULL",
+"lainnya": "NULL",
+"jumlah_ulasan": "2",
+"rata_rating": "4.00"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Romance & Drama",
+"kelas_10": "4.00",
+"kelas_11": "3.00",
+"kelas_12": "5.00",
+"tenaga_pendidik": "NULL",
+"lainnya": "NULL",
+"jumlah_ulasan": "4",
+"rata_rating": "4.00"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"kategori": "Semua kategori",
+"kelas_10": "3.88",
+"kelas_11": "4.00",
+"kelas_12": "4.08",
+"tenaga_pendidik": "3.75",
+"lainnya": "NULL",
+"jumlah_ulasan": "33",
+"rata_rating": "3.97"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "Ekonomi & Akuntansi",
+"kelas_10": "NULL",
+"kelas_11": "NULL",
+"kelas_12": "NULL",
+"tenaga_pendidik": "NULL",
+"lainnya": "4.00",
+"jumlah_ulasan": "1",
+"rata_rating": "4.00"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "horror",
+"kelas_10": "4.00",
+"kelas_11": "NULL",
+"kelas_12": "NULL",
+"tenaga_pendidik": "NULL",
+"lainnya": "NULL",
+"jumlah_ulasan": "1",
+"rata_rating": "4.00"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "Komputer & Teknologi",
+"kelas_10": "NULL",
+"kelas_11": "NULL",
+"kelas_12": "5.00",
+"tenaga_pendidik": "NULL",
+"lainnya": "5.00",
+"jumlah_ulasan": "2",
+"rata_rating": "5.00"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "Romance & Drama",
+"kelas_10": "NULL",
+"kelas_11": "NULL",
+"kelas_12": "NULL",
+"tenaga_pendidik": "NULL",
+"lainnya": "5.00",
+"jumlah_ulasan": "1",
+"rata_rating": "5.00"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"kategori": "Semua kategori",
+"kelas_10": "4.00",
+"kelas_11": "NULL",
+"kelas_12": "5.00",
+"tenaga_pendidik": "NULL",
+"lainnya": "4.67",
+"jumlah_ulasan": "5",
+"rata_rating": "4.60"
+},
+{
+"tahun": "2026",
+"kuartal": "Semua kuartal",
+"kategori": "Semua kategori",
+"kelas_10": "3.92",
+"kelas_11": "3.72",
+"kelas_12": "4.00",
+"tenaga_pendidik": "3.79",
+"lainnya": "4.67",
+"jumlah_ulasan": "95",
+"rata_rating": "3.89"
+},
+{
+"tahun": "TOTAL",
+"kuartal": "Semua kuartal",
+"kategori": "Semua kategori",
+"kelas_10": "3.92",
+"kelas_11": "3.72",
+"kelas_12": "4.00",
+"tenaga_pendidik": "3.79",
+"lainnya": "4.67",
+"jumlah_ulasan": "95",
+"rata_rating": "3.89"
+}
+],
+"dw2_top": [
+{
+"judul": "Seporsi Mie Ayam Sebelum Mati",
+"nama_kategori": "Fiksi & Sastra",
+"jumlah_ulasan": "6",
+"rata_rating": "4.33",
+"rating_tinggi": "6",
+"rating_rendah": "0"
+},
+{
+"judul": "oijoijoijoij",
+"nama_kategori": "horror",
+"jumlah_ulasan": "11",
+"rata_rating": "4.09",
+"rating_tinggi": "10",
+"rating_rendah": "1"
+},
+{
+"judul": "23:59",
+"nama_kategori": "Romance & Drama",
+"jumlah_ulasan": "12",
+"rata_rating": "4.08",
+"rating_tinggi": "12",
+"rating_rendah": "0"
+},
+{
+"judul": "Machine Learning dan Deep Learning: Konsep dan Pemrograman Python",
+"nama_kategori": "Komputer & Teknologi",
+"jumlah_ulasan": "8",
+"rata_rating": "4.00",
+"rating_tinggi": "7",
+"rating_rendah": "1"
+},
+{
+"judul": "Langsung Mahir Python untuk Pemula",
+"nama_kategori": "Komputer & Teknologi",
+"jumlah_ulasan": "13",
+"rata_rating": "3.92",
+"rating_tinggi": "12",
+"rating_rendah": "1"
+},
+{
+"judul": "adlkajlda",
+"nama_kategori": "Ekonomi & Akuntansi",
+"jumlah_ulasan": "9",
+"rata_rating": "3.89",
+"rating_tinggi": "8",
+"rating_rendah": "1"
+},
+{
+"judul": "Buku Uji Denda dan Stok",
+"nama_kategori": "Pengujian Sistem",
+"jumlah_ulasan": "5",
+"rata_rating": "3.80",
+"rating_tinggi": "5",
+"rating_rendah": "0"
+},
+{
+"judul": "Akuntansi Dasar: Buku Pintar untuk Pemula",
+"nama_kategori": "Ekonomi & Akuntansi",
+"jumlah_ulasan": "10",
+"rata_rating": "3.70",
+"rating_tinggi": "9",
+"rating_rendah": "1"
+},
+{
+"judul": "Computer Networking: A Top-Down Approach",
+"nama_kategori": "Komputer & Teknologi",
+"jumlah_ulasan": "5",
+"rata_rating": "3.60",
+"rating_tinggi": "5",
+"rating_rendah": "0"
+},
+{
+"judul": "Laut Bercerita",
+"nama_kategori": "Fiksi & Sastra",
+"jumlah_ulasan": "11",
+"rata_rating": "3.55",
+"rating_tinggi": "9",
+"rating_rendah": "2"
+}
+],
+"dw2_low": [
+{
+"judul": "Python untuk Programmer Pemula",
+"nama_kategori": "Komputer & Teknologi",
+"jumlah_ulasan": "4",
+"rating_rendah": "1",
+"persen_rating_rendah": "25.0",
+"rata_rating": "3.50"
+},
+{
+"judul": "Laut Bercerita",
+"nama_kategori": "Fiksi & Sastra",
+"jumlah_ulasan": "11",
+"rating_rendah": "2",
+"persen_rating_rendah": "18.2",
+"rata_rating": "3.55"
+},
+{
+"judul": "Machine Learning dan Deep Learning: Konsep dan Pemrograman Python",
+"nama_kategori": "Komputer & Teknologi",
+"jumlah_ulasan": "8",
+"rating_rendah": "1",
+"persen_rating_rendah": "12.5",
+"rata_rating": "4.00"
+},
+{
+"judul": "adlkajlda",
+"nama_kategori": "Ekonomi & Akuntansi",
+"jumlah_ulasan": "9",
+"rating_rendah": "1",
+"persen_rating_rendah": "11.1",
+"rata_rating": "3.89"
+},
+{
+"judul": "Akuntansi Dasar: Buku Pintar untuk Pemula",
+"nama_kategori": "Ekonomi & Akuntansi",
+"jumlah_ulasan": "10",
+"rating_rendah": "1",
+"persen_rating_rendah": "10.0",
+"rata_rating": "3.70"
+},
+{
+"judul": "oijoijoijoij",
+"nama_kategori": "horror",
+"jumlah_ulasan": "11",
+"rating_rendah": "1",
+"persen_rating_rendah": "9.1",
+"rata_rating": "4.09"
+},
+{
+"judul": "Langsung Mahir Python untuk Pemula",
+"nama_kategori": "Komputer & Teknologi",
+"jumlah_ulasan": "13",
+"rating_rendah": "1",
+"persen_rating_rendah": "7.7",
+"rata_rating": "3.92"
+}
+],
+"dw2_kel": [
+{
+"kelompok_peminjam": "Kelas 10",
+"jumlah_ulasan": "25",
+"rata_rating": "3.92",
+"persen_rating_tinggi": "96.0",
+"persen_rating_rendah": "4.0"
+},
+{
+"kelompok_peminjam": "Kelas 11",
+"jumlah_ulasan": "25",
+"rata_rating": "3.72",
+"persen_rating_tinggi": "80.0",
+"persen_rating_rendah": "20.0"
+},
+{
+"kelompok_peminjam": "Kelas 12",
+"jumlah_ulasan": "28",
+"rata_rating": "4.00",
+"persen_rating_tinggi": "92.9",
+"persen_rating_rendah": "7.1"
+},
+{
+"kelompok_peminjam": "Lainnya",
+"jumlah_ulasan": "3",
+"rata_rating": "4.67",
+"persen_rating_tinggi": "100.0",
+"persen_rating_rendah": "0.0"
+},
+{
+"kelompok_peminjam": "Tenaga Pendidik",
+"jumlah_ulasan": "14",
+"rata_rating": "3.79",
+"persen_rating_tinggi": "100.0",
+"persen_rating_rendah": "0.0"
+}
+],
+"dw3_pivot": [
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"bulan_jatuh_tempo": "Januari",
+"kelas_10": "1",
+"kelas_11": "0",
+"kelas_12": "1",
+"tenaga_pendidik": "0",
+"lainnya": "0",
+"total_terlambat": "2",
+"kewajiban_kembali": "16",
+"persen_terlambat": "12.5",
+"total_denda": "11000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"bulan_jatuh_tempo": "Februari",
+"kelas_10": "0",
+"kelas_11": "2",
+"kelas_12": "1",
+"tenaga_pendidik": "0",
+"lainnya": "0",
+"total_terlambat": "3",
+"kewajiban_kembali": "25",
+"persen_terlambat": "12.0",
+"total_denda": "9000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"bulan_jatuh_tempo": "Maret",
+"kelas_10": "3",
+"kelas_11": "0",
+"kelas_12": "1",
+"tenaga_pendidik": "0",
+"lainnya": "0",
+"total_terlambat": "4",
+"kewajiban_kembali": "27",
+"persen_terlambat": "14.8",
+"total_denda": "16000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q1",
+"bulan_jatuh_tempo": "Semua bulan",
+"kelas_10": "4",
+"kelas_11": "2",
+"kelas_12": "3",
+"tenaga_pendidik": "0",
+"lainnya": "0",
+"total_terlambat": "9",
+"kewajiban_kembali": "68",
+"persen_terlambat": "13.2",
+"total_denda": "36000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"bulan_jatuh_tempo": "April",
+"kelas_10": "1",
+"kelas_11": "1",
+"kelas_12": "1",
+"tenaga_pendidik": "1",
+"lainnya": "0",
+"total_terlambat": "4",
+"kewajiban_kembali": "26",
+"persen_terlambat": "15.4",
+"total_denda": "19000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"bulan_jatuh_tempo": "Mei",
+"kelas_10": "0",
+"kelas_11": "1",
+"kelas_12": "1",
+"tenaga_pendidik": "2",
+"lainnya": "0",
+"total_terlambat": "4",
+"kewajiban_kembali": "26",
+"persen_terlambat": "15.4",
+"total_denda": "13000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"bulan_jatuh_tempo": "Juni",
+"kelas_10": "0",
+"kelas_11": "2",
+"kelas_12": "1",
+"tenaga_pendidik": "1",
+"lainnya": "0",
+"total_terlambat": "4",
+"kewajiban_kembali": "26",
+"persen_terlambat": "15.4",
+"total_denda": "16000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q2",
+"bulan_jatuh_tempo": "Semua bulan",
+"kelas_10": "1",
+"kelas_11": "4",
+"kelas_12": "3",
+"tenaga_pendidik": "4",
+"lainnya": "0",
+"total_terlambat": "12",
+"kewajiban_kembali": "78",
+"persen_terlambat": "15.4",
+"total_denda": "48000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"bulan_jatuh_tempo": "Juli",
+"kelas_10": "2",
+"kelas_11": "0",
+"kelas_12": "2",
+"tenaga_pendidik": "0",
+"lainnya": "0",
+"total_terlambat": "4",
+"kewajiban_kembali": "27",
+"persen_terlambat": "14.8",
+"total_denda": "19000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"bulan_jatuh_tempo": "Agustus",
+"kelas_10": "0",
+"kelas_11": "2",
+"kelas_12": "1",
+"tenaga_pendidik": "1",
+"lainnya": "0",
+"total_terlambat": "4",
+"kewajiban_kembali": "27",
+"persen_terlambat": "14.8",
+"total_denda": "13000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"bulan_jatuh_tempo": "September",
+"kelas_10": "3",
+"kelas_11": "0",
+"kelas_12": "1",
+"tenaga_pendidik": "1",
+"lainnya": "1",
+"total_terlambat": "6",
+"kewajiban_kembali": "28",
+"persen_terlambat": "21.4",
+"total_denda": "29000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q3",
+"bulan_jatuh_tempo": "Semua bulan",
+"kelas_10": "5",
+"kelas_11": "2",
+"kelas_12": "4",
+"tenaga_pendidik": "2",
+"lainnya": "1",
+"total_terlambat": "14",
+"kewajiban_kembali": "82",
+"persen_terlambat": "17.1",
+"total_denda": "61000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"bulan_jatuh_tempo": "Oktober",
+"kelas_10": "0",
+"kelas_11": "0",
+"kelas_12": "5",
+"tenaga_pendidik": "0",
+"lainnya": "3",
+"total_terlambat": "8",
+"kewajiban_kembali": "15",
+"persen_terlambat": "53.3",
+"total_denda": "189000"
+},
+{
+"tahun": "2026",
+"kuartal": "Q4",
+"bulan_jatuh_tempo": "Semua bulan",
+"kelas_10": "0",
+"kelas_11": "0",
+"kelas_12": "5",
+"tenaga_pendidik": "0",
+"lainnya": "3",
+"total_terlambat": "8",
+"kewajiban_kembali": "15",
+"persen_terlambat": "53.3",
+"total_denda": "189000"
+},
+{
+"tahun": "2026",
+"kuartal": "Semua kuartal",
+"bulan_jatuh_tempo": "Semua bulan",
+"kelas_10": "10",
+"kelas_11": "8",
+"kelas_12": "15",
+"tenaga_pendidik": "6",
+"lainnya": "4",
+"total_terlambat": "43",
+"kewajiban_kembali": "243",
+"persen_terlambat": "17.7",
+"total_denda": "334000"
+},
+{
+"tahun": "TOTAL",
+"kuartal": "Semua kuartal",
+"bulan_jatuh_tempo": "Semua bulan",
+"kelas_10": "10",
+"kelas_11": "8",
+"kelas_12": "15",
+"tenaga_pendidik": "6",
+"lainnya": "4",
+"total_terlambat": "43",
+"kewajiban_kembali": "243",
+"persen_terlambat": "17.7",
+"total_denda": "334000"
+}
+],
+"dw3_bulan": [
+{
+"tahun": "2026",
+"nama_bulan": "Oktober",
+"terlambat": "8",
+"kewajiban_kembali": "15",
+"persen_terlambat": "53.3",
+"total_hari_terlambat": "189"
+},
+{
+"tahun": "2026",
+"nama_bulan": "September",
+"terlambat": "6",
+"kewajiban_kembali": "28",
+"persen_terlambat": "21.4",
+"total_hari_terlambat": "29"
+},
+{
+"tahun": "2026",
+"nama_bulan": "Mei",
+"terlambat": "4",
+"kewajiban_kembali": "26",
+"persen_terlambat": "15.4",
+"total_hari_terlambat": "13"
+},
+{
+"tahun": "2026",
+"nama_bulan": "Juni",
+"terlambat": "4",
+"kewajiban_kembali": "26",
+"persen_terlambat": "15.4",
+"total_hari_terlambat": "16"
+},
+{
+"tahun": "2026",
+"nama_bulan": "April",
+"terlambat": "4",
+"kewajiban_kembali": "26",
+"persen_terlambat": "15.4",
+"total_hari_terlambat": "19"
+}
+],
+"dw3_kat": [
+{
+"nama_kategori": "Pengujian Sistem",
+"kewajiban_kembali": "13",
+"terlambat": "6",
+"persen_terlambat": "46.2",
+"rata_hari_terlambat": "4.7",
+"total_denda": "28000"
+},
+{
+"nama_kategori": "horror",
+"kewajiban_kembali": "25",
+"terlambat": "7",
+"persen_terlambat": "28.0",
+"rata_hari_terlambat": "9.6",
+"total_denda": "67000"
+},
+{
+"nama_kategori": "Komputer & Teknologi",
+"kewajiban_kembali": "77",
+"terlambat": "15",
+"persen_terlambat": "19.5",
+"rata_hari_terlambat": "5.3",
+"total_denda": "79000"
+},
+{
+"nama_kategori": "Ekonomi & Akuntansi",
+"kewajiban_kembali": "50",
+"terlambat": "8",
+"persen_terlambat": "16.0",
+"rata_hari_terlambat": "12.4",
+"total_denda": "99000"
+},
+{
+"nama_kategori": "Fiksi & Sastra",
+"kewajiban_kembali": "49",
+"terlambat": "5",
+"persen_terlambat": "10.2",
+"rata_hari_terlambat": "4.0",
+"total_denda": "20000"
+},
+{
+"nama_kategori": "Romance & Drama",
+"kewajiban_kembali": "29",
+"terlambat": "2",
+"persen_terlambat": "6.9",
+"rata_hari_terlambat": "20.5",
+"total_denda": "41000"
+}
+],
+"dw3_kel": [
+{
+"kelompok_peminjam": "Lainnya",
+"kewajiban_kembali": "8",
+"terlambat": "4",
+"persen_terlambat": "50.0",
+"rata_hari_terlambat": "20.8",
+"total_denda": "83000"
+},
+{
+"kelompok_peminjam": "Kelas 12",
+"kewajiban_kembali": "65",
+"terlambat": "15",
+"persen_terlambat": "23.1",
+"rata_hari_terlambat": "10.7",
+"total_denda": "161000"
+},
+{
+"kelompok_peminjam": "Tenaga Pendidik",
+"kewajiban_kembali": "35",
+"terlambat": "6",
+"persen_terlambat": "17.1",
+"rata_hari_terlambat": "3.5",
+"total_denda": "21000"
+},
+{
+"kelompok_peminjam": "Kelas 10",
+"kewajiban_kembali": "70",
+"terlambat": "10",
+"persen_terlambat": "14.3",
+"rata_hari_terlambat": "3.7",
+"total_denda": "37000"
+},
+{
+"kelompok_peminjam": "Kelas 11",
+"kewajiban_kembali": "65",
+"terlambat": "8",
+"persen_terlambat": "12.3",
+"rata_hari_terlambat": "4.0",
+"total_denda": "32000"
+}
+],
+"gabungan": [
+{
+"judul": "Laut Bercerita",
+"nama_kategori": "Fiksi & Sastra",
+"dipinjam": "30",
+"rata_rating": "3.55",
+"terlambat": "5"
+},
+{
+"judul": "23:59",
+"nama_kategori": "Romance & Drama",
+"dipinjam": "29",
+"rata_rating": "4.08",
+"terlambat": "2"
+},
+{
+"judul": "Akuntansi Dasar: Buku Pintar untuk Pemula",
+"nama_kategori": "Ekonomi & Akuntansi",
+"dipinjam": "26",
+"rata_rating": "3.70",
+"terlambat": "3"
+},
+{
+"judul": "oijoijoijoij",
+"nama_kategori": "horror",
+"dipinjam": "25",
+"rata_rating": "4.09",
+"terlambat": "7"
+},
+{
+"judul": "Langsung Mahir Python untuk Pemula",
+"nama_kategori": "Komputer & Teknologi",
+"dipinjam": "24",
+"rata_rating": "3.92",
+"terlambat": "6"
+},
+{
+"judul": "adlkajlda",
+"nama_kategori": "Ekonomi & Akuntansi",
+"dipinjam": "24",
+"rata_rating": "3.89",
+"terlambat": "5"
+},
+{
+"judul": "Machine Learning dan Deep Learning: Konsep dan Pemrograman Python",
+"nama_kategori": "Komputer & Teknologi",
+"dipinjam": "23",
+"rata_rating": "4.00",
+"terlambat": "5"
+},
+{
+"judul": "Seporsi Mie Ayam Sebelum Mati",
+"nama_kategori": "Fiksi & Sastra",
+"dipinjam": "19",
+"rata_rating": "4.33",
+"terlambat": "0"
+},
+{
+"judul": "Computer Networking: A Top-Down Approach",
+"nama_kategori": "Komputer & Teknologi",
+"dipinjam": "18",
+"rata_rating": "3.60",
+"terlambat": "3"
+},
+{
+"judul": "Buku Uji Denda dan Stok",
+"nama_kategori": "Pengujian Sistem",
+"dipinjam": "13",
+"rata_rating": "3.80",
+"terlambat": "6"
+},
+{
+"judul": "Python untuk Programmer Pemula",
+"nama_kategori": "Komputer & Teknologi",
+"dipinjam": "11",
+"rata_rating": "3.50",
+"terlambat": "0"
+},
+{
+"judul": "Pemrograman Python untuk Pemula",
+"nama_kategori": "Komputer & Teknologi",
+"dipinjam": "1",
+"rata_rating": "NULL",
+"terlambat": "1"
+},
+{
+"judul": "Data Science dengan Python: Konsep dan Implementasi",
+"nama_kategori": "Komputer & Teknologi",
+"dipinjam": "0",
+"rata_rating": "5.00",
+"terlambat": "0"
+},
+{
+"judul": "filosofi teras",
+"nama_kategori": "filosofi",
+"dipinjam": "0",
+"rata_rating": "NULL",
+"terlambat": "0"
+},
+{
+"judul": "filosofi teras",
+"nama_kategori": "filosofi",
+"dipinjam": "0",
+"rata_rating": "NULL",
+"terlambat": "0"
+}
+]
+}
