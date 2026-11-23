@@ -1,7 +1,7 @@
 """Generator database sumber dummy `basdat_sumber` (keputusan D3 dan D4).
 
 Jalankan:  python buat_basdat_sumber.py
-Hasil   :  00_basdat_sumber.sql  (struktur sama dengan basdat_github + seluruh data dummy)
+Hasil   :  02_basdat_sumber.sql  (struktur sama dengan basdat_github + seluruh data dummy)
 
 Ciri data (deterministik, seed tetap -> hasil sama di semua laptop):
   * periode 1 Januari 2025 s.d. 21 November 2026 (tanggal setelahnya belum terjadi)
@@ -18,7 +18,7 @@ from datetime import date, datetime, timedelta
 SEED = 20261122
 AWAL, AKHIR = date(2025, 1, 1), date(2026, 11, 21)   # data terakhir = 21 Nov 2026
 TARGET_PINJAM = 1000
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "00_basdat_sumber.sql")
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "02_basdat_sumber.sql")
 rng = random.Random(SEED)
 
 # ---------------------------------------------------------------------------
@@ -348,7 +348,7 @@ CREATE TABLE admin_logs (
 
 HEADER = f"""-- =====================================================================
 -- SMART READING ROOM - DATA WAREHOUSE (Kelompok G)
--- File 0 : DATABASE SUMBER DUMMY `basdat_sumber` (keputusan D3 dan D4)
+-- File 2 dari 4 : DATABASE SUMBER DUMMY `basdat_sumber` (keputusan D3 dan D4)
 --
 -- Struktur tabel sama dengan database aplikasi `basdat_github`, tetapi
 -- seluruh isinya data dummy FIKTIF. `basdat_github` tidak disentuh.
@@ -360,9 +360,9 @@ HEADER = f"""-- ================================================================
 --   Catatan   : notifications dan admin_logs hanya strukturnya (tidak dipakai DW).
 --               Akun dummy tidak bisa login (password tidak valid).
 --
--- Cara pakai: phpMyAdmin > Import (atau: mysql -u root < 00_basdat_sumber.sql).
+-- Cara pakai: phpMyAdmin > Import (atau: mysql -u root < 02_basdat_sumber.sql).
 -- PERINGATAN: database basdat_sumber dihapus lalu dibuat ulang.
--- Urutan: 00_basdat_sumber -> 01_ddl -> 03_etl -> 04_query_analisis
+-- Urutan: 01_ddl -> 02_basdat_sumber -> 03_etl -> 04_query_analisis (01 dan 02 boleh tertukar)
 -- =====================================================================
 
 DROP DATABASE IF EXISTS basdat_sumber;

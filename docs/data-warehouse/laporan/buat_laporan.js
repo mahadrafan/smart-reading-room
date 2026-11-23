@@ -61,7 +61,7 @@ function table(header, rows, widths, align = []) {
   return new Table({ width: { size: total, type: WidthType.DXA }, columnWidths: widths, rows: out });
 }
 const img = (file, w) => {
-  const buf = fs.readFileSync(path.join(HERE, "gambar-tanpa-judul", file));
+  const buf = fs.readFileSync(path.join(HERE, "..", "gambar-tanpa-judul", file));
   const pw = buf.readUInt32BE(16), ph = buf.readUInt32BE(20); // ukuran asli PNG
   const wpx = w, hpx = Math.round(w * ph / pw);
   return new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 120 },
@@ -286,7 +286,7 @@ const isi = [
   caption("Gambar 2. Design star schema DW 2 (Analisis Kepuasan Pembaca)"),
   img("skema-dw3-keterlambatan.png", 600),
   caption("Gambar 3. Design star schema DW 3 (Analisis Keterlambatan Pengembalian)"),
-  img("skema-ringkasan-tiga-dw.png", 600),
+  img("skema-fact-constellation.png", 600),
   caption("Gambar 4. Ringkasan tiga star schema: setiap tabel fakta memiliki empat tabel dimensi sendiri"),
 
   // ---------------- 4. INFORMATION PACKAGE ----------------

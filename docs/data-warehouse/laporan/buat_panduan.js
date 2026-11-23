@@ -421,7 +421,7 @@ add(h1("8. Referensi dan berkas acuan"));
 add(h2("A. Berkas di repo"));
 add(table(["Berkas", "Isi", "Dipakai oleh"], [
   ["`01_ddl_data_warehouse.sql`", "Struktur `basdat_dw` (3 dimensi, 3 fakta)", "Semua"],
-  ["`02_dummy_data_sumber.sql`, `02b_hapus_dummy_data.sql`", "Data dummy lama (akan diganti, D3–D4)", "Rafan"],
+  ["`sumber-dummy/02_basdat_sumber.sql`, `angka-acuan.md`", "Database sumber dummy `basdat_sumber` (D3–D4) dan angka acuan", "Rafan"],
   ["`03_etl_data_warehouse.sql`", "ETL SQL: acuan rumus dan rekonsiliasi", "Rafan, Irma, Isma"],
   ["`04_query_analisis.sql`", "Query information package; pembanding angka dashboard", "Isma, Vincent, Mako"],
   ["`gambar/`, `01_ddl_data_warehouse.sql`", "Rancangan fact constellation, X/Y/Z, gambar skema", "Semua"],

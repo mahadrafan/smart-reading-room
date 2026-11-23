@@ -1,6 +1,6 @@
 -- =====================================================================
 -- SMART READING ROOM - DATA WAREHOUSE (Kelompok G)
--- File 0 : DATABASE SUMBER DUMMY `basdat_sumber` (keputusan D3 dan D4)
+-- File 2 dari 4 : DATABASE SUMBER DUMMY `basdat_sumber` (keputusan D3 dan D4)
 --
 -- Struktur tabel sama dengan database aplikasi `basdat_github`, tetapi
 -- seluruh isinya data dummy FIKTIF. `basdat_github` tidak disentuh.
@@ -12,9 +12,9 @@
 --   Catatan   : notifications dan admin_logs hanya strukturnya (tidak dipakai DW).
 --               Akun dummy tidak bisa login (password tidak valid).
 --
--- Cara pakai: phpMyAdmin > Import (atau: mysql -u root < 00_basdat_sumber.sql).
+-- Cara pakai: phpMyAdmin > Import (atau: mysql -u root < 02_basdat_sumber.sql).
 -- PERINGATAN: database basdat_sumber dihapus lalu dibuat ulang.
--- Urutan: 00_basdat_sumber -> 01_ddl -> 03_etl -> 04_query_analisis
+-- Urutan: 01_ddl -> 02_basdat_sumber -> 03_etl -> 04_query_analisis (01 dan 02 boleh tertukar)
 -- =====================================================================
 
 DROP DATABASE IF EXISTS basdat_sumber;

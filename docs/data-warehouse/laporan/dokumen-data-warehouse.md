@@ -1,5 +1,7 @@
 # Data Warehouse Smart Reading Room (Revisi)
 
+> **Arsip.** Dokumen ini menjelaskan rancangan sebelum fact constellation dan sebelum peminjam dibatasi siswa. Rancangan dan struktur folder yang berlaku ada di `../README.md` dan `Panduan-Pengerjaan-Implementasi-DW.pdf`.
+
 Kelompok G, Basis Data, Universitas Airlangga
 
 Dokumen ini merangkum rancangan tiga data warehouse (DW) untuk Smart Reading Room setelah revisi. Laporan lengkapnya ada di `Laporan-Data-Warehouse-Smart-Reading-Room-Revisi.docx` (beserta versi PDF).
@@ -46,10 +48,10 @@ Setiap DW adalah star schema yang berdiri sendiri: tidak ada tabel dimensi yang 
 
 `kelompok_peminjam` diturunkan dari kolom `class` saat ETL (`XII...`/`12...` menjadi Kelas 12, dan seterusnya). Akun yang kelasnya tidak dikenali masuk ke `Lainnya`; pada data asli ini dua akun uji (kelas `s` dan `QA`). ETL menampilkan daftarnya agar bisa dirapikan di data sumber.
 
-![DW 1](gambar/skema-dw1-peminjaman-buku.png)
-![DW 2](gambar/skema-dw2-kepuasan-pembaca.png)
-![DW 3](gambar/skema-dw3-keterlambatan.png)
-![Ringkasan tiga DW](gambar/skema-ringkasan-tiga-dw.png)
+![DW 1](../gambar/skema-dw1-peminjaman-buku.png)
+![DW 2](../gambar/skema-dw2-kepuasan-pembaca.png)
+![DW 3](../gambar/skema-dw3-keterlambatan.png)
+![Fact constellation](../gambar/skema-fact-constellation.png)
 
 ## Cara menjalankan
 
