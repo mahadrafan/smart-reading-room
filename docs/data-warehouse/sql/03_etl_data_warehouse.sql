@@ -4,7 +4,7 @@
 --
 -- Strategi : FULL REFRESH. Semua tabel DW dikosongkan lalu diisi ulang dari
 --            database sumber, jadi aman dijalankan berulang kali.
--- Sumber   : basdat_sumber (database sumber dummy dari 00_basdat_sumber.sql, D3).
+-- Sumber   : basdat_sumber (database sumber dummy dari 02_basdat_sumber.sql, D3).
 --            Untuk memakai database aplikasi asli, ganti semua kata
 --            "basdat_sumber" menjadi "basdat_github" (Find & Replace).
 -- Dimensi  : SCD Tipe 1 (data lama ditimpa, riwayat perubahan tidak disimpan).

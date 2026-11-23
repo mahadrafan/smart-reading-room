@@ -25,7 +25,7 @@
 -- dengan indeks unik, hanya untuk penelusuran ke database sumber.
 --
 -- Cara pakai (phpMyAdmin > tab SQL, atau terminal mysql):
---   00_basdat_sumber (database sumber dummy) -> 01_ddl -> 03_etl -> 04_query_analisis
+--   01_ddl -> 02_basdat_sumber (database sumber dummy) -> 03_etl -> 04_query_analisis
 -- Script ini aman dijalankan ulang (tabel dihapus lalu dibuat lagi).
 -- =====================================================================
 

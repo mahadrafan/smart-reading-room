@@ -1,6 +1,6 @@
 # Angka acuan data warehouse
 
-Hasil `03_etl_data_warehouse.sql` (ETL SQL) pada database `basdat_sumber` dari `00_basdat_sumber.sql`,
+Hasil `03_etl_data_warehouse.sql` (ETL SQL) pada database `basdat_sumber` dari `02_basdat_sumber.sql`,
 dengan **TGL_ETL = 22 November 2026** dan **TARIF_DENDA = 1.000**. Diuji 22 November 2026.
 
 Hasil Pentaho (Irma, Isma) dianggap benar bila angka-angkanya sama persis dengan tabel di bawah, dengan
@@ -8,12 +8,12 @@ Hasil Pentaho (Irma, Isma) dianggap benar bila angka-angkanya sama persis dengan
 
 ## Urutan menjalankan
 
-1. `00_basdat_sumber.sql` membuat database sumber dummy `basdat_sumber`.
-2. `01_ddl_data_warehouse.sql` membuat `basdat_dw` (13 tabel, masih kosong).
+1. `sql/01_ddl_data_warehouse.sql` membuat `basdat_dw` (13 tabel, masih kosong).
+2. `sumber-dummy/02_basdat_sumber.sql` membuat database sumber dummy `basdat_sumber`.
 3. Isi DW dengan salah satu cara:
-   - Pentaho (job `job_etl_dw.kjb`), atau
-   - `03_etl_data_warehouse.sql` sebagai acuan.
-4. `04_query_analisis.sql` menjalankan query analisis.
+   - Pentaho (job `pentaho/job_etl_dw.kjb`), atau
+   - `sql/03_etl_data_warehouse.sql` sebagai acuan.
+4. `sql/04_query_analisis.sql` menjalankan query analisis.
 
 Kalau hanya perlu DW yang sudah terisi (misalnya untuk dashboard), cukup impor `basdat_dw_acuan.sql`.
 
