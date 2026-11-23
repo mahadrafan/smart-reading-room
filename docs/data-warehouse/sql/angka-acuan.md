@@ -9,7 +9,7 @@ Hasil Pentaho (Irma, Isma) dianggap benar bila angka-angkanya sama persis dengan
 ## Urutan menjalankan
 
 1. `sql/01_ddl_data_warehouse.sql` membuat `basdat_dw` (13 tabel, masih kosong).
-2. `sumber-dummy/02_basdat_sumber.sql` membuat database sumber dummy `basdat_sumber`.
+2. `sql/02_basdat_sumber.sql` membuat database sumber dummy `basdat_sumber`.
 3. Isi DW dengan salah satu cara:
    - Pentaho (job `pentaho/job_etl_dw.kjb`), atau
    - `sql/03_etl_data_warehouse.sql` sebagai acuan.
@@ -84,4 +84,4 @@ Pola ini berguna untuk memastikan dashboard menampilkan hasil yang masuk akal:
 - **Tiga buku sengaja diberi banyak rating rendah:** book_id 9, 18, 27.
 - **Siswa Kelas 10 baru terdaftar mulai Juli 2025**, sehingga peminjaman mereka baru muncul setelah bulan itu.
 
-Kalau `buat_basdat_sumber.py` dijalankan ulang tanpa mengubah seed, hasilnya tetap sama.
+Data dummy dibuat sekali dengan seed tetap, jadi isi `02_basdat_sumber.sql` sama di semua laptop.

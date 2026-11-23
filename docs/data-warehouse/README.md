@@ -9,8 +9,7 @@ Pembagian tugas dan keputusan kelompok ada di `laporan/Panduan-Pengerjaan-Implem
 
 | Lokasi | Isi | PIC |
 |---|---|---|
-| `sql/` | `01_ddl` (13 tabel `basdat_dw`), `03_etl` (ETL SQL acuan), `04_query_analisis`; nanti `05_view_dashboard.sql` | Rafan, Vincent |
-| `sumber-dummy/` | `02_basdat_sumber.sql` dan generatornya, `basdat_dw_acuan.sql`, `angka-acuan.md` | Rafan |
+| `sql/` | `01_ddl` (13 tabel `basdat_dw`), `02_basdat_sumber` (database sumber dummy), `03_etl` (ETL SQL acuan), `04_query_analisis`, `basdat_dw_acuan.sql`, `angka-acuan.md`; nanti `05_view_dashboard.sql` | Rafan, Vincent |
 | `pentaho/` | `tr_dim_waktu`, `tr_dim_dw1`–`tr_dim_dw3`; nanti `tr_fact_*`, `job_etl_dw.kjb`, `kettle.properties.contoh` | Irma, Isma |
 | `dashboard/` | Berkas atau kode dashboard admin | Vincent, Mako |
 | `laporan/` | Panduan pengerjaan, laporan DW, tangkapan layar, dan skrip pembuat dokumen | Mako |
@@ -20,10 +19,10 @@ Pembagian tugas dan keputusan kelompok ada di `laporan/Panduan-Pengerjaan-Implem
 ## Urutan menjalankan
 
 1. Impor `sql/01_ddl_data_warehouse.sql` (membuat `basdat_dw`, 13 tabel kosong).
-2. Impor `sumber-dummy/02_basdat_sumber.sql` (membuat `basdat_sumber`). Langkah 1 dan 2 boleh tertukar.
+2. Impor `sql/02_basdat_sumber.sql` (membuat `basdat_sumber`). Langkah 1 dan 2 boleh tertukar.
 3. Isi DW lewat Pentaho, atau jalankan `sql/03_etl_data_warehouse.sql` sebagai acuan.
 4. Jalankan `sql/04_query_analisis.sql`.
-5. Cocokkan hasilnya dengan `sumber-dummy/angka-acuan.md`, lalu catat di `log-uji.xlsx`.
+5. Cocokkan hasilnya dengan `sql/angka-acuan.md`, lalu catat di `log-uji.xlsx`.
 
-Untuk dashboard tanpa menunggu Pentaho, cukup impor `sumber-dummy/basdat_dw_acuan.sql`
+Untuk dashboard tanpa menunggu Pentaho, cukup impor `sql/basdat_dw_acuan.sql`
 (jangan di laptop yang dipakai untuk menguji Pentaho, karena nama databasenya sama).

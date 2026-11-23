@@ -4,7 +4,7 @@
 --
 -- Struktur tabel sama dengan database aplikasi `basdat_github`, tetapi
 -- seluruh isinya data dummy FIKTIF. `basdat_github` tidak disentuh.
--- Dibuat otomatis oleh buat_basdat_sumber.py (seed 20261122); jangan diedit manual.
+-- Data dibuat sekali secara deterministik (seed 20261122), sama di semua laptop.
 --
 --   Periode   : 01 January 2025 s.d. 21 November 2026
 --   Isi       : 8 kategori, 40 buku, 30 penulis, 2 admin,
