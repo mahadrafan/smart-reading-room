@@ -44,6 +44,10 @@
                         <span class="menu-angka" data-angka-notif aria-label="{{ $jumlahNotifBaru }} notifikasi belum dibaca">{{ $jumlahNotifBaru }}</span>
                     @endif
                 </a>
+
+                <div class="grup-menu">Analitik</div>
+                <a href="{{ route('admin.dw.index') }}"
+                   class="{{ request()->routeIs('admin.dw.*') ? 'aktif' : '' }}">Dashboard DW</a>
             </nav>
 
             <div class="akun-bawah">

@@ -65,6 +65,21 @@ return [
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
+        'dw' => [
+    'driver' => 'mysql',
+    'host' => env('DB_DW_HOST', '127.0.0.1'),
+    'port' => env('DB_DW_PORT', '3306'),
+    'database' => env('DB_DW_DATABASE', 'basdat_dw'),
+    'username' => env('DB_DW_USERNAME', 'root'),
+    'password' => env('DB_DW_PASSWORD', ''),
+    'charset' => 'utf8mb4',
+    'collation' => 'utf8mb4_general_ci',
+    'prefix' => '',
+    'prefix_indexes' => true,
+    'strict' => true,
+    'engine' => null,
+    'timezone' => env('DB_TIMEZONE', '+07:00'),
+],
 
         'mariadb' => [
             'driver' => 'mariadb',

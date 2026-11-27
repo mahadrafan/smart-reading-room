@@ -13,32 +13,33 @@ use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\PeminjamController as AdminPeminjamController;
 use App\Http\Controllers\Admin\PeminjamanAdminController;
 use App\Http\Controllers\Admin\KategoriPenulisController;
+use App\Http\Controllers\Admin\DwDashboardController;
 use App\Http\Middleware\CekRole;
 use Illuminate\Support\Facades\Route;
 
 // halaman tamu: pengguna yang masih login (termasuk lewat "Ingat saya") langsung diarahkan
 // ke landing page sesuai rolenya (lihat redirectUsersTo di bootstrap/app.php)
 Route::middleware('guest')->group(function () {
-    // halaman perkenalan; tombolnya menuju login / daftar 
+    // halaman perkenalan; tombolnya menuju login / daftar
     Route::get('/', [LandingController::class, 'index'])->name('beranda');
 
-    //  login: satu halaman untuk admin dan peminjam 
+    //  login: satu halaman untuk admin dan peminjam
     Route::get('/login', [AuthController::class, 'formLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.proses');
 
-    //  forgot password / reset password 
+    //  forgot password / reset password
     Route::get('/forgot-password', [AuthController::class, 'formLupaPassword'])->name('password.forgot');
     Route::post('/forgot-password', [AuthController::class, 'prosesLupaPassword'])->name('password.proses');
 
-    //  daftar akun (selalu jadi Peminjam) 
+    //  daftar akun (selalu jadi Peminjam)
     Route::get('/register', [AuthController::class, 'formRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.proses');
 });
 
-//  logout 
+//  logout
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// HALAMAN PEMINJAM (harus login sebagai Peminjam) 
+// HALAMAN PEMINJAM (harus login sebagai Peminjam)
 Route::middleware(CekRole::class . ':Peminjam')->group(function () {
 
     // landing page: katalog buku
@@ -67,12 +68,18 @@ Route::middleware(CekRole::class . ':Peminjam')->group(function () {
     Route::put('/profil/password', [ProfilController::class, 'updatePassword'])->name('profil.password');
 });
 
-// 
+//
 // HALAMAN ADMIN (harus login sebagai Admin)
-// 
+//
 Route::middleware(CekRole::class . ':Admin')->prefix('admin')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'admin'])->name('admin.dashboard');
+
+    // Dashboard analitik data warehouse (membaca basdat_dw)
+    Route::get('/dw', [DwDashboardController::class, 'index'])->name('admin.dw.index');
+    Route::get('/dw/peminjaman', [DwDashboardController::class, 'peminjaman'])->name('admin.dw.peminjaman');
+    Route::get('/dw/kepuasan', [DwDashboardController::class, 'kepuasan'])->name('admin.dw.kepuasan');
+    Route::get('/dw/keterlambatan', [DwDashboardController::class, 'keterlambatan'])->name('admin.dw.keterlambatan');
 
     Route::get('/peminjam', [AdminPeminjamController::class, 'index'])->name('admin.peminjam.index');
 
